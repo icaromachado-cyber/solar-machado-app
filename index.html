@@ -215,171 +215,11 @@ tr:hover td{background:#faf9f5}
 .charts-row{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:22px}
 @media(max-width:900px){.charts-row{grid-template-columns:1fr}}
 </style>
-
-<style>
-/* ══════════════════════════════════════════
-   MOBILE — Menu hamburguer + layout responsivo
-   ══════════════════════════════════════════ */
-
-/* Botão hamburguer — só aparece no mobile */
-.ham-btn {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  padding: 4px;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-.ham-btn span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: var(--az);
-  border-radius: 2px;
-  transition: all .25s;
-}
-.ham-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.ham-btn.open span:nth-child(2) { opacity: 0; }
-.ham-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-/* Overlay escuro quando sidebar aberta */
-.sb-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(30,34,96,.45);
-  z-index: 90;
-}
-.sb-overlay.open { display: block; }
-
-/* Cards de projeto para mobile */
-.proj-cards { display: none; }
-.proj-card {
-  background: var(--br);
-  border-radius: 12px;
-  border: 1px solid #e4e3dc;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-}
-.proj-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.proj-card-nome { font-size: 14px; font-weight: 500; line-height: 1.3; }
-.proj-card-titular { font-size: 11px; color: var(--txts); margin-top: 2px; }
-.proj-card-kwp {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--az);
-  flex-shrink: 0;
-  margin-left: 12px;
-}
-.proj-card-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.proj-card-meta-item { font-size: 11.5px; color: var(--txts); }
-.proj-card-meta-item strong { display: block; font-size: 12.5px; color: var(--txt); font-weight: 500; }
-.proj-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid #f0efe8;
-}
-
-/* KPI grid mobile */
-@media (max-width: 640px) {
-  /* Sidebar escondida por padrão */
-  .sb {
-    transform: translateX(-100%);
-    transition: transform .25s ease;
-    z-index: 100;
-  }
-  .sb.open { transform: translateX(0); }
-
-  /* Main ocupa tela toda */
-  .main { margin-left: 0; }
-
-  /* Hamburguer aparece */
-  .ham-btn { display: flex; }
-
-  /* Topbar ajustada */
-  .topbar { padding: 0 16px; }
-  .tb-title { font-size: 14px; }
-  .btn-y { font-size: 12px; padding: 7px 12px; }
-
-  /* Content padding menor */
-  .content { padding: 16px; }
-
-  /* KPI grid 2 colunas */
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-  .kpi { padding: 14px; }
-  .kpi .kv { font-size: 20px; }
-  .kpi .ki { width: 30px; height: 30px; font-size: 14px; margin-bottom: 8px; }
-
-  /* Charts empilhados */
-  .charts-row { grid-template-columns: 1fr; gap: 10px; }
-  .pv-grid { grid-template-columns: 1fr; }
-
-  /* Tabela de projetos → esconder, mostrar cards */
-  .tw { display: none; }
-  .proj-cards { display: block; }
-
-  /* Pipeline scroll horizontal */
-  .pipeline { gap: 10px; }
-  .pipe-col { flex: 0 0 160px; }
-
-  /* Dashboard últimos chamados + garantias empilhados */
-  #page-dash > div:last-child {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Painel detalhe largura total */
-  .det-panel { width: 100%; }
-
-  /* Modal largura total */
-  .mbox { width: 100%; max-width: 100%; border-radius: 16px 16px 0 0; margin-top: auto; }
-  .mo { align-items: flex-end; }
-
-  /* Filtros empilhados */
-  .fbar { flex-direction: column; }
-  .fs { min-width: unset; }
-
-  /* Leituras grid menor */
-  .leit-row { grid-template-columns: 80px 1fr 70px; gap: 6px; }
-  .leit-row span:nth-child(4),
-  .leit-row span:nth-child(5) { display: none; }
-  .leit-hdr span:nth-child(4),
-  .leit-hdr span:nth-child(5) { display: none; }
-
-  /* Page header */
-  .ph { flex-direction: column; align-items: flex-start; gap: 10px; }
-}
-
-@media (max-width: 400px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .kpi .kv { font-size: 18px; }
-}
-</style>
-
 </head>
 <body>
 
 <!-- SIDEBAR -->
-<div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
-<aside class="sb" id="sidebar">
+<aside class="sb">
   <div class="sb-logo">
     <div class="brand">☀ Solar Machado</div>
     <div class="sub">Pós-Venda & Projetos</div>
@@ -406,9 +246,6 @@ tr:hover td{background:#faf9f5}
 <div class="main">
   <header class="topbar">
     <div class="tb-left">
-      <button class="ham-btn" id="ham-btn" onclick="toggleSidebar()" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
       <div class="tb-title" id="tb-title">Dashboard</div>
     </div>
     <div class="tb-right">
@@ -746,7 +583,6 @@ const ETAPAS = ["Visita","Proposta","Aprovação","Instalação","Ligação","Co
 // NAVEGAÇÃO
 // ══════════════════════════════════════════
 function go(p) {
-  closeSidebar();
   document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p).classList.add('on');
@@ -886,7 +722,6 @@ function renderProjetos() {
 
   const tb = document.getElementById('proj-tb');
   document.getElementById('proj-cnt').textContent = d.length+' projeto(s)';
-  renderProjetosCards(d);
   const hoje = new Date();
   tb.innerHTML = d.map(p=>{
     const ecls = p.etapa==='Concluído'?'bd-ok':p.etapa==='Instalação'||p.etapa==='Ligação'?'bd-am':p.etapa==='Aprovação'?'bd-az':'bd-cz';
@@ -1153,12 +988,10 @@ function saveProjeto(){
     const i=PROJETOS.findIndex(x=>x.id===editProjId);
     if(i>=0){obj.id=editProjId;PROJETOS[i]=obj;}
     toast('Projeto atualizado!','ok');
-    if(typeof fbSaveProjeto==='function') fbSaveProjeto(obj);
   } else {
     obj.id=PROJETOS.length?Math.max(...PROJETOS.map(x=>x.id))+1:1;
     PROJETOS.push(obj);
     toast('Projeto criado!','ok');
-    if(typeof fbSaveProjeto==='function') fbSaveProjeto(obj);
   }
   closeMo('mo-proj');
   renderProjetos();
@@ -1213,8 +1046,6 @@ function saveChamado(){
     CHAMADOS.push(obj);
     toast('Chamado registrado!','ok');
   }
-  const cSaved = editChId ? CHAMADOS.find(x=>x.id===editChId) : CHAMADOS[0];
-  if(cSaved && typeof fbSaveChamado==='function') fbSaveChamado(cSaved);
   closeMo('mo-ch');
   renderChamados();
 }
@@ -1239,7 +1070,6 @@ function saveLeitura(){
   };
   obj.id=LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
   LEITURAS.push(obj);
-  if(typeof fbSaveLeitura==='function') fbSaveLeitura(obj);
   toast('Leitura registrada!','ok');
   closeMo('mo-leit');
   renderLeituras();
@@ -1249,14 +1079,12 @@ function delP(id){
   const p=PROJETOS.find(x=>x.id===id);
   if(!p||!confirm(`Excluir projeto "${p.cliente}"?`))return;
   PROJETOS=PROJETOS.filter(x=>x.id!==id);
-  if(typeof fbDeleteProjeto==='function') fbDeleteProjeto(id);
   renderProjetos();
   toast('Excluído.');
 }
 
 function delCh(id){
   if(!confirm('Excluir chamado?'))return;
-  if(typeof fbDeleteChamado==='function') fbDeleteChamado(id);
   CHAMADOS=CHAMADOS.filter(x=>x.id!==id);
   renderChamados();
   toast('Chamado excluído.');
@@ -1367,122 +1195,60 @@ function initFirebaseListeners() {
 
 // ── Patches nas funções existentes para salvar no Firebase ──
 
-// [override removido]
+// Override saveProjeto
+const _origSaveProjeto = saveProjeto;
+saveProjeto = function() {
+  _origSaveProjeto();
+  // Pega o projeto recém salvo e sincroniza
+  setTimeout(() => {
+    const p = editProjId ? PROJETOS.find(x => x.id === editProjId) : PROJETOS[PROJETOS.length - 1];
+    if (p) fbSaveProjeto(p);
+  }, 100);
+};
 
-// [override removido]
+// Override delP
+const _origDelP = delP;
+delP = function(id) {
+  if (!confirm('Excluir projeto?')) return;
+  fbDeleteProjeto(id);
+  PROJETOS = PROJETOS.filter(x => x.id !== id);
+  renderProjetos();
+  toast('Excluído.');
+};
 
-// [override removido]
+// Override saveChamado
+const _origSaveChamado = saveChamado;
+saveChamado = function() {
+  _origSaveChamado();
+  setTimeout(() => {
+    const c = CHAMADOS[0];
+    if (c) fbSaveChamado(c);
+  }, 100);
+};
 
-// [override removido]
+// Override delCh
+const _origDelCh = delCh;
+delCh = function(id) {
+  if (!confirm('Excluir chamado?')) return;
+  fbDeleteChamado(id);
+  CHAMADOS = CHAMADOS.filter(x => x.id !== id);
+  renderChamados();
+  toast('Chamado excluído.');
+};
 
-// [override removido]
+// Override saveLeitura
+const _origSaveLeitura = saveLeitura;
+saveLeitura = function() {
+  _origSaveLeitura();
+  setTimeout(() => {
+    const l = LEITURAS[LEITURAS.length - 1];
+    if (l) fbSaveLeitura(l);
+  }, 100);
+};
 
 // Iniciar listeners assim que a página carregar
 window.addEventListener('load', () => {
   setTimeout(initFirebaseListeners, 500);
-});
-
-
-// ══════════════════════════════════════════
-// MOBILE — hamburguer + cards de projeto
-// ══════════════════════════════════════════
-
-function toggleSidebar() {
-  const sb = document.getElementById('sidebar');
-  const btn = document.getElementById('ham-btn');
-  const ov = document.getElementById('sb-overlay');
-  const open = sb.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  ov.classList.toggle('open', open);
-  document.body.style.overflow = open ? 'hidden' : '';
-}
-
-function closeSidebar() {
-  const sb = document.getElementById('sidebar');
-  const btn = document.getElementById('ham-btn');
-  const ov = document.getElementById('sb-overlay');
-  sb.classList.remove('open');
-  btn.classList.remove('open');
-  ov.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// [removido - integrado diretamente]
-
-// Renderizar cards de projeto para mobile
-function renderProjetosCards(data) {
-  const hoje = new Date();
-  let container = document.getElementById('proj-cards-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'proj-cards-container';
-    container.className = 'proj-cards';
-    // Inserir após o .tw de projetos
-    const tw = document.querySelector('#page-projetos .tw');
-    if (tw) tw.parentNode.insertBefore(container, tw.nextSibling);
-  }
-
-  if (!data || !data.length) {
-    container.innerHTML = '<div class="empty"><div class="ei">☀</div><p>Nenhum projeto encontrado.</p></div>';
-    return;
-  }
-
-  container.innerHTML = data.map(p => {
-    const ecls = p.etapa === 'Concluído' ? 'bd-ok' : p.etapa === 'Instalação' || p.etapa === 'Ligação' ? 'bd-am' : p.etapa === 'Aprovação' ? 'bd-az' : 'bd-cz';
-    const di = p.dataInicio ? fmt_data(p.dataInicio) : '—';
-    const dl = p.dataLigacao ? fmt_data(p.dataLigacao) : '—';
-    let garStr = '—', garCls = 'bd-cz';
-    if (p.dataLigacao) {
-      const fim = new Date(p.dataLigacao); fim.setFullYear(fim.getFullYear() + 5);
-      const dias = Math.round((fim - hoje) / (1000 * 60 * 60 * 24));
-      if (dias > 365) { garStr = Math.round(dias/365) + 'a restantes'; garCls = 'bd-ok'; }
-      else if (dias > 0) { garStr = dias + 'd'; garCls = 'bd-am'; }
-      else { garStr = 'Vencida'; garCls = 'bd-er'; }
-    }
-    return \`<div class="proj-card">
-      <div class="proj-card-top">
-        <div>
-          <div class="proj-card-nome">\${esc(p.cliente)}</div>
-          <div class="proj-card-titular">\${esc(p.nome.split(' ').slice(0,3).join(' '))}</div>
-        </div>
-        <div class="proj-card-kwp">\${p.kwp.toFixed(1)} kWp</div>
-      </div>
-      <div class="proj-card-meta">
-        <div class="proj-card-meta-item">Inversor<strong>\${esc(p.inversor)} \${esc(p.potInv)}</strong></div>
-        <div class="proj-card-meta-item">Módulos<strong>\${p.modulos}x \${p.wpMod}Wp</strong></div>
-        <div class="proj-card-meta-item">Início<strong>\${di}</strong></div>
-        <div class="proj-card-meta-item">Ligação<strong>\${dl}</strong></div>
-      </div>
-      <div class="proj-card-footer">
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <span class="bd \${ecls}">\${p.etapa}</span>
-          \${garStr !== '—' ? \`<span class="bd \${garCls}" style="font-size:10px">\${garStr}</span>\` : ''}
-        </div>
-        <div class="ab">
-          <button class="bi v" onclick="openPanel(\${p.id})">👁</button>
-          <button class="bi e" onclick="openModalProjeto(\${p.id})">✎</button>
-          <button class="bi d" onclick="delP(\${p.id})">✕</button>
-        </div>
-      </div>
-    </div>\`;
-  }).join('');
-}
-
-// [removido - integrado diretamente]
-  // Pegar dados filtrados
-  const q = (document.getElementById('pq')?.value || '').toLowerCase();
-  const st = document.getElementById('pst')?.value || '';
-  const or = document.getElementById('por')?.value || 'id';
-  let d = [...PROJETOS].filter(p => {
-    const m = !q || [p.nome, p.cliente, p.uc, p.montador, p.inversor].join(' ').toLowerCase().includes(q);
-    const s = !st || p.etapa === st;
-    return m && s;
-  });
-// [removido - duplicado]
-
-// Inicializar cards na primeira carga
-window.addEventListener('load', () => {
-  setTimeout(() => renderProjetosCards(PROJETOS), 600);
 });
 
 </script>
