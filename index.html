@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Solar Machado — Pós-Venda & Projetos</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -466,8 +467,14 @@ tr:hover td{background:#faf9f5}
         <h2>🗺 Mapa de Clientes</h2>
         <div style="font-size:13px;color:var(--txts)" id="mapa-cnt"></div>
       </div>
-      <div style="border-radius:12px;overflow:hidden;border:1px solid #e4e3dc;margin-bottom:16px">
-        <iframe id="mapa-iframe" style="width:100%;height:460px;border:none;display:block" src="https://www.openstreetmap.org/export/embed.html?bbox=-42.9%2C-5.15%2C-42.7%2C-4.95&layer=mapnik"></iframe>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid #e4e3dc;margin-bottom:16px;position:relative">
+        <div id="mapa-leaflet" style="width:100%;height:460px;border-radius:12px"></div>
+        <div id="mapa-infobar" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(46,52,134,.92);color:#fff;padding:8px 18px;border-radius:20px;font-size:12.5px;font-weight:500;z-index:999;white-space:nowrap;pointer-events:none;display:none"></div>
+        <div id="mapa-loading" style="position:absolute;inset:0;background:rgba(255,255,255,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:998;border-radius:12px">
+          <div style="font-size:32px;margin-bottom:10px">🗺️</div>
+          <div style="font-size:13px;color:#2E3486;font-weight:500" id="mapa-loading-txt">Aguardando dados…</div>
+          <div style="font-size:11px;color:#5a5b6e;margin-top:4px" id="mapa-loading-sub"></div>
+        </div>
       </div>
       <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az);margin-bottom:12px">Clientes com localização cadastrada</div>
       <div id="mapa-lista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px"></div>
@@ -1476,5 +1483,6 @@ openDet = function(id) {
 };
 
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
