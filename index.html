@@ -804,24 +804,45 @@ function renderPipeline() {
 }
 
 function renderProjetos() {
-  const q = document.getElementById('f-proj').value.toLowerCase();
-  const filtered = PROJETOS.filter(p => (p.cliente||'').toLowerCase().includes(q) || (p.cpf||'').includes(q));
-  document.getElementById('b-projetos').innerHTML = filtered.map(p => `
-    <tr>
+  atualizarContadoresAbas();
+  const q = (document.getElementById('f-proj')?.value || '').toLowerCase();
+  const filtered = PROJETOS.filter(p => {
+    const matchQ = !q || (p.cliente||'').toLowerCase().includes(q)
+      || (p.cpf||'').includes(q) || (p.uc||'').includes(q);
+    const matchE = !etapaTabAtual || p.etapa === etapaTabAtual;
+    return matchQ && matchE;
+  });
+
+  document.getElementById('b-projetos').innerHTML = filtered.map(p => {
+    const wppNum = (p.tel||'').replace(/\D/g,'');
+    const wppLink = wppNum
+      ? `<a href="https://wa.me/${wppNum}" target="_blank" class="wpp-link" onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4zm-7.4 16.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5s2.5 3.7 2.5 6c0 4.7-3.8 8.5-8.4 8.5zm4.6-6.3c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.2-.7.7-1 1.5-1 2.4 0 .9.6 1.8 1.3 2.5 1.4 1.7 3.2 2.9 5.2 3.5 1.5.4 2.1.1 2.5-.2.4-.3 1-1.2 1.2-1.7.2-.5.2-.9.1-1z" fill="white"/></svg>
+          ${p.tel}
+        </a>`
+      : '';
+    return `<tr>
       <td>#${p.id}</td>
-      <td>${p.cliente}</td>
-      <td>${p.kwp}</td>
+      <td>
+        <div class="td-cli-wrap">
+          <span class="td-cli-name">${p.cliente || '—'}</span>
+          ${wppLink}
+        </div>
+      </td>
+      <td>${p.kwp} kWp</td>
       <td>${p.etapa}</td>
       <td>${fmt_data(p.dataLigacao)}</td>
       <td>
         <div class="ab">
           <button class="bi v" onclick="openDet(${p.id})" title="Visualizar">👁</button>
           <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
-          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Abrir Chamado">🛠</button>
+          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Chamado">🛠</button>
         </div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
+
+  if (typeof renderProjetosCards === 'function') renderProjetosCards(filtered);
 }
 
 function renderChamados() {
@@ -1120,17 +1141,7 @@ function renderProjetosCards(data) {
   }).join('');
 }
 
-// Patch renderProjetos para chamar cards no mobile
-const _rpOrig = renderProjetos;
-renderProjetos = function() {
-  _rpOrig();
-  const q = (document.getElementById('f-proj')?.value || '').toLowerCase();
-  const filtered = PROJETOS.filter(p =>
-    (p.cliente||'').toLowerCase().includes(q) ||
-    (p.cpf||'').includes(q)
-  );
-  renderProjetosCards(filtered);
-};
+
 
 // Ajustar charts para mobile (aspectRatio)
 function getChartAspectRatio(tipo) {
@@ -1186,44 +1197,7 @@ function atualizarContadoresAbas() {
 }
 
 // Patch renderProjetos para filtrar por aba
-const _rpOrigEtapa = renderProjetos;
-renderProjetos = function() {
-  atualizarContadoresAbas();
-  const q = (document.getElementById('f-proj')?.value || '').toLowerCase();
-  let filtered = PROJETOS.filter(p => {
-    const matchQ = !q || (p.cliente||'').toLowerCase().includes(q) || (p.cpf||'').includes(q) || (p.uc||'').includes(q);
-    const matchE = !etapaTabAtual || p.etapa === etapaTabAtual;
-    return matchQ && matchE;
-  });
 
-  // Renderizar tabela
-  document.getElementById('b-projetos').innerHTML = filtered.map(p => {
-    const wppNum = (p.tel||'').replace(/\D/g,'');
-    const wppLink = wppNum ? `<a href="https://wa.me/${wppNum}" target="_blank" class="wpp-link" onclick="event.stopPropagation()" title="Abrir WhatsApp"><svg width="13" height="13" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4zm-7.4 16.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5s2.5 3.7 2.5 6c0 4.7-3.8 8.5-8.4 8.5zm4.6-6.3c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.2-.7.7-1 1.5-1 2.4 0 .9.6 1.8 1.3 2.5 1.4 1.7 3.2 2.9 5.2 3.5 1.5.4 2.1.1 2.5-.2.4-.3 1-1.2 1.2-1.7.2-.5.2-.9.1-1z" fill="white"/></svg> WhatsApp</a>` : '';
-    return \`<tr>
-      <td>#\${p.id}</td>
-      <td>
-        <div class="td-cli-wrap">
-          <span class="td-cli-name">\${p.cliente || '—'}</span>
-          \${wppLink}
-        </div>
-      </td>
-      <td>\${p.kwp} kWp</td>
-      <td>\${p.etapa}</td>
-      <td>\${fmt_data(p.dataLigacao)}</td>
-      <td>
-        <div class="ab">
-          <button class="bi v" onclick="openDet(\${p.id})" title="Visualizar">👁</button>
-          <button class="bi e" onclick="openEditProj(\${p.id})" title="Editar">✎</button>
-          <button class="bi ch" onclick="openModalChamado(\${p.id})" title="Abrir Chamado">🛠</button>
-        </div>
-      </td>
-    </tr>\`;
-  }).join('');
-
-  // Cards mobile
-  if (typeof renderProjetosCards === 'function') renderProjetosCards(filtered);
-};
 
 // ══════════════════════════════════════════
 // LOCALIZAÇÃO — Buscar coordenadas pelo endereço
