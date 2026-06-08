@@ -126,6 +126,7 @@ tr:hover td{background:#faf9f5}
 .pipe-body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100vh - 250px);overflow-y:auto}
 .pcard{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:14px;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
 .pcard:hover{border-color:var(--az3);box-shadow:0 4px 12px rgba(46,52,134,0.1);transform:translateY(-2px)}
+.pcard-obs{font-size:11px;color:var(--txts);margin-top:6px;padding-top:6px;border-top:1px solid #f0efe8;line-height:1.4;font-style:italic}
 .pcard.dragging{opacity:0.5;border:2px dashed var(--az)}
 .pcard .pcn{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px;color:var(--az)}
 .pcard .pcs{font-size:11.5px;color:var(--txts);display:flex;justify-content:space-between;align-items:center}
@@ -186,24 +187,79 @@ tr:hover td{background:#faf9f5}
 /* ── RESPONSIVIDADE ── */
 @media(max-width:960px){
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .charts-row{grid-template-columns: 1fr;}
+  .charts-row{grid-template-columns:1fr}
 }
 @media(max-width:768px){
-  :root{ --sw: 0px; }
-  .sb{ transform: translateX(-250px); width: 250px; }
-  .sb.open{ transform: translateX(0); }
-  .sb-overlay.open{ display: block; }
-  .main{ margin-left: 0; width: 100%; }
-  .menu-toggle{ display: block; }
-  .topbar{ padding: 0 16px; }
-  .content{ padding: 16px; }
-  .kpi-grid{ grid-template-columns: 1fr; }
-  .det-panel{ width: 100%; }
-  .mbox{ width: 100%; border-radius: 0; height: 100vh; max-height: 100vh; }
-  .pipeline{ padding-right: 20px; }
-  .pipe-col{ flex: 0 0 260px; }
+  :root{ --sw:0px }
+  .sb{ transform:translateX(-260px);width:260px }
+  .sb.open{ transform:translateX(0) }
+  .sb-overlay.open{ display:block }
+  .main{ margin-left:0;width:100% }
+  .menu-toggle{ display:block }
+  .topbar{ padding:0 16px }
+  .tb-title{ font-size:14px }
+  .content{ padding:14px }
+  .kpi-grid{ grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px }
+  .kpi{ padding:13px 14px }
+  .kpi .kv{ font-size:20px }
+  .kpi .ki{ width:30px;height:30px;font-size:14px;margin-bottom:7px }
+
+  /* Tabela projetos → ocultar, mostrar cards */
+  #t-projetos{ display:none }
+  .proj-cards-mobile{ display:flex;flex-direction:column;gap:10px }
+
+  /* Charts menor altura */
+  .chart-wrap{ height:180px !important }
+  .charts-row .card{ padding:14px }
+
+  /* Painel detalhe fullscreen */
+  .det-panel{ width:100%;border-radius:0 }
+
+  /* Modal sobe do bottom */
+  .mo{ align-items:flex-end }
+  .mbox{ width:100%;border-radius:16px 16px 0 0;max-height:92vh }
+
+  /* Filtros empilhados */
+  .fbar{ flex-direction:column }
+  .fs{ min-width:unset }
+
+  /* Pipeline */
+  .pipeline{ padding-right:16px }
+  .pipe-col{ flex:0 0 200px }
+
+  /* Chamados tabela scroll */
+  .tw{ overflow-x:auto }
+  table{ min-width:600px }
+  #t-projetos{ min-width:unset }
+}
+@media(max-width:420px){
+  .kpi-grid{ grid-template-columns:1fr 1fr }
+  .kpi .kv{ font-size:18px }
+  .btn-y{ font-size:12px;padding:7px 11px }
 }
 </style>
+
+<style>
+/* Cards de projeto mobile */
+.proj-card-mob{
+  background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px
+}
+.pcm-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.pcm-nome{font-size:14px;font-weight:500;line-height:1.3}
+.pcm-sub{font-size:11px;color:var(--txts);margin-top:2px}
+.pcm-kwp{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--az);flex-shrink:0;margin-left:12px}
+.pcm-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.pcm-item{font-size:11.5px;color:var(--txts)}
+.pcm-item strong{display:block;font-size:12.5px;color:var(--txt);font-weight:500;margin-top:1px}
+.pcm-foot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #f0efe8}
+.bd{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.bd-ok{background:#e1f5ee;color:#085041}
+.bd-am{background:#faeeda;color:#854f0b}
+.bd-az{background:#eef0ff;color:#2E3486}
+.bd-cz{background:#f0efe8;color:#5a5b6e}
+.bd-er{background:#fdf0ec;color:#D85A30}
+</style>
+
 </head>
 <body>
 
@@ -264,11 +320,11 @@ tr:hover td{background:#faf9f5}
       <div class="charts-row">
         <div class="card">
           <div class="ph" style="margin-bottom:12px"><h2>Geração Total (kWh)</h2></div>
-          <div class="chart-container"><canvas id="chart-mes"></canvas></div>
+          <div class="chart-container"><div class="chart-wrap" style="position:relative;height:200px"><canvas id="chart-mes"></canvas></div></div>
         </div>
         <div class="card">
           <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
-          <div class="chart-container"><canvas id="chart-status"></canvas></div>
+          <div class="chart-container"><div class="chart-wrap" style="position:relative;height:200px"><canvas id="chart-status"></canvas></div></div>
         </div>
       </div>
 
@@ -313,6 +369,7 @@ tr:hover td{background:#faf9f5}
           </thead>
           <tbody id="b-projetos"></tbody>
         </table>
+        <div class="proj-cards-mobile" id="proj-cards-mobile" style="display:none"></div>
       </div>
     </div>
 
@@ -624,9 +681,43 @@ function renderCharts() {
   const ctxS = document.getElementById('chart-status');
   if(!ctxM || !ctxS) return;
   if(chDM) chDM.destroy(); if(chDS) chDS.destroy();
-  chDM = new Chart(ctxM, { type:'line', data:{ labels:["Jan","Fev","Mar","Abr","Mai","Jun"], datasets:[{label:'kWh',data:[2800,3100,4200,3800,5200,4800],borderColor:'#2E3486',fill:true,tension:.4}] }, options:{responsive:true,maintainAspectRatio:false} });
+  const mob = window.innerWidth <= 768;
+
+  // Calcular projetos por mês real
+  const mmap = {};
+  PROJETOS.forEach(p => {
+    if (!p.dataInicio) return;
+    const m = p.dataInicio.slice(0,7);
+    mmap[m] = (mmap[m]||0)+1;
+  });
+  const mkeys = Object.keys(mmap).sort().slice(-6);
+  const mlabels = mkeys.map(k => {
+    const [y,mo] = k.split('-');
+    return ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo]+'/'+y.slice(2);
+  });
+
+  chDM = new Chart(ctxM, {
+    type:'bar',
+    data:{ labels:mlabels, datasets:[{label:'Projetos',data:mkeys.map(k=>mmap[k]),backgroundColor:'#2E3486',borderRadius:5,borderSkipped:false}] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{beginAtZero:true,ticks:{stepSize:1,font:{size:mob?9:10}},grid:{color:'#f0efe8'}},
+        x:{ticks:{font:{size:mob?9:10},maxRotation:mob?40:0},grid:{display:false}}
+      }
+    }
+  });
+
   const stCounts = ETAPAS.map(e => PROJETOS.filter(p=>p.etapa===e).length);
-  chDS = new Chart(ctxS, { type:'doughnut', data:{ labels:ETAPAS, datasets:[{data:stCounts,backgroundColor:['#EDECE5','#d3d1c7','#b5d4f4','#4a52c8','#FDC300','#1D9E75']}] }, options:{responsive:true,maintainAspectRatio:false} });
+  chDS = new Chart(ctxS, {
+    type:'doughnut',
+    data:{ labels:ETAPAS, datasets:[{data:stCounts,backgroundColor:['#EDECE5','#d3d1c7','#b5d4f4','#4a52c8','#FDC300','#1D9E75'],borderWidth:0}] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:mob?10:11},padding:mob?6:10,boxWidth:mob?10:12}}}
+    }
+  });
 }
 
 function renderPipeline() {
@@ -643,6 +734,7 @@ function renderPipeline() {
               <div class="pcn">${p.cliente}</div>
               <div class="pcs"><span>${p.kwp} kWp</span></div>
               <span class="pckwp">R$ ${fmt(p.valor)}</span>
+              ${p.obs ? `<div class="pcard-obs">📝 ${p.obs.length > 60 ? p.obs.slice(0,60)+'…' : p.obs}</div>` : ''}
             </div>
           `).join('')}
         </div>
@@ -720,7 +812,13 @@ function openDet(id) {
       <div class="det-row"><span>Nascimento</span><span>${fmt_data(p.dataNascimento)}</span></div>
       <div class="det-row"><span>Beneficiário</span><span>${p.possuiBeneficiario || 'Não'}</span></div>
       <div class="det-row"><span>Potência</span><span>${p.kwp} kWp</span></div>
+      <div class="det-row"><span>Início</span><span>${fmt_data(p.dataInicio)}</span></div>
+      <div class="det-row"><span>Ligação</span><span>${fmt_data(p.dataLigacao)}</span></div>
     </div>
+    ${p.obs ? `<div class="det-sec">
+      <div class="det-sec-ttl">📝 Observações Internas</div>
+      <div style="font-size:13px;line-height:1.6;color:var(--txt);background:#faf9f5;border-radius:8px;padding:12px 14px;border-left:3px solid var(--am)">${p.obs}</div>
+    </div>` : ''}
     <div class="det-sec">
       <div class="det-sec-ttl">Histórico de Chamados</div>
       ${hist.map(c=>`<div class="hist-item"><div class="hist-hdr"><span class="hist-tipo">${c.tipo}</span><span class="hist-data">${fmt_data(c.data)}</span></div><div class="hist-desc">${c.desc}</div></div>`).join('') || '<div class="empty">Sem histórico.</div>'}
@@ -769,6 +867,9 @@ function openEditProj(id) {
   document.getElementById('p-kwp').value = p.kwp || '';
   document.getElementById('p-val').value = p.valor || '';
   document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
+  document.getElementById('p-dini').value = p.dataInicio || '';
+  document.getElementById('p-dlig').value = p.dataLigacao || '';
+  document.getElementById('p-obs').value = p.obs || '';
   closeDet(); document.getElementById('mo-proj').classList.add('open'); setTab(0);
 }
 
@@ -846,6 +947,100 @@ function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});
 function toast(msg,type){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>{t.className='toast';},2800);}
 
 window.addEventListener('load', () => { setTimeout(initFirebaseListeners, 500); });
+
+// ══════════════════════════════════════════
+// MOBILE — Cards de projetos + charts responsivos
+// ══════════════════════════════════════════
+
+function isMobile() { return window.innerWidth <= 768; }
+
+function renderProjetosCards(data) {
+  const container = document.getElementById('proj-cards-mobile');
+  const tabela = document.getElementById('t-projetos');
+  if (!container) return;
+
+  if (isMobile()) {
+    tabela.style.display = 'none';
+    container.style.display = 'flex';
+  } else {
+    tabela.style.display = '';
+    container.style.display = 'none';
+    return;
+  }
+
+  if (!data || !data.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#5a5b6e;font-size:13px">Nenhum projeto encontrado.</div>';
+    return;
+  }
+
+  const etapaCor = {
+    'Concluído':'bd-ok','Instalação':'bd-am','Ligação':'bd-am',
+    'Aprovação':'bd-az','Proposta':'bd-cz','Visita':'bd-cz'
+  };
+
+  container.innerHTML = data.map(p => {
+    const cls = etapaCor[p.etapa] || 'bd-cz';
+    const dl = p.dataLigacao ? fmt_data(p.dataLigacao) : '—';
+    const di = p.dataInicio ? fmt_data(p.dataInicio) : '—';
+    return `<div class="proj-card-mob">
+      <div class="pcm-top">
+        <div>
+          <div class="pcm-nome">${p.cliente || '—'}</div>
+          <div class="pcm-sub">#${p.id} · ${p.estado || 'PI'} · ${p.montador || '—'}</div>
+        </div>
+        <div class="pcm-kwp">${(+p.kwp||0).toFixed(1)}<span style="font-size:11px;font-weight:400"> kWp</span></div>
+      </div>
+      <div class="pcm-meta">
+        <div class="pcm-item">Inversor<strong>${p.inversor || '—'} ${p.potInv || ''}</strong></div>
+        <div class="pcm-item">Módulos<strong>${p.modulos || '—'}x ${p.wpMod || '—'}Wp</strong></div>
+        <div class="pcm-item">Início<strong>${di}</strong></div>
+        <div class="pcm-item">Ligação<strong>${dl}</strong></div>
+      </div>
+      <div class="pcm-foot">
+        <span class="bd ${cls}">${p.etapa}</span>
+        <div class="ab">
+          <button class="bi v" onclick="openDet(${p.id})" title="Ver">👁</button>
+          <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
+          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Chamado">🛠</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Patch renderProjetos para chamar cards no mobile
+const _rpOrig = renderProjetos;
+renderProjetos = function() {
+  _rpOrig();
+  const q = (document.getElementById('f-proj')?.value || '').toLowerCase();
+  const filtered = PROJETOS.filter(p =>
+    (p.cliente||'').toLowerCase().includes(q) ||
+    (p.cpf||'').includes(q)
+  );
+  renderProjetosCards(filtered);
+};
+
+// Ajustar charts para mobile (aspectRatio)
+function getChartAspectRatio(tipo) {
+  if (!isMobile()) return tipo === 'doughnut' ? 1.6 : 2;
+  return tipo === 'doughnut' ? 1.2 : 1.6;
+}
+
+// Remontar charts ao girar tela
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    renderCharts();
+    renderProjetosCards(PROJETOS);
+  }, 250);
+});
+
+// Inicializar cards na primeira carga
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => renderProjetosCards(PROJETOS), 800);
+});
+
 </script>
 </body>
 </html>
