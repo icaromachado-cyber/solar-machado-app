@@ -570,66 +570,78 @@ function toggleMenu(force) {
 }
 
 // ══════════════════════════════════════════
-// DADOS: 35 PROJETOS REAIS
+// DADOS INICIAIS (Serão sobrescritos pelo Firebase se existirem)
 // ══════════════════════════════════════════
-let PROJETOS = [
-  {id:1,nome:"Marcelo-Eugenio Carvalho do Rego Monteiro",cpf:"156.370.933-34",cliente:"Marcelo-Eugenio",tel:"86999772559",uc:"3002094435",estado:"PI",kwp:12.20,valor:24500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"12 KW",modulos:20,wpMod:610,dataInicio:"2025-08-13",dataLigacao:"2025-09-24",producaoMensal:1800,obs:""},
-  {id:2,nome:"Raimunda Fabiana Sousa Alvarenga",cpf:"033.699.403-61",cliente:"Raimunda Fabiana",tel:"86994461504",uc:"14614340",estado:"PI",kwp:4.27,valor:10000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"3 KW",modulos:7,wpMod:610,dataInicio:"2025-08-14",dataLigacao:"2025-09-16",producaoMensal:500,obs:""},
-  {id:3,nome:"Dailton da Silva De Castro",cpf:"701.824.183-91",cliente:"Dailton Castro",tel:"88994600284",uc:"3019138584",estado:"MA",kwp:7.50,valor:16000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:13,wpMod:610,dataInicio:"2025-08-18",dataLigacao:"2025-09-29",producaoMensal:1000,obs:""},
-  {id:4,nome:"Cleildes Pereira da Silva Otavio",cpf:"024.406.753-85",cliente:"Rennee Anderson",tel:"86994668565",uc:"10218580",estado:"PI",kwp:7.93,valor:15800,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:13,wpMod:610,dataInicio:"2025-08-18",dataLigacao:"2025-09-29",producaoMensal:1000,obs:""},
-  {id:5,nome:"Paulo Afonso Marques",cpf:"037.126.613-04",cliente:"Raquel Marques",tel:"86988638488",uc:"3004756184",estado:"PI",kwp:7.93,valor:15000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:13,wpMod:610,dataInicio:"2025-08-25",dataLigacao:"2025-09-16",producaoMensal:1000,obs:""},
-  {id:6,nome:"Isabel Maria Lima",cpf:"693.179.763-87",cliente:"Roberta/BETO",tel:"86994605323",uc:"6346200",estado:"PI",kwp:14.64,valor:26500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:24,wpMod:610,dataInicio:"2025-09-04",dataLigacao:"2025-10-08",producaoMensal:1800,obs:""},
-  {id:7,nome:"Francisco Ricardo Calisto de Morais",cpf:"716.099.463-91",cliente:"Paulo Victor",tel:"86999841634",uc:"186481",estado:"PI",kwp:15.79,valor:27000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:27,wpMod:585,dataInicio:"2025-09-29",dataLigacao:"2025-11-07",producaoMensal:2000,obs:""},
-  {id:8,nome:"Rafael Alves Martins",cpf:"026.257.393-80",cliente:"Andresa",tel:"86994414809",uc:"3004958860",estado:"PI",kwp:12.28,valor:22000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:21,wpMod:585,dataInicio:"2025-09-29",dataLigacao:"2025-11-18",producaoMensal:1500,obs:""},
-  {id:9,nome:"Inácio Rocha Pita Neto",cpf:"077.559.363-09",cliente:"Ernanes",tel:"89994581288",uc:"3004710010",estado:"PI",kwp:15.79,valor:27000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:27,wpMod:585,dataInicio:"2025-09-29",dataLigacao:"2025-11-11",producaoMensal:2000,obs:""},
-  {id:10,nome:"Djames Silva Bona",cpf:"553.559.863-15",cliente:"Djames",tel:"86994310104",uc:"5766702",estado:"PI",kwp:6.44,valor:13500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"5 KW",modulos:11,wpMod:585,dataInicio:"2025-10-06",dataLigacao:"2025-11-18",producaoMensal:800,obs:""},
-  {id:11,nome:"Fabiano de Cristo Pereira da Silva",cpf:"014.539.803-00",cliente:"Fabiano",tel:"86999243684",uc:"560340",estado:"PI",kwp:6.44,valor:14000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"5 KW",modulos:11,wpMod:585,dataInicio:"2025-10-07",dataLigacao:"2025-11-12",producaoMensal:800,obs:""},
-  {id:12,nome:"Edilene Carvalho Santos",cpf:"199.909.523-53",cliente:"Edilene",tel:"86999240094",uc:"560332",estado:"PI",kwp:8.40,valor:16000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:600,dataInicio:"2025-10-20",dataLigacao:"2025-11-24",producaoMensal:1000,obs:""},
-  {id:13,nome:"José Alberto de Sousa",cpf:"553.679.093-53",cliente:"Zé Alberto",tel:"86999913577",uc:"1918184",estado:"PI",kwp:8.40,valor:16000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:600,dataInicio:"2025-10-20",dataLigacao:"2025-11-24",producaoMensal:1000,obs:""},
-  {id:14,nome:"Sebastião Pereira Neves Filho",cpf:"552.603.493-34",cliente:"Sebastião",tel:"86988082845",uc:"13759043",estado:"PI",kwp:8.40,valor:15000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:14,wpMod:600,dataInicio:"2025-10-21",dataLigacao:"2025-11-12",producaoMensal:1000,obs:""},
-  {id:15,nome:"Vivian Mendes",cpf:"692.039.381-68",cliente:"Jorge Aldo",tel:"86988015363",uc:"3001504770",estado:"PI",kwp:6.44,valor:13500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"5 KW",modulos:11,wpMod:600,dataInicio:"2025-10-22",dataLigacao:"2025-11-27",producaoMensal:800,obs:""},
-  {id:16,nome:"Jesus Jefferson Sampaio Mesquita",cpf:"062.268.123-03",cliente:"Jefferson",tel:"86994691929",uc:"3004767313",estado:"PI",kwp:27.70,valor:44500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"20 KW",modulos:46,wpMod:615,dataInicio:"2025-11-04",dataLigacao:"2025-12-19",producaoMensal:3500,obs:""},
-  {id:17,nome:"Maria do Socorro Conrado",cpf:"479.371.653-91",cliente:"Maria do Socorro",tel:"86999143727",uc:"544493",estado:"PI",kwp:6.80,valor:14500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:615,dataInicio:"2025-11-10",dataLigacao:"2025-12-18",producaoMensal:800,obs:""},
-  {id:18,nome:"Edilando Barroso de Oliveira",cpf:"229.053.243-68",cliente:"Ediliano",tel:"86999610202",uc:"9917446",estado:"PI",kwp:7.40,valor:12000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:21,wpMod:600,dataInicio:"2025-11-12",dataLigacao:"2025-12-19",producaoMensal:900,obs:""},
-  {id:19,nome:"Maria Nerina Pessoa Castelo Branco",cpf:"022.850.453-87",cliente:"Maria de Fatima",tel:"86988133462",uc:"888559",estado:"PI",kwp:7.40,valor:15999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:12,wpMod:700,dataInicio:"2025-11-18",dataLigacao:"2025-12-19",producaoMensal:1000,obs:""},
-  {id:20,nome:"Ediane Pereira Barros",cpf:"026.647.383-05",cliente:"Ediane",tel:"86988717033",uc:"3008181810",estado:"MA",kwp:6.80,valor:12500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:10,wpMod:700,dataInicio:"2025-11-20",dataLigacao:"2025-12-19",producaoMensal:800,obs:""},
-  {id:21,nome:"Regina Lucia da Silva Cruz",cpf:"151.391.233-04",cliente:"Dona Regina",tel:"86994138148",uc:"1085778",estado:"PI",kwp:4.20,valor:9999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"15 KW",modulos:35,wpMod:560,dataInicio:"2025-11-26",dataLigacao:"2026-01-01",producaoMensal:500,obs:""},
-  {id:22,nome:"Maltide Machado Vieira",cpf:"305.744.983-20",cliente:"Maltide",tel:"86994018659",uc:"200315658",estado:"PI",kwp:8.40,valor:15999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:12,wpMod:700,dataInicio:"2025-11-27",dataLigacao:"2025-12-19",producaoMensal:1000,obs:""},
-  {id:23,nome:"Roberto Barbosa de Miranda",cpf:"428.778.303-49",cliente:"Roberto",tel:"86988931792",uc:"3005063387",estado:"PI",kwp:7.00,valor:12999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:10,wpMod:700,dataInicio:"2025-11-29",dataLigacao:"2026-01-01",producaoMensal:800,obs:""},
-  {id:24,nome:"Marilene Dantas Amorim",cpf:"420.573.103-53",cliente:"Wanescla",tel:"86999873139",uc:"3003027766",estado:"PI",kwp:6.70,valor:14500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9.1 KW",modulos:11,wpMod:610,dataInicio:"2025-12-16",dataLigacao:"2026-01-23",producaoMensal:800,obs:""},
-  {id:25,nome:"Gabriel Alexandrino Callado",cpf:"061.332.793-46",cliente:"Gabriel Alexandrino",tel:"86999320779",uc:"",estado:"PI",kwp:8.50,valor:15999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:14,wpMod:610,dataInicio:"2025-12-16",dataLigacao:"2026-01-23",producaoMensal:1000,obs:""},
-  {id:26,nome:"Maria Juliete Lopes Rodrigues",cpf:"389.539.108-54",cliente:"Maria do Socorro 2",tel:"86999121853",uc:"3003096288",estado:"PI",kwp:6.70,valor:17000,etapa:"Concluído",montador:"DANIEL",inversor:"SOLPLANET",potInv:"7.5 KW",modulos:14,wpMod:610,dataInicio:"2025-12-11",dataLigacao:"2026-01-23",producaoMensal:1000,obs:""},
-  {id:27,nome:"Walisson de Oliveira Sobrinho",cpf:"063.553.253-01",cliente:"Wallison",tel:"86988527068",uc:"14124769",estado:"PI",kwp:4.90,valor:12000,etapa:"Concluído",montador:"DANIEL",inversor:"SOLPLANET",potInv:"4 KW",modulos:7,wpMod:700,dataInicio:"2026-01-07",dataLigacao:"2026-03-05",producaoMensal:600,obs:""},
-  {id:28,nome:"Irvayne Matheus de Sousa Ibiapina",cpf:"055.686.353-40",cliente:"Irvayne",tel:"8699292373",uc:"3004004085",estado:"PI",kwp:9.90,valor:19000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:17,wpMod:585,dataInicio:"2026-01-31",dataLigacao:"2026-03-21",producaoMensal:1200,obs:""},
-  {id:29,nome:"Eliana Silva Loureiro",cpf:"078.462.073-34",cliente:"Jamille",tel:"86999493838",uc:"3005557649",estado:"PI",kwp:16.38,valor:30000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"15 KW",modulos:28,wpMod:585,dataInicio:"2026-01-30",dataLigacao:"2026-03-05",producaoMensal:2000,obs:""},
-  {id:30,nome:"Domingos James de Araujo Souza",cpf:"066.248.053-82",cliente:"James Frutaria",tel:"86981670710",uc:"",estado:"PI",kwp:47.58,valor:80000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"60 KW",modulos:78,wpMod:610,dataInicio:"2026-02-20",dataLigacao:"",producaoMensal:6000,obs:"Maior sistema — monitorar mensalmente"},
-  {id:31,nome:"Osmir Batista da Silva Junior",cpf:"043.204.073-00",cliente:"Osmir",tel:"86999928236",uc:"151378",estado:"PI",kwp:7.93,valor:16500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:13,wpMod:610,dataInicio:"2026-03-18",dataLigacao:"2026-04-25",producaoMensal:1000,obs:""},
-  {id:32,nome:"Mirian Alves Pereira de Oliveira",cpf:"721.108.643-20",cliente:"Mirian",tel:"86988879458",uc:"3000476896",estado:"PI",kwp:7.20,valor:15000,etapa:"Concluído",montador:"DANIEL",inversor:"SOLPLANET",potInv:"6 KW",modulos:12,wpMod:585,dataInicio:"2026-03-25",dataLigacao:"2026-05-08",producaoMensal:800,obs:""},
-  {id:33,nome:"Francisaura Neres Waquim de Abreu",cpf:"643.187.453-68",cliente:"Franscisaura",tel:"86994177536",uc:"15823490",estado:"PI",kwp:12.40,valor:22650,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:20,wpMod:620,dataInicio:"2026-04-13",dataLigacao:"2026-05-18",producaoMensal:1500,obs:""},
-  {id:34,nome:"João Batista de Sousa",cpf:"096.832.083-04",cliente:"João Batista",tel:"86995226870",uc:"7069146",estado:"PI",kwp:6.80,valor:14500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:620,dataInicio:"2026-04-27",dataLigacao:"2026-05-26",producaoMensal:800,obs:""},
-  {id:35,nome:"Victor Emanuel Jorge Lejeune",cpf:"087.806.913-58",cliente:"Jardel",tel:"8695384139",uc:"3005954532",estado:"PI",kwp:8.60,valor:18500,etapa:"Instalação",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:13,wpMod:620,dataInicio:"2026-05-26",dataLigacao:"",producaoMensal:1000,obs:"Aguardando ligação na Equatorial"}
-];
-
-// Chamados iniciais (exemplos reais)
-let CHAMADOS = [
-  {id:1,projetoId:30,tipo:"Manutenção Preventiva",desc:"Limpeza dos 78 módulos — sistema de 47,58 kWp",data:"2026-05-15",prioridade:"Alta",status:"Resolvido",res:"Limpeza realizada pela equipe. Geração aumentou 8%."},
-  {id:2,projetoId:16,tipo:"Problema no Inversor",desc:"Inversor SOLPLANET 20KW apresentando erro E08",data:"2026-06-01",prioridade:"Urgente",status:"Em Andamento",res:"Aguardando peça de reposição do fornecedor."},
-  {id:3,projetoId:21,tipo:"Problema na Rede",desc:"Equatorial solicitou vistoria após troca do medidor",data:"2026-06-03",prioridade:"Normal",status:"Aberto",res:""},
-  {id:4,projetoId:9,tipo:"Limpeza de Módulos",desc:"Cliente solicitou limpeza após chuvas de areia",data:"2026-05-28",prioridade:"Normal",status:"Aberto",res:""},
-  {id:5,projetoId:35,tipo:"Visita Técnica",desc:"Verificar instalação antes da ligação na Equatorial",data:"2026-06-05",prioridade:"Alta",status:"Em Andamento",res:""},
-];
-
-// Leituras de geração
-let LEITURAS = [
-  {id:1,projetoId:30,mes:"2026-05",kwh:5820,obs:"Clima favorável"},
-  {id:2,projetoId:16,mes:"2026-05",kwh:3420,obs:""},
-  {id:3,projetoId:30,mes:"2026-04",kwh:5200,obs:""},
-  {id:4,projetoId:1, mes:"2026-05",kwh:1750,obs:""},
-  {id:5,projetoId:9, mes:"2026-05",kwh:1980,obs:""},
-  {id:6,projetoId:7, mes:"2026-05",kwh:1950,obs:""},
-];
-
+let PROJETOS = [];
+let CHAMADOS = [];
+let LEITURAS = [];
 const ETAPAS = ["Visita","Proposta","Aprovação","Instalação","Ligação","Concluído"];
+
+// ══════════════════════════════════════════
+// FIREBASE — CORE LOGIC
+// ══════════════════════════════════════════
+
+function setFbStatus(ok, msg) {
+  const el = document.getElementById('fb-status');
+  if (!el) return;
+  if (ok === true)  el.textContent = '🟢 Firebase conectado';
+  else if (ok === false) el.textContent = '🔴 Erro no Firebase';
+  else el.textContent = '⚪ ' + (msg || 'Conectando…');
+  el.style.color = ok === true ? 'rgba(29,158,117,.9)' : ok === false ? 'rgba(216,90,48,.9)' : 'rgba(255,255,255,.35)';
+}
+
+// Listeners em tempo real
+function initFirebaseListeners() {
+  setFbStatus(null, 'Conectando…');
+
+  // Projetos
+  db.collection('projetos').onSnapshot(snap => {
+    PROJETOS = snap.docs.map(d => d.data());
+    PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
+    renderProjetos();
+    renderDash();
+    renderPipeline();
+    setFbStatus(true);
+  }, err => {
+    console.error('Firestore Error (Projetos):', err);
+    setFbStatus(false);
+    toast('Erro ao ler dados do Firebase. Verifique as regras ou o domínio.', 'er');
+  });
+
+  // Chamados
+  db.collection('chamados').onSnapshot(snap => {
+    CHAMADOS = snap.docs.map(d => d.data());
+    CHAMADOS.sort((a, b) => (b.id || 0) - (a.id || 0));
+    renderChamados();
+  });
+
+  // Leituras
+  db.collection('leituras').onSnapshot(snap => {
+    LEITURAS = snap.docs.map(d => d.data());
+    renderLeituras();
+  });
+}
+
+// Funções de escrita (Promise-based)
+function fbWrite(coll, id, data) {
+  return db.collection(coll).doc(String(id)).set(data)
+    .then(() => { console.log(`Saved to ${coll}: ${id}`); return true; })
+    .catch(err => {
+      console.error(`Error saving to ${coll}:`, err);
+      toast(`Erro ao salvar no Firebase: ${err.message}`, 'er');
+      throw err;
+    });
+}
+
+function fbDelete(coll, id) {
+  return db.collection(coll).doc(String(id)).delete()
+    .then(() => { console.log(`Deleted from ${coll}: ${id}`); return true; })
+    .catch(err => {
+      console.error(`Error deleting from ${coll}:`, err);
+      toast(`Erro ao excluir: ${err.message}`, 'er');
+      throw err;
+    });
+}
 
 // ══════════════════════════════════════════
 // NAVEGAÇÃO
@@ -661,27 +673,33 @@ function renderDash() {
   const kwp = PROJETOS.reduce((s,p)=>s+(p.kwp||0),0);
   const chAbertos = CHAMADOS.filter(c=>c.status!=='Resolvido').length;
 
-  document.getElementById('dash-kpis').innerHTML = `
-    <div class="kpi"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${total}</div></div>
-    <div class="kpi"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
-    <div class="kpi"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} <small>kWp</small></div></div>
-    <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
-  `;
+  const kpisEl = document.getElementById('dash-kpis');
+  if (kpisEl) {
+    kpisEl.innerHTML = `
+      <div class="kpi"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${total}</div></div>
+      <div class="kpi"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
+      <div class="kpi"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} <small>kWp</small></div></div>
+      <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
+    `;
+  }
 
   const rec = CHAMADOS.slice(0,4);
-  document.getElementById('dash-chamados').innerHTML = rec.length ? rec.map(c=>{
-    const p = PROJETOS.find(x=>x.id===c.projetoId);
-    return `
-      <div class="chamado-row">
-        <div class="ch-ico ${c.status==='Resolvido'?'ig':'ir'}">${c.status==='Resolvido'?'✓':'!'}</div>
-        <div class="ch-info">
-          <div class="cn">${c.tipo} — ${p?.cliente||'Desconhecido'}</div>
-          <div class="cs">${c.desc}</div>
-          <div class="cd">${fmt_data(c.data)} • ${c.status}</div>
+  const dashChamEl = document.getElementById('dash-chamados');
+  if (dashChamEl) {
+    dashChamEl.innerHTML = rec.length ? rec.map(c=>{
+      const p = PROJETOS.find(x=>x.id===c.projetoId);
+      return `
+        <div class="chamado-row">
+          <div class="ch-ico ${c.status==='Resolvido'?'ig':'ir'}">${c.status==='Resolvido'?'✓':'!'}</div>
+          <div class="ch-info">
+            <div class="cn">${c.tipo} — ${p?.cliente||'Desconhecido'}</div>
+            <div class="cs">${c.desc}</div>
+            <div class="cd">${fmt_data(c.data)} • ${c.status}</div>
+          </div>
         </div>
-      </div>
-    `;
-  }).join('') : '<div class="empty">Nenhum chamado recente.</div>';
+      `;
+    }).join('') : '<div class="empty">Nenhum chamado recente.</div>';
+  }
 
   renderCharts();
 }
@@ -722,6 +740,7 @@ function renderCharts() {
 // ══════════════════════════════════════════
 function renderPipeline() {
   const cont = document.getElementById('pipe-container');
+  if (!cont) return;
   cont.innerHTML = ETAPAS.map(e => {
     const projs = PROJETOS.filter(p=>p.etapa===e);
     return `
@@ -745,76 +764,89 @@ function renderPipeline() {
 // PROJETOS
 // ══════════════════════════════════════════
 function renderProjetos() {
-  const q = document.getElementById('f-proj').value.toLowerCase();
-  const e = document.getElementById('f-etapa').value;
+  const fProj = document.getElementById('f-proj');
+  const fEtapa = document.getElementById('f-etapa');
+  if (!fProj || !fEtapa) return;
+
+  const q = fProj.value.toLowerCase();
+  const e = fEtapa.value;
   const filtered = PROJETOS.filter(p => {
-    const matchQ = p.cliente.toLowerCase().includes(q) || p.nome.toLowerCase().includes(q) || p.cpf.includes(q) || p.uc.includes(q);
+    const matchQ = (p.cliente||'').toLowerCase().includes(q) || (p.nome||'').toLowerCase().includes(q) || (p.cpf||'').includes(q) || (p.uc||'').includes(q);
     const matchE = !e || p.etapa === e;
     return matchQ && matchE;
   });
 
-  const selE = document.getElementById('f-etapa');
-  if(selE.options.length <= 1) {
-    ETAPAS.forEach(et => selE.add(new Option(et, et)));
+  if(fEtapa.options.length <= 1) {
+    ETAPAS.forEach(et => fEtapa.add(new Option(et, et)));
   }
 
-  document.getElementById('b-projetos').innerHTML = filtered.map(p => `
-    <tr>
-      <td>#${p.id}</td>
-      <td>
-        <div style="font-weight:500">${p.cliente}</div>
-        <div style="font-size:11px;color:var(--txts)">${p.estado} • ${p.tel}</div>
-      </td>
-      <td>${p.kwp} <small>kWp</small></td>
-      <td><span class="bd ${p.etapa==='Concluído'?'bd-ok':p.etapa==='Ligação'?'bd-am':'bd-az'}">${p.etapa}</span></td>
-      <td>${fmt_data(p.dataLigacao)}</td>
-      <td>
-        <div class="ab">
-          <button class="bi v" onclick="openDet(${p.id})" title="Ver">👁</button>
-          <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
-          <button class="bi d" onclick="delP(${p.id})" title="Excluir">✕</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  const tbody = document.getElementById('b-projetos');
+  if (tbody) {
+    tbody.innerHTML = filtered.map(p => `
+      <tr>
+        <td>#${p.id}</td>
+        <td>
+          <div style="font-weight:500">${p.cliente}</div>
+          <div style="font-size:11px;color:var(--txts)">${p.estado} • ${p.tel}</div>
+        </td>
+        <td>${p.kwp} <small>kWp</small></td>
+        <td><span class="bd ${p.etapa==='Concluído'?'bd-ok':p.etapa==='Ligação'?'bd-am':'bd-az'}">${p.etapa}</span></td>
+        <td>${fmt_data(p.dataLigacao)}</td>
+        <td>
+          <div class="ab">
+            <button class="bi v" onclick="openDet(${p.id})" title="Ver">👁</button>
+            <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
+            <button class="bi d" onclick="delP(${p.id})" title="Excluir">✕</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
 }
 
 // ══════════════════════════════════════════
 // CHAMADOS
 // ══════════════════════════════════════════
 function renderChamados() {
-  const q = document.getElementById('f-cham').value.toLowerCase();
-  const st = document.getElementById('f-st-cham').value;
+  const fCham = document.getElementById('f-cham');
+  const fSt = document.getElementById('f-st-cham');
+  if (!fCham || !fSt) return;
+
+  const q = fCham.value.toLowerCase();
+  const st = fSt.value;
   const filtered = CHAMADOS.filter(c => {
     const p = PROJETOS.find(x=>x.id===c.projetoId);
-    const matchQ = c.tipo.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || p?.cliente.toLowerCase().includes(q);
+    const matchQ = (c.tipo||'').toLowerCase().includes(q) || (c.desc||'').toLowerCase().includes(q) || (p?.cliente||'').toLowerCase().includes(q);
     const matchSt = !st || c.status === st;
     return matchQ && matchSt;
   });
 
-  document.getElementById('b-chamados').innerHTML = filtered.map(c => {
-    const p = PROJETOS.find(x=>x.id===c.projetoId);
-    const prioCls = c.prioridade==='Urgente'?'bd-er':c.prioridade==='Alta'?'bd-go':'bd-cz';
-    const stCls = c.status==='Resolvido'?'bd-ok':c.status==='Em Andamento'?'bd-az':'bd-cz';
-    return `
-      <tr>
-        <td>${fmt_data(c.data)}</td>
-        <td>
-          <div style="font-weight:500">${p?.cliente||'—'}</div>
-          <div style="font-size:11px;color:var(--txts)">#${c.projetoId}</div>
-        </td>
-        <td>${c.tipo}</td>
-        <td><span class="bd ${prioCls}">${c.prioridade}</span></td>
-        <td><span class="bd ${stCls}">${c.status}</span></td>
-        <td>
-          <div class="ab">
-            <button class="bi e" onclick="editChamado(${c.id})">✎</button>
-            <button class="bi d" onclick="delCh(${c.id})">✕</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  const tbody = document.getElementById('b-chamados');
+  if (tbody) {
+    tbody.innerHTML = filtered.map(c => {
+      const p = PROJETOS.find(x=>x.id===c.projetoId);
+      const prioCls = c.prioridade==='Urgente'?'bd-er':c.prioridade==='Alta'?'bd-go':'bd-cz';
+      const stCls = c.status==='Resolvido'?'bd-ok':c.status==='Em Andamento'?'bd-az':'bd-cz';
+      return `
+        <tr>
+          <td>${fmt_data(c.data)}</td>
+          <td>
+            <div style="font-weight:500">${p?.cliente||'—'}</div>
+            <div style="font-size:11px;color:var(--txts)">#${c.projetoId}</div>
+          </td>
+          <td>${c.tipo}</td>
+          <td><span class="bd ${prioCls}">${c.prioridade}</span></td>
+          <td><span class="bd ${stCls}">${c.status}</span></td>
+          <td>
+            <div class="ab">
+              <button class="bi e" onclick="editChamado(${c.id})">✎</button>
+              <button class="bi d" onclick="delCh(${c.id})">✕</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -822,18 +854,21 @@ function renderChamados() {
 // ══════════════════════════════════════════
 function renderLeituras() {
   const sorted = [...LEITURAS].sort((a,b)=>b.mes.localeCompare(a.mes));
-  document.getElementById('b-leituras').innerHTML = sorted.map(l => {
-    const p = PROJETOS.find(x=>x.id===l.projetoId);
-    return `
-      <div class="leit-row">
-        <div style="font-weight:600">${l.mes}</div>
-        <div style="color:var(--ok);font-weight:700">${l.kwh}</div>
-        <div style="color:var(--txts)">#${l.projetoId}</div>
-        <div style="font-weight:500">${p?.cliente||'—'}</div>
-        <div style="color:var(--txts);font-size:12px">${l.obs||'—'}</div>
-      </div>
-    `;
-  }).join('');
+  const cont = document.getElementById('b-leituras');
+  if (cont) {
+    cont.innerHTML = sorted.map(l => {
+      const p = PROJETOS.find(x=>x.id===l.projetoId);
+      return `
+        <div class="leit-row">
+          <div style="font-weight:600">${l.mes}</div>
+          <div style="color:var(--ok);font-weight:700">${l.kwh}</div>
+          <div style="color:var(--txts)">#${l.projetoId}</div>
+          <div style="font-weight:500">${p?.cliente||'—'}</div>
+          <div style="color:var(--txts);font-size:12px">${l.obs||'—'}</div>
+        </div>
+      `;
+    }).join('');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -850,18 +885,18 @@ function openDet(id) {
   document.getElementById('det-content').innerHTML = `
     <div class="det-sec">
       <div class="det-sec-ttl">Informações Gerais</div>
-      <div class="det-row"><span class="det-lbl">Nome Completo</span><span class="det-val">${p.nome}</span></div>
-      <div class="det-row"><span class="det-lbl">CPF/CNPJ</span><span class="det-val">${p.cpf}</span></div>
-      <div class="det-row"><span class="det-lbl">Telefone</span><span class="det-val">${p.tel}</span></div>
-      <div class="det-row"><span class="det-lbl">UC</span><span class="det-val">${p.uc}</span></div>
-      <div class="det-row"><span class="det-lbl">Localização</span><span class="det-val">${p.estado}</span></div>
+      <div class="det-row"><span class="det-lbl">Nome Completo</span><span class="det-val">${p.nome || '—'}</span></div>
+      <div class="det-row"><span class="det-lbl">CPF/CNPJ</span><span class="det-val">${p.cpf || '—'}</span></div>
+      <div class="det-row"><span class="det-lbl">Telefone</span><span class="det-val">${p.tel || '—'}</span></div>
+      <div class="det-row"><span class="det-lbl">UC</span><span class="det-val">${p.uc || '—'}</span></div>
+      <div class="det-row"><span class="det-lbl">Localização</span><span class="det-val">${p.estado || '—'}</span></div>
     </div>
     <div class="det-sec">
       <div class="det-sec-ttl">Dados Técnicos</div>
-      <div class="det-row"><span class="det-lbl">Potência Sistema</span><span class="det-val">${p.kwp} kWp</span></div>
-      <div class="det-row"><span class="det-lbl">Inversor</span><span class="det-val">${p.inversor} (${p.potInv})</span></div>
-      <div class="det-row"><span class="det-lbl">Módulos</span><span class="det-val">${p.modulos}x ${p.wpMod}Wp</span></div>
-      <div class="det-row"><span class="det-lbl">Montador</span><span class="det-val">${p.montador}</span></div>
+      <div class="det-row"><span class="det-lbl">Potência Sistema</span><span class="det-val">${p.kwp || 0} kWp</span></div>
+      <div class="det-row"><span class="det-lbl">Inversor</span><span class="det-val">${p.inversor || '—'} (${p.potInv || '—'})</span></div>
+      <div class="det-row"><span class="det-lbl">Módulos</span><span class="det-val">${p.modulos || 0}x ${p.wpMod || 0}Wp</span></div>
+      <div class="det-row"><span class="det-lbl">Montador</span><span class="det-val">${p.montador || '—'}</span></div>
       <div class="det-row"><span class="det-lbl">Valor Contrato</span><span class="det-val">R$ ${fmt(p.valor)}</span></div>
     </div>
     <div class="det-sec">
@@ -949,7 +984,9 @@ function saveProjeto() {
   const cli = document.getElementById('p-cli').value.trim();
   if(!cli) { toast('Nome do cliente é obrigatório.','er'); return; }
   
+  const id = editProjId || (PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1);
   const obj = {
+    id: id,
     cliente: cli,
     nome: document.getElementById('p-nome').value,
     cpf: document.getElementById('p-cpf').value,
@@ -972,21 +1009,10 @@ function saveProjeto() {
     obs: document.getElementById('p-obs').value
   };
 
-  if(editProjId) {
-    const idx = PROJETOS.findIndex(x=>x.id===editProjId);
-    obj.id = editProjId;
-    PROJETOS[idx] = obj;
-    toast('Projeto atualizado!','ok');
-  } else {
-    obj.id = PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1;
-    PROJETOS.push(obj);
-    toast('Projeto criado!','ok');
-  }
-  
-  closeMo('mo-proj');
-  renderProjetos();
-  renderDash();
-  renderPipeline();
+  fbWrite('projetos', id, obj).then(() => {
+    toast(editProjId ? 'Projeto atualizado!' : 'Projeto criado!', 'ok');
+    closeMo('mo-proj');
+  });
 }
 
 function openModalChamado(projetoId) {
@@ -1022,24 +1048,23 @@ function saveChamado(){
   const desc=document.getElementById('mc-desc').value.trim();
   if(!pid){toast('Selecione o projeto.','er');return;}
   if(!desc){toast('Informe a descrição.','er');return;}
+  
+  const id = editChId || (CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const obj={
-    projetoId:pid,tipo:document.getElementById('mc-tipo').value,
-    desc,data:document.getElementById('mc-data').value,
+    id: id,
+    projetoId:pid,
+    tipo:document.getElementById('mc-tipo').value,
+    desc: desc,
+    data:document.getElementById('mc-data').value,
     prioridade:document.getElementById('mc-pri').value,
     status:document.getElementById('mc-st').value,
     res:document.getElementById('mc-res').value.trim(),
   };
-  if(editChId){
-    const i=CHAMADOS.findIndex(x=>x.id===editChId);
-    if(i>=0){obj.id=editChId;CHAMADOS[i]=obj;}
-    toast('Chamado atualizado!','ok');
-  } else {
-    obj.id=CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1;
-    CHAMADOS.push(obj);
-    toast('Chamado registrado!','ok');
-  }
-  closeMo('mo-ch');
-  renderChamados();
+
+  fbWrite('chamados', id, obj).then(() => {
+    toast(editChId ? 'Chamado atualizado!' : 'Chamado registrado!', 'ok');
+    closeMo('mo-ch');
+  });
 }
 
 function openModalLeitura(projetoId){
@@ -1056,30 +1081,31 @@ function saveLeitura(){
   const kwh=parseFloat(document.getElementById('ml-kwh').value);
   if(!pid){toast('Selecione o projeto.','er');return;}
   if(!kwh){toast('Informe o kWh gerado.','er');return;}
+  
+  const id = LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
   const obj={
-    projetoId:pid,mes:document.getElementById('ml-mes').value,
-    kwh,obs:document.getElementById('ml-obs').value.trim(),
+    id: id,
+    projetoId:pid,
+    mes:document.getElementById('ml-mes').value,
+    kwh: kwh,
+    obs:document.getElementById('ml-obs').value.trim(),
   };
-  obj.id=LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
-  LEITURAS.push(obj);
-  toast('Leitura registrada!','ok');
-  closeMo('mo-leit');
-  renderLeituras();
+
+  fbWrite('leituras', id, obj).then(() => {
+    toast('Leitura registrada!', 'ok');
+    closeMo('mo-leit');
+  });
 }
 
 function delP(id){
   const p=PROJETOS.find(x=>x.id===id);
   if(!p||!confirm(`Excluir projeto "${p.cliente}"?`))return;
-  PROJETOS=PROJETOS.filter(x=>x.id!==id);
-  renderProjetos();
-  toast('Excluído.');
+  fbDelete('projetos', id).then(() => toast('Projeto excluído.'));
 }
 
 function delCh(id){
   if(!confirm('Excluir chamado?'))return;
-  CHAMADOS=CHAMADOS.filter(x=>x.id!==id);
-  renderChamados();
-  toast('Chamado excluído.');
+  fbDelete('chamados', id).then(() => toast('Chamado excluído.'));
 }
 
 function closeMo(id){document.getElementById(id).classList.remove('open');}
@@ -1091,154 +1117,9 @@ document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',function(
 function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmt_data(d){if(!d)return'—';try{return new Date(d+'T12:00').toLocaleDateString('pt-BR');}catch{return d;}}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>{t.className='toast';},2800);}
+function toast(msg,type){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>{t.className='toast';},2800);}
 
 // INIT
-renderDash();
-renderProjetos();
-
-// ══════════════════════════════════════════
-// FIREBASE — SINCRONIZAÇÃO EM TEMPO REAL
-// ══════════════════════════════════════════
-
-function setFbStatus(ok, msg) {
-  const el = document.getElementById('fb-status');
-  if (!el) return;
-  if (ok === true)  el.textContent = '🟢 Firebase conectado';
-  else if (ok === false) el.textContent = '🔴 Erro no Firebase';
-  else el.textContent = '⚪ ' + (msg || 'Conectando…');
-  el.style.color = ok === true ? 'rgba(29,158,117,.9)' : ok === false ? 'rgba(216,90,48,.9)' : 'rgba(255,255,255,.35)';
-}
-
-// ── Projetos ──
-function fbSaveProjeto(p) {
-  const data = {...p};
-  if (data.id && typeof data.id === 'number') {
-    return db.collection('projetos').doc(String(data.id)).set(data)
-      .catch(e => console.error('fbSaveProjeto:', e));
-  }
-}
-
-function fbDeleteProjeto(id) {
-  return db.collection('projetos').doc(String(id)).delete()
-    .catch(e => console.error('fbDeleteProjeto:', e));
-}
-
-// ── Chamados ──
-function fbSaveChamado(c) {
-  const data = {...c};
-  return db.collection('chamados').doc(String(data.id)).set(data)
-    .catch(e => console.error('fbSaveChamado:', e));
-}
-
-function fbDeleteChamado(id) {
-  return db.collection('chamados').doc(String(id)).delete()
-    .catch(e => console.error('fbDeleteChamado:', e));
-}
-
-// ── Leituras ──
-function fbSaveLeitura(l) {
-  return db.collection('leituras').doc(String(l.id)).set(l)
-    .catch(e => console.error('fbSaveLeitura:', e));
-}
-
-// ── Listeners em tempo real ──
-function initFirebaseListeners() {
-  setFbStatus(null, 'Conectando…');
-
-  // Projetos
-  db.collection('projetos').onSnapshot(snap => {
-    if (snap.empty) {
-      // Primeira vez: salva os 35 projetos base no Firestore
-      const batch = db.batch();
-      PROJETOS.forEach(p => {
-        batch.set(db.collection('projetos').doc(String(p.id)), p);
-      });
-      batch.commit().then(() => setFbStatus(true)).catch(() => setFbStatus(false));
-    } else {
-      PROJETOS = snap.docs.map(d => d.data());
-      PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
-      renderProjetos();
-      renderDash();
-      setFbStatus(true);
-    }
-  }, err => {
-    console.error('Projetos listener:', err);
-    setFbStatus(false);
-  });
-
-  // Chamados
-  db.collection('chamados').onSnapshot(snap => {
-    if (!snap.empty) {
-      CHAMADOS = snap.docs.map(d => d.data());
-      CHAMADOS.sort((a, b) => (b.id || 0) - (a.id || 0));
-      renderChamados();
-    }
-  }, err => console.error('Chamados listener:', err));
-
-  // Leituras
-  db.collection('leituras').onSnapshot(snap => {
-    if (!snap.empty) {
-      LEITURAS = snap.docs.map(d => d.data());
-      renderLeituras();
-    }
-  }, err => console.error('Leituras listener:', err));
-}
-
-// ── Patches nas funções existentes para salvar no Firebase ──
-
-// Override saveProjeto
-const _origSaveProjeto = saveProjeto;
-saveProjeto = function() {
-  _origSaveProjeto();
-  // Pega o projeto recém salvo e sincroniza
-  setTimeout(() => {
-    const p = editProjId ? PROJETOS.find(x => x.id === editProjId) : PROJETOS[PROJETOS.length - 1];
-    if (p) fbSaveProjeto(p);
-  }, 100);
-};
-
-// Override delP
-const _origDelP = delP;
-delP = function(id) {
-  if (!confirm('Excluir projeto?')) return;
-  fbDeleteProjeto(id);
-  PROJETOS = PROJETOS.filter(x => x.id !== id);
-  renderProjetos();
-  toast('Excluído.');
-};
-
-// Override saveChamado
-const _origSaveChamado = saveChamado;
-saveChamado = function() {
-  _origSaveChamado();
-  setTimeout(() => {
-    const c = CHAMADOS[0];
-    if (c) fbSaveChamado(c);
-  }, 100);
-};
-
-// Override delCh
-const _origDelCh = delCh;
-delCh = function(id) {
-  if (!confirm('Excluir chamado?')) return;
-  fbDeleteChamado(id);
-  CHAMADOS = CHAMADOS.filter(x => x.id !== id);
-  renderChamados();
-  toast('Chamado excluído.');
-};
-
-// Override saveLeitura
-const _origSaveLeitura = saveLeitura;
-saveLeitura = function() {
-  _origSaveLeitura();
-  setTimeout(() => {
-    const l = LEITURAS[LEITURAS.length - 1];
-    if (l) fbSaveLeitura(l);
-  }, 100);
-};
-
-// Iniciar listeners assim que a página carregar
 window.addEventListener('load', () => {
   setTimeout(initFirebaseListeners, 500);
 });
