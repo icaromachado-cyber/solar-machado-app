@@ -1240,9 +1240,9 @@ function buscarLocalizacao() {
 // MAPA DE CLIENTES
 // ══════════════════════════════════════════
 function renderMapa() {
-  // Incluir todos com end OU lat/lng OU mapsUrl
-  const comLoc = PROJETOS.filter(p => p.end || (p.lat && p.lng) || p.mapsUrl);
-  const semLoc = PROJETOS.filter(p => !p.end && !p.lat && !p.mapsUrl);
+  // Todos que têm endereço OU link do Maps
+  const comLoc = PROJETOS.filter(p => p.end || p.mapsUrl || (p.lat && p.lng));
+  const semLoc = PROJETOS.filter(p => !p.end && !p.mapsUrl && !p.lat);
 
   const cntEl = document.getElementById('mapa-cnt');
   if (cntEl) cntEl.textContent = comLoc.length + ' cliente(s) com localização · ' + semLoc.length + ' sem localização';
@@ -1250,40 +1250,40 @@ function renderMapa() {
   const lista = document.getElementById('mapa-lista');
   if (lista) {
     if (!comLoc.length) {
-      lista.innerHTML = '<div style="font-size:13px;color:var(--txts);padding:20px 0">Nenhum cliente com localização cadastrada ainda.</div>';
+      lista.innerHTML = '<div style="font-size:13px;color:var(--txts);padding:20px 0">Nenhum cliente com localização ainda. Execute a migração no Dashboard.</div>';
     } else {
       lista.innerHTML = comLoc.map(p => {
-        const wppNum = (p.tel||'').replace(/\D/g,'');
-        const mapsLink = p.mapsUrl || (p.lat && p.lng ? 'https://www.google.com/maps?q=' + p.lat + ',' + p.lng : null);
+        const wppNum = (p.tel || '').replace(/[^0-9]/g, '');
+        // Prioridade: link fixo do Maps > coords > busca por endereço
+        const mapsLink = p.mapsUrl
+          ? p.mapsUrl
+          : (p.lat && p.lng)
+            ? 'https://www.google.com/maps?q=' + p.lat + ',' + p.lng
+            : p.end
+              ? 'https://www.google.com/maps/search/' + encodeURIComponent(p.end)
+              : null;
         const wppUrl = wppNum ? 'https://wa.me/' + wppNum : null;
         const endTxt = p.end || (p.lat ? p.lat + ', ' + p.lng : '—');
-        return `<div class="mapa-card">
-          <div class="mapa-card-pin">📍</div>
-          <div class="mapa-card-info">
-            <div class="mapa-card-nome">${p.cliente || '—'}</div>
-            <div class="mapa-card-end">${endTxt}</div>
-            <div style="font-size:11px;color:var(--txts);margin-top:2px">${p.kwp} kWp · ${p.etapa}</div>
-            <div class="mapa-card-acts">
-              ${mapsLink ? `<a href="${mapsLink}" target="_blank" class="btn-maps">🗺 Ver no Maps</a>` : ''}
-              ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn-wpp">💬 WhatsApp</a>` : ''}
-            </div>
-          </div>
-        </div>`;
+        const kwp = parseFloat(p.kwp) || 0;
+        return '<div class="mapa-card">'
+          + '<div class="mapa-card-pin">📍</div>'
+          + '<div class="mapa-card-info">'
+          + '<div class="mapa-card-nome">' + (p.cliente || '—') + '</div>'
+          + '<div class="mapa-card-end">' + endTxt + '</div>'
+          + '<div style="font-size:11px;color:var(--txts);margin-top:2px">' + kwp.toFixed(2) + ' kWp · ' + (p.etapa || '') + '</div>'
+          + '<div class="mapa-card-acts">'
+          + (mapsLink ? '<a href="' + mapsLink + '" target="_blank" class="btn-maps">🗺 Ver no Maps</a>' : '')
+          + (wppUrl ? '<a href="' + wppUrl + '" target="_blank" class="btn-wpp"><svg width="13" height="13" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4z" fill="white"/></svg> WhatsApp</a>' : '')
+          + '</div></div></div>';
       }).join('');
     }
   }
 
-  // Iframe centralizado em Teresina (mapa geral)
+  // Iframe: mapa fixo de Teresina centralizado (overview geral)
+  // Não precisa de coordenadas individuais — é só referência visual
   const iframe = document.getElementById('mapa-iframe');
   if (iframe) {
-    const comCoords = comLoc.filter(p => p.lat && p.lng);
-    if (comCoords.length > 0) {
-      const lat = +comCoords[0].lat;
-      const lng = +comCoords[0].lng;
-      iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.15}%2C${lat-0.15}%2C${lng+0.15}%2C${lat+0.15}&layer=mapnik&marker=${lat}%2C${lng}`;
-    } else {
-      iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=-42.95%2C-5.20%2C-42.65%2C-4.95&layer=mapnik';
-    }
+    iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=-42.95%2C-5.22%2C-42.65%2C-4.95&layer=mapnik';
   }
 }
 
