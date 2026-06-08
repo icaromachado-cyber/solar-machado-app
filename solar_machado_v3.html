@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Solar Machado — Pós-Venda & Projetos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ── FIREBASE CONFIG ──────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCmZNBTQWx9Eb5sVy7h4tlMXlES7w0hhJA",
+  authDomain: "solar-machado.firebaseapp.com",
+  projectId: "solar-machado",
+  storageBucket: "solar-machado.firebasestorage.app",
+  messagingSenderId: "346832447278",
+  appId: "1:346832447278:web:fdec77421a8a120e7f7cbf"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// ─────────────────────────────────────────────────
+</script>
+<style>
+:root{
+  --az:#2E3486;--az2:#1e2260;--az3:#4a52c8;--azs:#eef0ff;
+  --am:#FDC300;--am2:#c9a000;
+  --cz:#EDECE5;--cz2:#d3d1c7;--cz3:#888780;
+  --txt:#1a1b2e;--txts:#5a5b6e;--bg:#f2f1ec;--br:#fff;
+  --ok:#1D9E75;--ok2:#e1f5ee;--er:#D85A30;--er2:#fdf0ec;
+  --warn:#BA7517;--warn2:#faeeda;
+  --sw:250px;--hh:58px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;font-size:14px}
+
+/* ── SIDEBAR ── */
+.sb{width:var(--sw);background:var(--az);min-height:100vh;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;transition:width .2s}
+.sb-logo{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo .brand{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--am);line-height:1.2;display:flex;align-items:center;gap:8px}
+.sb-logo .sub{color:rgba(255,255,255,.4);font-size:10px;letter-spacing:.8px;text-transform:uppercase;margin-top:4px}
+.sb-nav{padding:14px 0;flex:1;overflow-y:auto}
+.nav-sec{font-size:9.5px;font-weight:500;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.28);padding:12px 20px 5px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,.58);cursor:pointer;font-size:13.5px;transition:all .15s;border-left:3px solid transparent;user-select:none}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.on{background:rgba(253,195,0,.13);color:var(--am);border-left-color:var(--am);font-weight:500}
+.ni .ic{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sb-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-foot .usr{font-size:12px;color:rgba(255,255,255,.55)}
+.sb-foot .cnpj{font-size:9.5px;color:rgba(255,255,255,.22);margin-top:3px}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:var(--hh);background:var(--br);border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;gap:16px}
+.tb-left{display:flex;align-items:center;gap:12px}
+.tb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--az)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.content{padding:26px 28px;flex:1}
+.page{display:none}.page.on{display:block}
+
+/* ── BTNs ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-p{background:var(--az);color:#fff}.btn-p:hover{background:var(--az2)}
+.btn-y{background:var(--am);color:var(--az)}.btn-y:hover{background:var(--am2)}
+.btn-g{background:transparent;color:var(--txts);border:1px solid var(--cz2)}.btn-g:hover{background:var(--cz)}
+.btn-d{background:var(--er2);color:var(--er);border:1px solid #f5c4b3}.btn-d:hover{background:#fad9d0}
+.btn-ok{background:var(--ok2);color:#085041;border:1px solid #9FE1CB}.btn-ok:hover{background:#c0e8d4}
+
+/* ── CARDS ── */
+.card{background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:20px}
+.card-sm{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:16px}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+@media(max-width:960px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:18px 20px}
+.kpi .ki{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+.kpi .kl{font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--txts);margin-bottom:5px}
+.kpi .kv{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--az);line-height:1}
+.kpi .ks{font-size:11px;color:var(--txts);margin-top:4px}
+.ib{background:var(--azs);color:var(--az)}.ig{background:var(--ok2);color:#085041}.iy{background:#fff8e0;color:#633806}.ir{background:var(--er2);color:var(--er)}.iw{background:var(--warn2);color:var(--warn)}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.ph h2{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--az)}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ── FILTROS ── */
+.fbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.fs{position:relative;flex:1;min-width:180px}
+.fs input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--txt)}
+.fs input:focus{outline:none;border-color:var(--az)}
+.fs .sic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--cz3);font-size:14px;pointer-events:none}
+.fsel{padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--txt);cursor:pointer}
+.fsel:focus{outline:none;border-color:var(--az)}
+
+/* ── TABLE ── */
+.tw{background:var(--br);border-radius:12px;border:1px solid #e4e3dc;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#f7f6f1;border-bottom:1px solid #e4e3dc}
+th{padding:11px 14px;text-align:left;font-weight:500;color:var(--txts);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid #f0efe8;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf9f5}
+.ab{display:flex;gap:5px}
+.bi{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:1px solid var(--cz2);background:transparent;color:var(--txts);transition:all .15s;flex-shrink:0}
+.bi:hover{background:var(--cz)}
+.bi.e:hover{background:var(--azs);color:var(--az);border-color:#b5d4f4}
+.bi.d:hover{background:var(--er2);color:var(--er);border-color:#f5c4b3}
+.bi.v:hover{background:var(--ok2);color:#085041;border-color:#9FE1CB}
+
+/* ── BADGES ── */
+.bd{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.bd-ok{background:var(--ok2);color:#085041}
+.bd-go{background:var(--warn2);color:var(--warn)}
+.bd-az{background:var(--azs);color:var(--az)}
+.bd-er{background:var(--er2);color:var(--er)}
+.bd-cz{background:#f0efe8;color:var(--cz3)}
+.bd-am{background:#fff8e0;color:#633806}
+
+/* ── PIPELINE / KANBAN ── */
+.pipeline{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px}
+.pipe-col{flex:0 0 200px;background:#f7f6f1;border-radius:10px;border:1px solid #e4e3dc}
+.pipe-hdr{padding:12px 14px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between}
+.pipe-hdr .pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--az)}
+.pipe-hdr .pc{font-size:11px;background:var(--azs);color:var(--az);border-radius:20px;padding:1px 7px;font-weight:600}
+.pipe-body{padding:10px;display:flex;flex-direction:column;gap:7px;min-height:80px}
+.pcard{background:var(--br);border-radius:8px;border:1px solid #e4e3dc;padding:10px 12px;cursor:pointer;transition:all .15s}
+.pcard:hover{border-color:#b5d4f4;box-shadow:0 2px 8px rgba(46,52,134,.08)}
+.pcard .pcn{font-size:12.5px;font-weight:500;line-height:1.3;margin-bottom:4px}
+.pcard .pcs{font-size:11px;color:var(--txts)}
+.pcard .pckwp{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--az);margin-top:4px}
+
+/* ── ETAPAS PROGRESS ── */
+.etapas{display:flex;align-items:center;gap:0;margin:16px 0}
+.etapa{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.etapa:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:var(--cz2);z-index:0}
+.etapa.done::after{background:var(--ok)}
+.etapa.active::after{background:linear-gradient(90deg,var(--ok),var(--cz2))}
+.etapa-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--cz2);background:var(--br);display:flex;align-items:center;justify-content:center;font-size:11px;position:relative;z-index:1;transition:all .2s}
+.etapa.done .etapa-dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.etapa.active .etapa-dot{background:var(--az);border-color:var(--az);color:#fff}
+.etapa-lbl{font-size:10px;color:var(--txts);margin-top:5px;text-align:center;line-height:1.3}
+.etapa.done .etapa-lbl,.etapa.active .etapa-lbl{color:var(--az);font-weight:500}
+
+/* ── DETAIL PANEL ── */
+.det-panel{display:none;position:fixed;right:0;top:0;width:440px;height:100vh;background:var(--br);border-left:1px solid #e4e3dc;z-index:150;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08)}
+.det-panel.open{display:flex}
+.det-hdr{padding:18px 22px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.det-hdr h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--az)}
+.det-body{padding:20px 22px;overflow-y:auto;flex:1}
+.det-sec{margin-bottom:20px}
+.det-sec-ttl{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--txts);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #f0efe8}
+.det-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f7f6f1;font-size:13px}
+.det-row:last-child{border-bottom:none}
+.det-lbl{color:var(--txts)}
+.det-val{font-weight:500;text-align:right;max-width:60%}
+
+/* ── PÓS-VENDA ── */
+.pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.chamado-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0efe8}
+.chamado-row:last-child{border-bottom:none}
+.ch-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ch-info{flex:1}
+.ch-info .cn{font-size:13px;font-weight:500}
+.ch-info .cs{font-size:11.5px;color:var(--txts);margin-top:2px}
+.ch-info .cd{font-size:11px;color:var(--cz3);margin-top:3px}
+.gar-bar{height:8px;background:#f0efe8;border-radius:4px;margin-top:6px;overflow:hidden}
+.gar-fill{height:100%;border-radius:4px;background:var(--ok);transition:width .3s}
+.gar-fill.warn{background:var(--warn)}
+.gar-fill.er{background:var(--er)}
+
+/* ── LEITURA ── */
+.leit-row{display:grid;grid-template-columns:100px 80px 90px 90px 1fr;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid #f0efe8;font-size:13px}
+.leit-row:last-child{border-bottom:none}
+.leit-row:hover{background:#faf9f5}
+.leit-hdr{background:#f7f6f1;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)}
+
+/* ── MODAL ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(30,34,96,.45);z-index:200;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.mbox{background:var(--br);border-radius:16px;width:580px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(30,34,96,.18)}
+.mhdr{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between}
+.mhdr h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--az)}
+.mcls{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--cz);border:none;font-size:15px;color:var(--txts)}
+.mcls:hover{background:var(--cz2)}
+.mbdy{padding:20px 24px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fgrp{display:flex;flex-direction:column;gap:5px}
+.fgrp.full{grid-column:1/-1}
+.fgrp label{font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)}
+.fgrp input,.fgrp select,.fgrp textarea{padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--txt);background:var(--br);transition:border-color .15s}
+.fgrp input:focus,.fgrp select:focus,.fgrp textarea:focus{outline:none;border-color:var(--az)}
+.fgrp textarea{resize:vertical;min-height:72px}
+.mftr{padding:14px 24px 20px;display:flex;gap:9px;justify-content:flex-end;border-top:1px solid #f0efe8}
+.tabs{display:flex;gap:3px;background:#f0efe8;border-radius:9px;padding:3px;margin-bottom:18px}
+.tab{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--txts);transition:all .15s}
+.tab.on{background:var(--br);color:var(--az);box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--az);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:500;z-index:300;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:var(--ok)}.toast.er{background:var(--er)}
+.empty{text-align:center;padding:48px 20px;color:var(--txts)}
+.empty .ei{font-size:40px;opacity:.2;margin-bottom:10px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--cz2);border-radius:3px}
+
+/* CHECKLIST */
+.ck-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f7f6f1;cursor:pointer}
+.ck-item:last-child{border-bottom:none}
+.ck-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--az);cursor:pointer;flex-shrink:0}
+.ck-item .ckt{font-size:13px}.ck-item.done .ckt{text-decoration:line-through;color:var(--txts)}
+
+/* CHARTS ROW */
+.charts-row{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:22px}
+@media(max-width:900px){.charts-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="brand">☀ Solar Machado</div>
+    <div class="sub">Pós-Venda & Projetos</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">Visão Geral</div>
+    <div class="ni on" onclick="go('dash')"><span class="ic">◈</span> Dashboard</div>
+    <div class="nav-sec">Projetos</div>
+    <div class="ni" onclick="go('pipeline')"><span class="ic">▶</span> Pipeline</div>
+    <div class="ni" onclick="go('projetos')"><span class="ic">◉</span> Todos os Projetos</div>
+    <div class="nav-sec">Pós-Venda</div>
+    <div class="ni" onclick="go('chamados')"><span class="ic">⚑</span> Chamados</div>
+    <div class="ni" onclick="go('garantias')"><span class="ic">✦</span> Garantias</div>
+    <div class="ni" onclick="go('leituras')"><span class="ic">⚡</span> Leituras / Geração</div>
+  </nav>
+  <div class="sb-foot" id="sb-foot">
+    <div class="usr">Ícaro Caio de Sousa Machado</div>
+    <div id="fb-status" style="font-size:10px;margin-top:4px;color:rgba(255,255,255,.35)">⚪ Conectando Firebase…</div>
+    <div class="cnpj">CNPJ 34.757.760/0001-60</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="tb-title" id="tb-title">Dashboard</div>
+    </div>
+    <div class="tb-right">
+      <button class="btn btn-y" id="btn-novo" onclick="openModalProjeto()">+ Novo Projeto</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page on" id="page-dash">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="ki ib">◉</div><div class="kl">Total Projetos</div><div class="kv" id="kd-total">35</div><div class="ks">na base</div></div>
+        <div class="kpi"><div class="ki ig">✔</div><div class="kl">Concluídos</div><div class="kv" id="kd-conc">34</div><div class="ks" id="kd-conc-s">97% do portfólio</div></div>
+        <div class="kpi"><div class="ki iy">⚡</div><div class="kl">kWp Total</div><div class="kv" id="kd-kwp">362 kWp</div><div class="ks">potência instalada</div></div>
+        <div class="kpi"><div class="ki iw">⚑</div><div class="kl">Chamados Abertos</div><div class="kv" id="kd-ch">—</div><div class="ks" id="kd-ch-s">pendentes</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="card" style="padding:18px 20px">
+          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az);margin-bottom:14px">Projetos por Mês (início)</div>
+          <canvas id="ch-dash-mes" height="180"></canvas>
+        </div>
+        <div class="card" style="padding:18px 20px">
+          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az);margin-bottom:14px">Status dos Projetos</div>
+          <canvas id="ch-dash-st" height="180"></canvas>
+        </div>
+      </div>
+      <!-- Últimos chamados + garantias a vencer -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az)">Últimos Chamados</span>
+            <button class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="go('chamados')">Ver todos →</button>
+          </div>
+          <div id="dash-chamados"></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az)">Garantias a Vencer</span>
+            <button class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="go('garantias')">Ver todas →</button>
+          </div>
+          <div id="dash-garantias"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PIPELINE ══ -->
+    <div class="page" id="page-pipeline">
+      <div class="ph">
+        <h2>Pipeline de Projetos</h2>
+        <div class="ph-acts">
+          <button class="btn btn-y" onclick="openModalProjeto()">+ Novo Projeto</button>
+        </div>
+      </div>
+      <div class="pipeline" id="pipeline-board"></div>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az);margin-bottom:4px">Resumo do Funil</div>
+        <div id="pipeline-resumo" style="margin-top:12px;display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--txts)"></div>
+      </div>
+    </div>
+
+    <!-- ══ TODOS OS PROJETOS ══ -->
+    <div class="page" id="page-projetos">
+      <div class="ph">
+        <h2>Todos os Projetos</h2>
+        <button class="btn btn-y" onclick="openModalProjeto()">+ Novo Projeto</button>
+      </div>
+      <div class="fbar">
+        <div class="fs"><span class="sic">🔍</span><input type="text" id="pq" placeholder="Buscar nome, cliente, UC, montador…" oninput="renderProjetos()"></div>
+        <select class="fsel" id="pst" onchange="renderProjetos()">
+          <option value="">Todas as etapas</option>
+          <option>Visita</option><option>Proposta</option><option>Aprovação</option>
+          <option>Instalação</option><option>Ligação</option><option>Concluído</option>
+        </select>
+        <select class="fsel" id="por" onchange="renderProjetos()">
+          <option value="id">Nº</option>
+          <option value="kwp">Maior kWp</option>
+          <option value="val">Maior valor</option>
+          <option value="data">Mais recente</option>
+        </select>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Titular / Cliente</th><th>kWp</th>
+            <th>Inversor</th><th>Etapa</th><th>Início</th><th>Ligação</th>
+            <th>Garantia</th><th>Ações</th>
+          </tr></thead>
+          <tbody id="proj-tb"></tbody>
+        </table>
+      </div>
+      <div id="proj-cnt" style="margin-top:10px;font-size:12px;color:var(--txts)"></div>
+    </div>
+
+    <!-- ══ CHAMADOS ══ -->
+    <div class="page" id="page-chamados">
+      <div class="ph">
+        <h2>Chamados de Pós-Venda</h2>
+        <button class="btn btn-y" onclick="openModalChamado()">+ Novo Chamado</button>
+      </div>
+      <div class="tabs">
+        <div class="tab on" onclick="setChamadoTab('todos')">Todos</div>
+        <div class="tab" onclick="setChamadoTab('aberto')">Abertos</div>
+        <div class="tab" onclick="setChamadoTab('andamento')">Em Andamento</div>
+        <div class="tab" onclick="setChamadoTab('resolvido')">Resolvidos</div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Cliente / Projeto</th><th>Tipo</th><th>Descrição</th>
+            <th>Abertura</th><th>Prioridade</th><th>Status</th><th>Ações</th>
+          </tr></thead>
+          <tbody id="ch-tb"></tbody>
+        </table>
+      </div>
+      <div id="ch-cnt" style="margin-top:10px;font-size:12px;color:var(--txts)"></div>
+    </div>
+
+    <!-- ══ GARANTIAS ══ -->
+    <div class="page" id="page-garantias">
+      <div class="ph"><h2>Controle de Garantias</h2></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi"><div class="ki ig">✔</div><div class="kl">Garantias Válidas</div><div class="kv" id="kg-ok">—</div><div class="ks">> 12 meses restantes</div></div>
+        <div class="kpi"><div class="ki iw">⚠</div><div class="kl">A Vencer em Breve</div><div class="kv" id="kg-warn">—</div><div class="ks">próximos 12 meses</div></div>
+        <div class="kpi"><div class="ki ir">✕</div><div class="kl">Vencidas</div><div class="kv" id="kg-er">—</div><div class="ks">garantia expirada</div></div>
+      </div>
+      <div class="tw" style="margin-top:8px">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Cliente</th><th>Sistema</th><th>Instalação</th>
+            <th>Fim Garantia Inversor</th><th>Fim Garantia Módulos</th>
+            <th>Dias Restantes</th><th>Status</th>
+          </tr></thead>
+          <tbody id="gar-tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ LEITURAS ══ -->
+    <div class="page" id="page-leituras">
+      <div class="ph">
+        <h2>Leituras de Geração</h2>
+        <button class="btn btn-y" onclick="openModalLeitura()">+ Registrar Leitura</button>
+      </div>
+      <div class="fbar">
+        <div class="fs"><span class="sic">🔍</span><input type="text" id="lq" placeholder="Buscar cliente…" oninput="renderLeituras()"></div>
+        <select class="fsel" id="lmes" onchange="renderLeituras()">
+          <option value="">Todos os meses</option>
+          <option>2026-06</option><option>2026-05</option><option>2026-04</option>
+          <option>2026-03</option><option>2026-02</option><option>2026-01</option>
+          <option>2025-12</option><option>2025-11</option>
+        </select>
+      </div>
+      <div class="tw">
+        <div class="leit-row leit-hdr">
+          <span>Data</span><span>Cliente</span><span>kWh gerado</span><span>% da meta</span><span>Obs.</span>
+        </div>
+        <div id="leit-list"></div>
+      </div>
+      <div id="leit-cnt" style="margin-top:10px;font-size:12px;color:var(--txts)"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- PAINEL DETALHE PROJETO -->
+<div class="det-panel" id="det-panel">
+  <div class="det-hdr">
+    <h3 id="det-nome">—</h3>
+    <button class="btn btn-g" style="font-size:12px;padding:5px 10px" onclick="closePanel()">✕ Fechar</button>
+  </div>
+  <div class="det-body" id="det-body"></div>
+</div>
+
+<!-- MODAL PROJETO -->
+<div class="mo" id="mo-proj">
+  <div class="mbox">
+    <div class="mhdr"><h3 id="mpt">Novo Projeto</h3><button class="mcls" onclick="closeMo('mo-proj')">✕</button></div>
+    <div class="mbdy">
+      <div class="fg">
+        <div class="fgrp full"><label>Nome do Titular *</label><input id="mp-nome" placeholder="Nome completo do titular"></div>
+        <div class="fgrp"><label>Cliente / Responsável</label><input id="mp-cli" placeholder="Nome do cliente"></div>
+        <div class="fgrp"><label>Telefone</label><input id="mp-tel" placeholder="(86) 9 9999-9999"></div>
+        <div class="fgrp"><label>CPF</label><input id="mp-cpf" placeholder="000.000.000-00"></div>
+        <div class="fgrp"><label>UC (código)</label><input id="mp-uc" placeholder="Código UC"></div>
+        <div class="fgrp"><label>Estado</label><select id="mp-est"><option>PI</option><option>MA</option><option>CE</option><option>TO</option></select></div>
+        <div class="fgrp"><label>Potência (kWp) *</label><input type="number" id="mp-kwp" placeholder="0.00" step="0.01"></div>
+        <div class="fgrp"><label>Valor Total (R$)</label><input type="number" id="mp-val" placeholder="0.00"></div>
+        <div class="fgrp"><label>Etapa Atual</label>
+          <select id="mp-etapa">
+            <option>Visita</option><option>Proposta</option><option>Aprovação</option>
+            <option>Instalação</option><option>Ligação</option><option>Concluído</option>
+          </select>
+        </div>
+        <div class="fgrp"><label>Montador</label><input id="mp-mnt" placeholder="JAILSON / DANIEL"></div>
+        <div class="fgrp"><label>Inversor</label><input id="mp-inv" placeholder="SOLPLANET, Growatt…"></div>
+        <div class="fgrp"><label>Potência Inversor</label><input id="mp-pinv" placeholder="6 KW"></div>
+        <div class="fgrp"><label>Qtd. Módulos</label><input type="number" id="mp-mod" placeholder="0"></div>
+        <div class="fgrp"><label>Wp / Módulo</label><input type="number" id="mp-pmod" placeholder="610"></div>
+        <div class="fgrp"><label>Data Início</label><input type="date" id="mp-di"></div>
+        <div class="fgrp"><label>Data Ligação</label><input type="date" id="mp-dl"></div>
+        <div class="fgrp full"><label>Observações</label><textarea id="mp-obs" placeholder="Detalhes do projeto…"></textarea></div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-g" onclick="closeMo('mo-proj')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveProjeto()">Salvar Projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHAMADO -->
+<div class="mo" id="mo-ch">
+  <div class="mbox" style="width:480px">
+    <div class="mhdr"><h3 id="mct">Novo Chamado</h3><button class="mcls" onclick="closeMo('mo-ch')">✕</button></div>
+    <div class="mbdy">
+      <div class="fg">
+        <div class="fgrp full">
+          <label>Projeto / Cliente *</label>
+          <select id="mc-proj"><option value="">Selecione…</option></select>
+        </div>
+        <div class="fgrp">
+          <label>Tipo</label>
+          <select id="mc-tipo">
+            <option>Manutenção Preventiva</option><option>Manutenção Corretiva</option>
+            <option>Limpeza de Módulos</option><option>Problema no Inversor</option>
+            <option>Problema na Rede</option><option>Visita Técnica</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label>Prioridade</label>
+          <select id="mc-pri"><option>Normal</option><option>Alta</option><option>Urgente</option></select>
+        </div>
+        <div class="fgrp full"><label>Descrição *</label><textarea id="mc-desc" placeholder="Descreva o problema ou serviço…"></textarea></div>
+        <div class="fgrp"><label>Data de Abertura</label><input type="date" id="mc-data"></div>
+        <div class="fgrp">
+          <label>Status</label>
+          <select id="mc-st"><option>Aberto</option><option>Em Andamento</option><option>Resolvido</option></select>
+        </div>
+        <div class="fgrp full"><label>Resolução / Observações</label><textarea id="mc-res" placeholder="O que foi feito…" style="min-height:56px"></textarea></div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-g" onclick="closeMo('mo-ch')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveChamado()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LEITURA -->
+<div class="mo" id="mo-leit">
+  <div class="mbox" style="width:420px">
+    <div class="mhdr"><h3>Registrar Leitura</h3><button class="mcls" onclick="closeMo('mo-leit')">✕</button></div>
+    <div class="mbdy">
+      <div class="fg">
+        <div class="fgrp full"><label>Projeto / Cliente *</label><select id="ml-proj"><option value="">Selecione…</option></select></div>
+        <div class="fgrp"><label>Mês de Referência</label><input type="month" id="ml-mes"></div>
+        <div class="fgrp"><label>kWh Gerado</label><input type="number" id="ml-kwh" placeholder="0"></div>
+        <div class="fgrp full"><label>Observações</label><textarea id="ml-obs" placeholder="Condições, anomalias…" style="min-height:56px"></textarea></div>
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-g" onclick="closeMo('mo-leit')">Cancelar</button>
+      <button class="btn btn-p" onclick="saveLeitura()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DADOS: 35 PROJETOS REAIS
+// ══════════════════════════════════════════
+let PROJETOS = [
+  {id:1,nome:"Marcelo-Eugenio Carvalho do Rego Monteiro",cpf:"156.370.933-34",cliente:"Marcelo-Eugenio",tel:"86999772559",uc:"3002094435",estado:"PI",kwp:12.20,valor:24500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"12 KW",modulos:20,wpMod:610,dataInicio:"2025-08-13",dataLigacao:"2025-09-24",producaoMensal:1800,obs:""},
+  {id:2,nome:"Raimunda Fabiana Sousa Alvarenga",cpf:"033.699.403-61",cliente:"Raimunda Fabiana",tel:"86994461504",uc:"14614340",estado:"PI",kwp:4.27,valor:10000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"3 KW",modulos:7,wpMod:610,dataInicio:"2025-08-14",dataLigacao:"2025-09-16",producaoMensal:500,obs:""},
+  {id:3,nome:"Dailton da Silva De Castro",cpf:"701.824.183-91",cliente:"Dailton Castro",tel:"88994600284",uc:"3019138584",estado:"MA",kwp:7.50,valor:16000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:13,wpMod:610,dataInicio:"2025-08-18",dataLigacao:"2025-09-29",producaoMensal:1000,obs:""},
+  {id:4,nome:"Cleildes Pereira da Silva Otavio",cpf:"024.406.753-85",cliente:"Rennee Anderson",tel:"86994668565",uc:"10218580",estado:"PI",kwp:7.93,valor:15800,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:13,wpMod:610,dataInicio:"2025-08-18",dataLigacao:"2025-09-29",producaoMensal:1000,obs:""},
+  {id:5,nome:"Paulo Afonso Marques",cpf:"037.126.613-04",cliente:"Raquel Marques",tel:"86988638488",uc:"3004756184",estado:"PI",kwp:7.93,valor:15000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:13,wpMod:610,dataInicio:"2025-08-25",dataLigacao:"2025-09-16",producaoMensal:1000,obs:""},
+  {id:6,nome:"Isabel Maria Lima",cpf:"693.179.763-87",cliente:"Roberta/BETO",tel:"86994605323",uc:"6346200",estado:"PI",kwp:14.64,valor:26500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:24,wpMod:610,dataInicio:"2025-09-04",dataLigacao:"2025-10-08",producaoMensal:1800,obs:""},
+  {id:7,nome:"Francisco Ricardo Calisto de Morais",cpf:"716.099.463-91",cliente:"Paulo Victor",tel:"86999841634",uc:"186481",estado:"PI",kwp:15.79,valor:27000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:27,wpMod:585,dataInicio:"2025-09-29",dataLigacao:"2025-11-07",producaoMensal:2000,obs:""},
+  {id:8,nome:"Rafael Alves Martins",cpf:"026.257.393-80",cliente:"Andresa",tel:"86994414809",uc:"3004958860",estado:"PI",kwp:12.28,valor:22000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:21,wpMod:585,dataInicio:"2025-09-29",dataLigacao:"2025-11-18",producaoMensal:1500,obs:""},
+  {id:9,nome:"Inácio Rocha Pita Neto",cpf:"077.559.363-09",cliente:"Ernanes",tel:"89994581288",uc:"3004710010",estado:"PI",kwp:15.79,valor:27000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:27,wpMod:585,dataInicio:"2025-09-29",dataLigacao:"2025-11-11",producaoMensal:2000,obs:""},
+  {id:10,nome:"Djames Silva Bona",cpf:"553.559.863-15",cliente:"Djames",tel:"86994310104",uc:"5766702",estado:"PI",kwp:6.44,valor:13500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"5 KW",modulos:11,wpMod:585,dataInicio:"2025-10-06",dataLigacao:"2025-11-18",producaoMensal:800,obs:""},
+  {id:11,nome:"Fabiano de Cristo Pereira da Silva",cpf:"014.539.803-00",cliente:"Fabiano",tel:"86999243684",uc:"560340",estado:"PI",kwp:6.44,valor:14000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"5 KW",modulos:11,wpMod:585,dataInicio:"2025-10-07",dataLigacao:"2025-11-12",producaoMensal:800,obs:""},
+  {id:12,nome:"Edilene Carvalho Santos",cpf:"199.909.523-53",cliente:"Edilene",tel:"86999240094",uc:"560332",estado:"PI",kwp:8.40,valor:16000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:600,dataInicio:"2025-10-20",dataLigacao:"2025-11-24",producaoMensal:1000,obs:""},
+  {id:13,nome:"José Alberto de Sousa",cpf:"553.679.093-53",cliente:"Zé Alberto",tel:"86999913577",uc:"1918184",estado:"PI",kwp:8.40,valor:16000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:600,dataInicio:"2025-10-20",dataLigacao:"2025-11-24",producaoMensal:1000,obs:""},
+  {id:14,nome:"Sebastião Pereira Neves Filho",cpf:"552.603.493-34",cliente:"Sebastião",tel:"86988082845",uc:"13759043",estado:"PI",kwp:8.40,valor:15000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:14,wpMod:600,dataInicio:"2025-10-21",dataLigacao:"2025-11-12",producaoMensal:1000,obs:""},
+  {id:15,nome:"Vivian Mendes",cpf:"692.039.381-68",cliente:"Jorge Aldo",tel:"86988015363",uc:"3001504770",estado:"PI",kwp:6.44,valor:13500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"5 KW",modulos:11,wpMod:600,dataInicio:"2025-10-22",dataLigacao:"2025-11-27",producaoMensal:800,obs:""},
+  {id:16,nome:"Jesus Jefferson Sampaio Mesquita",cpf:"062.268.123-03",cliente:"Jefferson",tel:"86994691929",uc:"3004767313",estado:"PI",kwp:27.70,valor:44500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"20 KW",modulos:46,wpMod:615,dataInicio:"2025-11-04",dataLigacao:"2025-12-19",producaoMensal:3500,obs:""},
+  {id:17,nome:"Maria do Socorro Conrado",cpf:"479.371.653-91",cliente:"Maria do Socorro",tel:"86999143727",uc:"544493",estado:"PI",kwp:6.80,valor:14500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:615,dataInicio:"2025-11-10",dataLigacao:"2025-12-18",producaoMensal:800,obs:""},
+  {id:18,nome:"Edilando Barroso de Oliveira",cpf:"229.053.243-68",cliente:"Ediliano",tel:"86999610202",uc:"9917446",estado:"PI",kwp:7.40,valor:12000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9,1 KW",modulos:21,wpMod:600,dataInicio:"2025-11-12",dataLigacao:"2025-12-19",producaoMensal:900,obs:""},
+  {id:19,nome:"Maria Nerina Pessoa Castelo Branco",cpf:"022.850.453-87",cliente:"Maria de Fatima",tel:"86988133462",uc:"888559",estado:"PI",kwp:7.40,valor:15999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:12,wpMod:700,dataInicio:"2025-11-18",dataLigacao:"2025-12-19",producaoMensal:1000,obs:""},
+  {id:20,nome:"Ediane Pereira Barros",cpf:"026.647.383-05",cliente:"Ediane",tel:"86988717033",uc:"3008181810",estado:"MA",kwp:6.80,valor:12500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:10,wpMod:700,dataInicio:"2025-11-20",dataLigacao:"2025-12-19",producaoMensal:800,obs:""},
+  {id:21,nome:"Regina Lucia da Silva Cruz",cpf:"151.391.233-04",cliente:"Dona Regina",tel:"86994138148",uc:"1085778",estado:"PI",kwp:4.20,valor:9999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"15 KW",modulos:35,wpMod:560,dataInicio:"2025-11-26",dataLigacao:"2026-01-01",producaoMensal:500,obs:""},
+  {id:22,nome:"Maltide Machado Vieira",cpf:"305.744.983-20",cliente:"Maltide",tel:"86994018659",uc:"200315658",estado:"PI",kwp:8.40,valor:15999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:12,wpMod:700,dataInicio:"2025-11-27",dataLigacao:"2025-12-19",producaoMensal:1000,obs:""},
+  {id:23,nome:"Roberto Barbosa de Miranda",cpf:"428.778.303-49",cliente:"Roberto",tel:"86988931792",uc:"3005063387",estado:"PI",kwp:7.00,valor:12999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:10,wpMod:700,dataInicio:"2025-11-29",dataLigacao:"2026-01-01",producaoMensal:800,obs:""},
+  {id:24,nome:"Marilene Dantas Amorim",cpf:"420.573.103-53",cliente:"Wanescla",tel:"86999873139",uc:"3003027766",estado:"PI",kwp:6.70,valor:14500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"9.1 KW",modulos:11,wpMod:610,dataInicio:"2025-12-16",dataLigacao:"2026-01-23",producaoMensal:800,obs:""},
+  {id:25,nome:"Gabriel Alexandrino Callado",cpf:"061.332.793-46",cliente:"Gabriel Alexandrino",tel:"86999320779",uc:"",estado:"PI",kwp:8.50,valor:15999,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:14,wpMod:610,dataInicio:"2025-12-16",dataLigacao:"2026-01-23",producaoMensal:1000,obs:""},
+  {id:26,nome:"Maria Juliete Lopes Rodrigues",cpf:"389.539.108-54",cliente:"Maria do Socorro 2",tel:"86999121853",uc:"3003096288",estado:"PI",kwp:6.70,valor:17000,etapa:"Concluído",montador:"DANIEL",inversor:"SOLPLANET",potInv:"7.5 KW",modulos:14,wpMod:610,dataInicio:"2025-12-11",dataLigacao:"2026-01-23",producaoMensal:1000,obs:""},
+  {id:27,nome:"Walisson de Oliveira Sobrinho",cpf:"063.553.253-01",cliente:"Wallison",tel:"86988527068",uc:"14124769",estado:"PI",kwp:4.90,valor:12000,etapa:"Concluído",montador:"DANIEL",inversor:"SOLPLANET",potInv:"4 KW",modulos:7,wpMod:700,dataInicio:"2026-01-07",dataLigacao:"2026-03-05",producaoMensal:600,obs:""},
+  {id:28,nome:"Irvayne Matheus de Sousa Ibiapina",cpf:"055.686.353-40",cliente:"Irvayne",tel:"8699292373",uc:"3004004085",estado:"PI",kwp:9.90,valor:19000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:17,wpMod:585,dataInicio:"2026-01-31",dataLigacao:"2026-03-21",producaoMensal:1200,obs:""},
+  {id:29,nome:"Eliana Silva Loureiro",cpf:"078.462.073-34",cliente:"Jamille",tel:"86999493838",uc:"3005557649",estado:"PI",kwp:16.38,valor:30000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"15 KW",modulos:28,wpMod:585,dataInicio:"2026-01-30",dataLigacao:"2026-03-05",producaoMensal:2000,obs:""},
+  {id:30,nome:"Domingos James de Araujo Souza",cpf:"066.248.053-82",cliente:"James Frutaria",tel:"86981670710",uc:"",estado:"PI",kwp:47.58,valor:80000,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"60 KW",modulos:78,wpMod:610,dataInicio:"2026-02-20",dataLigacao:"",producaoMensal:6000,obs:"Maior sistema — monitorar mensalmente"},
+  {id:31,nome:"Osmir Batista da Silva Junior",cpf:"043.204.073-00",cliente:"Osmir",tel:"86999928236",uc:"151378",estado:"PI",kwp:7.93,valor:16500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:13,wpMod:610,dataInicio:"2026-03-18",dataLigacao:"2026-04-25",producaoMensal:1000,obs:""},
+  {id:32,nome:"Mirian Alves Pereira de Oliveira",cpf:"721.108.643-20",cliente:"Mirian",tel:"86988879458",uc:"3000476896",estado:"PI",kwp:7.20,valor:15000,etapa:"Concluído",montador:"DANIEL",inversor:"SOLPLANET",potInv:"6 KW",modulos:12,wpMod:585,dataInicio:"2026-03-25",dataLigacao:"2026-05-08",producaoMensal:800,obs:""},
+  {id:33,nome:"Francisaura Neres Waquim de Abreu",cpf:"643.187.453-68",cliente:"Franscisaura",tel:"86994177536",uc:"15823490",estado:"PI",kwp:12.40,valor:22650,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"7,5 KW",modulos:20,wpMod:620,dataInicio:"2026-04-13",dataLigacao:"2026-05-18",producaoMensal:1500,obs:""},
+  {id:34,nome:"João Batista de Sousa",cpf:"096.832.083-04",cliente:"João Batista",tel:"86995226870",uc:"7069146",estado:"PI",kwp:6.80,valor:14500,etapa:"Concluído",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:11,wpMod:620,dataInicio:"2026-04-27",dataLigacao:"2026-05-26",producaoMensal:800,obs:""},
+  {id:35,nome:"Victor Emanuel Jorge Lejeune",cpf:"087.806.913-58",cliente:"Jardel",tel:"8695384139",uc:"3005954532",estado:"PI",kwp:8.60,valor:18500,etapa:"Instalação",montador:"JAILSON",inversor:"SOLPLANET",potInv:"6 KW",modulos:13,wpMod:620,dataInicio:"2026-05-26",dataLigacao:"",producaoMensal:1000,obs:"Aguardando ligação na Equatorial"}
+];
+
+// Chamados iniciais (exemplos reais)
+let CHAMADOS = [
+  {id:1,projetoId:30,tipo:"Manutenção Preventiva",desc:"Limpeza dos 78 módulos — sistema de 47,58 kWp",data:"2026-05-15",prioridade:"Alta",status:"Resolvido",res:"Limpeza realizada pela equipe. Geração aumentou 8%."},
+  {id:2,projetoId:16,tipo:"Problema no Inversor",desc:"Inversor SOLPLANET 20KW apresentando erro E08",data:"2026-06-01",prioridade:"Urgente",status:"Em Andamento",res:"Aguardando peça de reposição do fornecedor."},
+  {id:3,projetoId:21,tipo:"Problema na Rede",desc:"Equatorial solicitou vistoria após troca do medidor",data:"2026-06-03",prioridade:"Normal",status:"Aberto",res:""},
+  {id:4,projetoId:9,tipo:"Limpeza de Módulos",desc:"Cliente solicitou limpeza após chuvas de areia",data:"2026-05-28",prioridade:"Normal",status:"Aberto",res:""},
+  {id:5,projetoId:35,tipo:"Visita Técnica",desc:"Verificar instalação antes da ligação na Equatorial",data:"2026-06-05",prioridade:"Alta",status:"Em Andamento",res:""},
+];
+
+// Leituras de geração
+let LEITURAS = [
+  {id:1,projetoId:30,mes:"2026-05",kwh:5820,obs:"Clima favorável"},
+  {id:2,projetoId:16,mes:"2026-05",kwh:3420,obs:""},
+  {id:3,projetoId:30,mes:"2026-04",kwh:5200,obs:""},
+  {id:4,projetoId:1, mes:"2026-05",kwh:1750,obs:""},
+  {id:5,projetoId:9, mes:"2026-05",kwh:1980,obs:""},
+  {id:6,projetoId:7, mes:"2026-05",kwh:1950,obs:""},
+];
+
+const ETAPAS = ["Visita","Proposta","Aprovação","Instalação","Ligação","Concluído"];
+
+// ══════════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════════
+function go(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
+  document.getElementById('page-' + p).classList.add('on');
+  const map = {dash:0,pipeline:1,projetos:2,chamados:3,garantias:4,leituras:5};
+  document.querySelectorAll('.ni')[map[p]]?.classList.add('on');
+  const ttls = {dash:'Dashboard',pipeline:'Pipeline de Projetos',projetos:'Todos os Projetos',chamados:'Chamados de Pós-Venda',garantias:'Controle de Garantias',leituras:'Leituras de Geração'};
+  document.getElementById('tb-title').textContent = ttls[p] || p;
+  const btnNovo = document.getElementById('btn-novo');
+  btnNovo.style.display = ['dash','pipeline','projetos'].includes(p) ? 'flex' : 'none';
+  if(p==='dash') renderDash();
+  if(p==='pipeline') renderPipeline();
+  if(p==='projetos') renderProjetos();
+  if(p==='chamados') renderChamados();
+  if(p==='garantias') renderGarantias();
+  if(p==='leituras') renderLeituras();
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+let chDM=null, chDS=null;
+function renderDash() {
+  const total = PROJETOS.length;
+  const conc = PROJETOS.filter(p=>p.etapa==='Concluído').length;
+  const kwp = PROJETOS.reduce((s,p)=>s+(p.kwp||0),0);
+  const chAbertos = CHAMADOS.filter(c=>c.status!=='Resolvido').length;
+  document.getElementById('kd-total').textContent = total;
+  document.getElementById('kd-conc').textContent = conc;
+  document.getElementById('kd-conc-s').textContent = Math.round(conc/total*100)+'% do portfólio';
+  document.getElementById('kd-kwp').textContent = kwp.toFixed(0)+' kWp';
+  document.getElementById('kd-ch').textContent = chAbertos;
+  document.getElementById('kd-ch-s').textContent = chAbertos > 0 ? 'requerem atenção' : 'sem pendências';
+
+  // Gráfico por mês
+  const mmap = {};
+  PROJETOS.forEach(p=>{if(!p.dataInicio)return; const m=p.dataInicio.slice(0,7); mmap[m]=(mmap[m]||0)+1;});
+  const mkeys = Object.keys(mmap).sort();
+  const ctx1 = document.getElementById('ch-dash-mes').getContext('2d');
+  if(chDM) chDM.destroy();
+  chDM = new Chart(ctx1,{type:'bar',data:{labels:mkeys.map(k=>{const[y,mo]=k.split('-');return['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo]+'/'+y.slice(2);}),datasets:[{data:Object.values(mmap),backgroundColor:'#2E3486',borderRadius:5,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:'#f0efe8'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+
+  // Gráfico status
+  const smap = {};
+  PROJETOS.forEach(p=>{smap[p.etapa]=(smap[p.etapa]||0)+1;});
+  const ctx2 = document.getElementById('ch-dash-st').getContext('2d');
+  if(chDS) chDS.destroy();
+  chDS = new Chart(ctx2,{type:'doughnut',data:{labels:Object.keys(smap),datasets:[{data:Object.values(smap),backgroundColor:['#1D9E75','#2E3486','#FDC300','#4a52c8','#D85A30','#888780'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:8}}},cutout:'60%'}});
+
+  // Últimos chamados
+  const dc = document.getElementById('dash-chamados');
+  const recCh = [...CHAMADOS].sort((a,b)=>b.id-a.id).slice(0,4);
+  dc.innerHTML = recCh.length ? recCh.map(c=>{
+    const p = PROJETOS.find(x=>x.id===c.projetoId);
+    const cor = c.status==='Resolvido'?'ig':c.status==='Em Andamento'?'iw':'ir';
+    return `<div class="chamado-row">
+      <div class="ch-ico ${cor}">${c.status==='Resolvido'?'✔':c.status==='Em Andamento'?'⚙':'⚑'}</div>
+      <div class="ch-info">
+        <div class="cn">${esc(p?.cliente||'—')} — ${esc(c.tipo)}</div>
+        <div class="cs">${esc(c.desc.slice(0,55))}${c.desc.length>55?'…':''}</div>
+        <div class="cd">${fmt_data(c.data)} · <span class="bd ${c.status==='Resolvido'?'bd-ok':c.status==='Em Andamento'?'bd-am':'bd-er'}" style="font-size:10px">${c.status}</span></div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty"><div class="ei">✔</div><p>Nenhum chamado.</p></div>';
+
+  // Garantias próximas
+  const dg = document.getElementById('dash-garantias');
+  const hoje = new Date();
+  const proxGar = PROJETOS.filter(p=>p.dataLigacao).map(p=>{
+    const lig = new Date(p.dataLigacao);
+    const fimInv = new Date(lig); fimInv.setFullYear(fimInv.getFullYear()+5);
+    const dias = Math.round((fimInv-hoje)/(1000*60*60*24));
+    return {...p, diasGar:dias};
+  }).filter(p=>p.diasGar<=365 && p.diasGar>0).sort((a,b)=>a.diasGar-b.diasGar).slice(0,4);
+  dg.innerHTML = proxGar.length ? proxGar.map(p=>`
+    <div class="chamado-row">
+      <div class="ch-ico iw">✦</div>
+      <div class="ch-info">
+        <div class="cn">${esc(p.cliente)}</div>
+        <div class="cs">${p.kwp} kWp · ${esc(p.inversor)} ${esc(p.potInv)}</div>
+        <div class="cd"><strong style="color:var(--warn)">${p.diasGar} dias</strong> restantes — vence ${fmt_data(new Date(new Date(p.dataLigacao).setFullYear(new Date(p.dataLigacao).getFullYear()+5)).toISOString().slice(0,10))}</div>
+        <div class="gar-bar"><div class="gar-fill warn" style="width:${Math.min(100,Math.round((365-p.diasGar)/365*100))}%"></div></div>
+      </div>
+    </div>`).join('') : '<div style="padding:14px 0;font-size:13px;color:var(--txts)">✔ Nenhuma garantia a vencer nos próximos 12 meses.</div>';
+}
+
+// ══════════════════════════════════════════
+// PIPELINE
+// ══════════════════════════════════════════
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  board.innerHTML = ETAPAS.map(et=>{
+    const projs = PROJETOS.filter(p=>p.etapa===et);
+    return `<div class="pipe-col">
+      <div class="pipe-hdr">
+        <span class="pt">${et}</span>
+        <span class="pc">${projs.length}</span>
+      </div>
+      <div class="pipe-body">
+        ${projs.map(p=>`
+          <div class="pcard" onclick="openPanel(${p.id})">
+            <div class="pcn">${esc(p.cliente)}</div>
+            <div class="pcs">${esc(p.estado)} · ${esc(p.inversor)} ${esc(p.potInv)}</div>
+            <div class="pckwp">${p.kwp} kWp</div>
+          </div>`).join('')}
+        ${!projs.length?'<div style="font-size:11px;color:var(--cz3);text-align:center;padding:10px 0">Sem projetos</div>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const res = document.getElementById('pipeline-resumo');
+  const kwpAtivo = PROJETOS.filter(p=>p.etapa!=='Concluído').reduce((s,p)=>s+(p.kwp||0),0);
+  const valAtivo = PROJETOS.filter(p=>p.etapa!=='Concluído').reduce((s,p)=>s+(p.valor||0),0);
+  res.innerHTML = `
+    <span>🔵 <strong>${PROJETOS.filter(p=>p.etapa!=='Concluído').length}</strong> projetos em andamento</span>
+    <span>⚡ <strong>${kwpAtivo.toFixed(2)} kWp</strong> em execução</span>
+    <span>💰 <strong>R$ ${fmt(valAtivo)}</strong> em carteira ativa</span>
+    <span>✅ <strong>${PROJETOS.filter(p=>p.etapa==='Concluído').length}</strong> projetos concluídos</span>
+  `;
+}
+
+// ══════════════════════════════════════════
+// TODOS OS PROJETOS
+// ══════════════════════════════════════════
+function renderProjetos() {
+  const q = (document.getElementById('pq')?.value||'').toLowerCase();
+  const st = document.getElementById('pst')?.value||'';
+  const or = document.getElementById('por')?.value||'id';
+  let d = [...PROJETOS].filter(p=>{
+    const m = !q||[p.nome,p.cliente,p.uc,p.montador,p.inversor].join(' ').toLowerCase().includes(q);
+    const s = !st||p.etapa===st;
+    return m&&s;
+  });
+  if(or==='kwp') d.sort((a,b)=>b.kwp-a.kwp);
+  else if(or==='val') d.sort((a,b)=>b.valor-a.valor);
+  else if(or==='data') d.sort((a,b)=>(b.dataInicio||'')>(a.dataInicio||'')?1:-1);
+  else d.sort((a,b)=>a.id-b.id);
+
+  const tb = document.getElementById('proj-tb');
+  document.getElementById('proj-cnt').textContent = d.length+' projeto(s)';
+  const hoje = new Date();
+  tb.innerHTML = d.map(p=>{
+    const ecls = p.etapa==='Concluído'?'bd-ok':p.etapa==='Instalação'||p.etapa==='Ligação'?'bd-am':p.etapa==='Aprovação'?'bd-az':'bd-cz';
+    const di = p.dataInicio?fmt_data(p.dataInicio):'—';
+    const dl = p.dataLigacao?fmt_data(p.dataLigacao):'—';
+    let garStr = '—', garCls = '';
+    if(p.dataLigacao){
+      const fim = new Date(p.dataLigacao); fim.setFullYear(fim.getFullYear()+5);
+      const dias = Math.round((fim-hoje)/(1000*60*60*24));
+      if(dias>365){garStr=`${Math.round(dias/365)}a restantes`;garCls='bd-ok';}
+      else if(dias>0){garStr=`${dias}d restantes`;garCls='bd-am';}
+      else{garStr='Vencida';garCls='bd-er';}
+    }
+    return `<tr>
+      <td style="color:var(--txts);font-size:11px">#${p.id}</td>
+      <td>
+        <div style="font-size:13px;font-weight:500">${esc(p.cliente)}</div>
+        <div style="font-size:10.5px;color:var(--txts)">${esc(p.nome.split(' ').slice(0,3).join(' '))}</div>
+      </td>
+      <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--az)">${p.kwp.toFixed(2)}</td>
+      <td style="font-size:12px">${esc(p.inversor)} ${esc(p.potInv)}</td>
+      <td><span class="bd ${ecls}">${p.etapa}</span></td>
+      <td style="font-size:11.5px;color:var(--txts)">${di}</td>
+      <td style="font-size:11.5px;color:var(--txts)">${dl}</td>
+      <td>${garStr!=='—'?`<span class="bd ${garCls}" style="font-size:11px">${garStr}</span>`:'—'}</td>
+      <td><div class="ab">
+        <button class="bi v" title="Ver detalhes" onclick="openPanel(${p.id})">👁</button>
+        <button class="bi e" title="Editar" onclick="openModalProjeto(${p.id})">✎</button>
+        <button class="bi d" title="Excluir" onclick="delP(${p.id})">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// PAINEL DETALHE
+// ══════════════════════════════════════════
+function openPanel(id) {
+  const p = PROJETOS.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('det-nome').textContent = p.cliente;
+  const et_idx = ETAPAS.indexOf(p.etapa);
+  const etapasHtml = `<div class="etapas">${ETAPAS.map((e,i)=>`
+    <div class="etapa ${i<et_idx?'done':i===et_idx?'active':''}">
+      <div class="etapa-dot">${i<et_idx?'✓':i+1}</div>
+      <div class="etapa-lbl">${e}</div>
+    </div>`).join('')}</div>`;
+
+  const chamadosProjeto = CHAMADOS.filter(c=>c.projetoId===id);
+  const leiturasP = LEITURAS.filter(l=>l.projetoId===id).sort((a,b)=>b.mes.localeCompare(a.mes));
+  const hoje = new Date();
+  let garInfo = '—';
+  if(p.dataLigacao){
+    const fim = new Date(p.dataLigacao); fim.setFullYear(fim.getFullYear()+5);
+    const dias = Math.round((fim-hoje)/(1000*60*60*24));
+    garInfo = dias>0?`${dias} dias (até ${fmt_data(fim.toISOString().slice(0,10))})`:'Vencida';
+  }
+
+  document.getElementById('det-body').innerHTML = `
+    ${etapasHtml}
+    <div class="det-sec">
+      <div class="det-sec-ttl">Dados do Projeto</div>
+      ${[
+        ['Titular',p.nome],['Cliente',p.cliente],['Telefone',p.tel],
+        ['CPF',p.cpf],['UC',p.uc||'—'],['Estado',p.estado],
+        ['Potência',p.kwp+' kWp'],['Prod. Mensal',p.producaoMensal+' kWh/mês'],
+        ['Valor',p.valor?'R$ '+fmt(p.valor):'—'],
+        ['Inversor',p.inversor+' '+p.potInv],
+        ['Módulos',p.modulos+'x '+p.wpMod+'Wp'],['Montador',p.montador],
+        ['Início',p.dataInicio?fmt_data(p.dataInicio):'—'],
+        ['Ligação',p.dataLigacao?fmt_data(p.dataLigacao):'—'],
+        ['Garantia Inv.',garInfo],
+      ].map(([l,v])=>`<div class="det-row"><span class="det-lbl">${l}</span><span class="det-val">${esc(String(v))}</span></div>`).join('')}
+      ${p.obs?`<div style="margin-top:8px;padding:10px;background:#f7f6f1;border-radius:8px;font-size:12.5px;color:var(--txts)">${esc(p.obs)}</div>`:''}
+    </div>
+    <div class="det-sec">
+      <div class="det-sec-ttl" style="display:flex;justify-content:space-between;align-items:center">
+        Chamados <button class="btn btn-y" style="font-size:11px;padding:4px 10px" onclick="openModalChamado(${id})">+ Chamado</button>
+      </div>
+      ${chamadosProjeto.length?chamadosProjeto.map(c=>`
+        <div class="chamado-row">
+          <div class="ch-ico ${c.status==='Resolvido'?'ig':c.status==='Em Andamento'?'iw':'ir'}">${c.status==='Resolvido'?'✔':c.status==='Em Andamento'?'⚙':'⚑'}</div>
+          <div class="ch-info">
+            <div class="cn">${esc(c.tipo)}</div>
+            <div class="cs">${esc(c.desc)}</div>
+            <div class="cd">${fmt_data(c.data)} · <span class="bd ${c.status==='Resolvido'?'bd-ok':c.status==='Em Andamento'?'bd-am':'bd-er'}" style="font-size:10px">${c.status}</span> · ${c.prioridade}</div>
+            ${c.res?`<div style="margin-top:4px;font-size:11px;color:var(--txts)">↳ ${esc(c.res)}</div>`:''}
+          </div>
+        </div>`).join('')
+      :'<div style="font-size:12.5px;color:var(--txts);padding:8px 0">Nenhum chamado neste projeto.</div>'}
+    </div>
+    <div class="det-sec">
+      <div class="det-sec-ttl" style="display:flex;justify-content:space-between;align-items:center">
+        Leituras de Geração <button class="btn btn-y" style="font-size:11px;padding:4px 10px" onclick="openModalLeitura(${id})">+ Leitura</button>
+      </div>
+      ${leiturasP.length?leiturasP.map(l=>{
+        const pct = p.producaoMensal>0?Math.round(l.kwh/p.producaoMensal*100):0;
+        return `<div class="det-row">
+          <span class="det-lbl">${l.mes}</span>
+          <span class="det-val" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+            <span>${l.kwh} kWh</span>
+            <div style="width:100px;height:6px;background:#f0efe8;border-radius:3px;overflow:hidden">
+              <div style="width:${Math.min(100,pct)}%;height:100%;background:${pct>=90?'var(--ok)':pct>=70?'var(--warn)':'var(--er)'};border-radius:3px"></div>
+            </div>
+            <span style="font-size:10px;color:var(--txts)">${pct}% da meta</span>
+          </span>
+        </div>`;
+      }).join('')
+      :'<div style="font-size:12.5px;color:var(--txts);padding:8px 0">Nenhuma leitura registrada.</div>'}
+    </div>
+    <div style="padding:10px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-p" onclick="openModalProjeto(${id})">✎ Editar Projeto</button>
+      <button class="btn btn-g" onclick="closePanel()">Fechar</button>
+    </div>
+  `;
+  document.getElementById('det-panel').classList.add('open');
+}
+function closePanel(){document.getElementById('det-panel').classList.remove('open');}
+
+// ══════════════════════════════════════════
+// CHAMADOS
+// ══════════════════════════════════════════
+let chamadoTab='todos';
+function setChamadoTab(t){
+  chamadoTab=t;
+  document.querySelectorAll('.tabs .tab').forEach((el,i)=>{
+    el.classList.toggle('on',['todos','aberto','andamento','resolvido'][i]===t);
+  });
+  renderChamados();
+}
+function renderChamados(){
+  let d=[...CHAMADOS].sort((a,b)=>b.id-a.id);
+  if(chamadoTab==='aberto') d=d.filter(c=>c.status==='Aberto');
+  else if(chamadoTab==='andamento') d=d.filter(c=>c.status==='Em Andamento');
+  else if(chamadoTab==='resolvido') d=d.filter(c=>c.status==='Resolvido');
+  const tb=document.getElementById('ch-tb');
+  document.getElementById('ch-cnt').textContent=d.length+' chamado(s)';
+  const pri_cls={Normal:'bd-az',Alta:'bd-am',Urgente:'bd-er'};
+  const st_cls={Aberto:'bd-er','Em Andamento':'bd-am',Resolvido:'bd-ok'};
+  tb.innerHTML=d.map(c=>{
+    const p=PROJETOS.find(x=>x.id===c.projetoId);
+    return `<tr>
+      <td style="font-size:11px;color:var(--txts)">#${c.id}</td>
+      <td><div style="font-size:13px;font-weight:500">${esc(p?.cliente||'—')}</div><div style="font-size:10.5px;color:var(--txts)">#${c.projetoId} · ${p?.kwp||'—'} kWp</div></td>
+      <td style="font-size:12.5px">${esc(c.tipo)}</td>
+      <td style="font-size:12.5px;max-width:220px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.desc)}</div></td>
+      <td style="font-size:11.5px;color:var(--txts)">${fmt_data(c.data)}</td>
+      <td><span class="bd ${pri_cls[c.prioridade]||'bd-cz'}" style="font-size:11px">${c.prioridade}</span></td>
+      <td><span class="bd ${st_cls[c.status]||'bd-cz'}" style="font-size:11px">${c.status}</span></td>
+      <td><div class="ab">
+        <button class="bi e" onclick="editChamado(${c.id})">✎</button>
+        <button class="bi d" onclick="delCh(${c.id})">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// GARANTIAS
+// ══════════════════════════════════════════
+function renderGarantias(){
+  const hoje=new Date();
+  const dados=PROJETOS.filter(p=>p.dataLigacao).map(p=>{
+    const lig=new Date(p.dataLigacao);
+    const fimInv=new Date(lig); fimInv.setFullYear(fimInv.getFullYear()+5);
+    const fimMod=new Date(lig); fimMod.setFullYear(fimMod.getFullYear()+10);
+    const dias=Math.round((fimInv-hoje)/(1000*60*60*24));
+    return{...p,fimInv,fimMod,diasRestantes:dias};
+  }).sort((a,b)=>a.diasRestantes-b.diasRestantes);
+  const ok=dados.filter(p=>p.diasRestantes>365).length;
+  const warn=dados.filter(p=>p.diasRestantes>0&&p.diasRestantes<=365).length;
+  const er=dados.filter(p=>p.diasRestantes<=0).length;
+  document.getElementById('kg-ok').textContent=ok;
+  document.getElementById('kg-warn').textContent=warn;
+  document.getElementById('kg-er').textContent=er;
+  const tb=document.getElementById('gar-tb');
+  tb.innerHTML=dados.map(p=>{
+    const cls=p.diasRestantes>365?'bd-ok':p.diasRestantes>0?'bd-am':'bd-er';
+    const label=p.diasRestantes>365?`${Math.round(p.diasRestantes/365)}a ${Math.round((p.diasRestantes%365)/30)}m`:p.diasRestantes>0?`${p.diasRestantes} dias`:'Vencida';
+    return `<tr>
+      <td style="font-size:11px;color:var(--txts)">#${p.id}</td>
+      <td><div style="font-size:13px;font-weight:500">${esc(p.cliente)}</div><div style="font-size:10.5px;color:var(--txts)">${esc(p.nome.split(' ').slice(0,3).join(' '))}</div></td>
+      <td style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--az)">${p.kwp} kWp</td>
+      <td style="font-size:11.5px;color:var(--txts)">${fmt_data(p.dataLigacao)}</td>
+      <td style="font-size:12px">${fmt_data(p.fimInv.toISOString().slice(0,10))}</td>
+      <td style="font-size:12px">${fmt_data(p.fimMod.toISOString().slice(0,10))}</td>
+      <td><span class="bd ${cls}" style="font-size:11px">${label}</span></td>
+      <td>
+        <div class="gar-bar" style="width:120px">
+          <div class="gar-fill ${p.diasRestantes>365?'':'warn'}" style="width:${Math.min(100,Math.max(0,Math.round(p.diasRestantes/(365*5)*100)))}%"></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// LEITURAS
+// ══════════════════════════════════════════
+function renderLeituras(){
+  const q=(document.getElementById('lq')?.value||'').toLowerCase();
+  const mes=document.getElementById('lmes')?.value||'';
+  let d=[...LEITURAS].sort((a,b)=>b.mes.localeCompare(a.mes)||b.id-a.id);
+  if(q||mes) d=d.filter(l=>{
+    const p=PROJETOS.find(x=>x.id===l.projetoId);
+    const mq=!q||(p?.cliente||'').toLowerCase().includes(q);
+    const mm=!mes||l.mes===mes;
+    return mq&&mm;
+  });
+  const list=document.getElementById('leit-list');
+  document.getElementById('leit-cnt').textContent=d.length+' leituras';
+  list.innerHTML=d.map(l=>{
+    const p=PROJETOS.find(x=>x.id===l.projetoId);
+    const meta=p?.producaoMensal||0;
+    const pct=meta>0?Math.round(l.kwh/meta*100):0;
+    const cor=pct>=90?'var(--ok)':pct>=70?'var(--warn)':'var(--er)';
+    return `<div class="leit-row">
+      <span style="font-size:12px;color:var(--txts)">${l.mes}</span>
+      <span style="font-size:13px;font-weight:500">${esc(p?.cliente||'—')}</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--az)">${l.kwh} kWh</span>
+      <span>
+        <span style="font-size:12px;font-weight:500;color:${cor}">${pct}%</span>
+        <div class="gar-bar" style="width:70px;margin-top:3px"><div class="gar-fill" style="width:${Math.min(100,pct)}%;background:${cor}"></div></div>
+      </span>
+      <span style="font-size:12px;color:var(--txts)">${esc(l.obs||'—')}</span>
+    </div>`;
+  }).join('') || '<div class="empty"><div class="ei">⚡</div><p>Nenhuma leitura.</p></div>';
+}
+
+// ══════════════════════════════════════════
+// MODAIS
+// ══════════════════════════════════════════
+let editProjId=null, editChId=null;
+
+function openModalProjeto(id){
+  editProjId=id||null;
+  document.getElementById('mpt').textContent=id?'Editar Projeto':'Novo Projeto';
+  const f=id?PROJETOS.find(x=>x.id===id):null;
+  const s=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||''};
+  s('mp-nome',f?.nome);s('mp-cli',f?.cliente);s('mp-tel',f?.tel);s('mp-cpf',f?.cpf);
+  s('mp-uc',f?.uc);s('mp-kwp',f?.kwp);s('mp-val',f?.valor);s('mp-est',f?.estado||'PI');
+  s('mp-etapa',f?.etapa||'Visita');s('mp-mnt',f?.montador);s('mp-inv',f?.inversor);
+  s('mp-pinv',f?.potInv);s('mp-mod',f?.modulos);s('mp-pmod',f?.wpMod||'610');
+  s('mp-di',f?.dataInicio);s('mp-dl',f?.dataLigacao);s('mp-obs',f?.obs);
+  document.getElementById('mo-proj').classList.add('open');
+}
+
+function saveProjeto(){
+  const nome=document.getElementById('mp-nome').value.trim();
+  const kwp=parseFloat(document.getElementById('mp-kwp').value);
+  if(!nome){toast('Informe o nome do titular.','er');return;}
+  if(!kwp){toast('Informe a potência em kWp.','er');return;}
+  const g=i=>document.getElementById(i)?.value||'';
+  const obj={
+    nome,cliente:g('mp-cli')||nome,cpf:g('mp-cpf'),tel:g('mp-tel'),
+    uc:g('mp-uc'),estado:g('mp-est')||'PI',kwp,
+    valor:parseFloat(g('mp-val'))||0,etapa:g('mp-etapa')||'Visita',
+    montador:g('mp-mnt'),inversor:g('mp-inv'),potInv:g('mp-pinv'),
+    modulos:parseInt(g('mp-mod'))||0,wpMod:parseInt(g('mp-pmod'))||610,
+    dataInicio:g('mp-di'),dataLigacao:g('mp-dl'),obs:g('mp-obs'),
+    producaoMensal:Math.round(kwp*120),
+  };
+  if(editProjId){
+    const i=PROJETOS.findIndex(x=>x.id===editProjId);
+    if(i>=0){obj.id=editProjId;PROJETOS[i]=obj;}
+    toast('Projeto atualizado!','ok');
+  } else {
+    obj.id=PROJETOS.length?Math.max(...PROJETOS.map(x=>x.id))+1:1;
+    PROJETOS.push(obj);
+    toast('Projeto criado!','ok');
+  }
+  closeMo('mo-proj');
+  renderProjetos();
+}
+
+function openModalChamado(projetoId){
+  editChId=null;
+  const sel=document.getElementById('mc-proj');
+  sel.innerHTML='<option value="">Selecione…</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente} — #${p.id}</option>`).join('');
+  ['mc-tipo','mc-pri','mc-st'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+  document.getElementById('mc-desc').value='';
+  document.getElementById('mc-res').value='';
+  document.getElementById('mc-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mct').textContent='Novo Chamado';
+  document.getElementById('mo-ch').classList.add('open');
+}
+
+function editChamado(id){
+  const c=CHAMADOS.find(x=>x.id===id);
+  if(!c) return;
+  editChId=id;
+  const sel=document.getElementById('mc-proj');
+  sel.innerHTML='<option value="">Selecione…</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id===c.projetoId?'selected':''}>${p.cliente} — #${p.id}</option>`).join('');
+  document.getElementById('mc-tipo').value=c.tipo;
+  document.getElementById('mc-pri').value=c.prioridade;
+  document.getElementById('mc-st').value=c.status;
+  document.getElementById('mc-desc').value=c.desc;
+  document.getElementById('mc-res').value=c.res||'';
+  document.getElementById('mc-data').value=c.data;
+  document.getElementById('mct').textContent='Editar Chamado';
+  document.getElementById('mo-ch').classList.add('open');
+}
+
+function saveChamado(){
+  const pid=parseInt(document.getElementById('mc-proj').value);
+  const desc=document.getElementById('mc-desc').value.trim();
+  if(!pid){toast('Selecione o projeto.','er');return;}
+  if(!desc){toast('Informe a descrição.','er');return;}
+  const obj={
+    projetoId:pid,tipo:document.getElementById('mc-tipo').value,
+    desc,data:document.getElementById('mc-data').value,
+    prioridade:document.getElementById('mc-pri').value,
+    status:document.getElementById('mc-st').value,
+    res:document.getElementById('mc-res').value.trim(),
+  };
+  if(editChId){
+    const i=CHAMADOS.findIndex(x=>x.id===editChId);
+    if(i>=0){obj.id=editChId;CHAMADOS[i]=obj;}
+    toast('Chamado atualizado!','ok');
+  } else {
+    obj.id=CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1;
+    CHAMADOS.push(obj);
+    toast('Chamado registrado!','ok');
+  }
+  closeMo('mo-ch');
+  renderChamados();
+}
+
+function openModalLeitura(projetoId){
+  const sel=document.getElementById('ml-proj');
+  sel.innerHTML='<option value="">Selecione…</option>'+PROJETOS.filter(p=>p.etapa==='Concluído').map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente} (${p.kwp} kWp)</option>`).join('');
+  document.getElementById('ml-mes').value=new Date().toISOString().slice(0,7);
+  document.getElementById('ml-kwh').value='';
+  document.getElementById('ml-obs').value='';
+  document.getElementById('mo-leit').classList.add('open');
+}
+
+function saveLeitura(){
+  const pid=parseInt(document.getElementById('ml-proj').value);
+  const kwh=parseFloat(document.getElementById('ml-kwh').value);
+  if(!pid){toast('Selecione o projeto.','er');return;}
+  if(!kwh){toast('Informe o kWh gerado.','er');return;}
+  const obj={
+    projetoId:pid,mes:document.getElementById('ml-mes').value,
+    kwh,obs:document.getElementById('ml-obs').value.trim(),
+  };
+  obj.id=LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
+  LEITURAS.push(obj);
+  toast('Leitura registrada!','ok');
+  closeMo('mo-leit');
+  renderLeituras();
+}
+
+function delP(id){
+  const p=PROJETOS.find(x=>x.id===id);
+  if(!p||!confirm(`Excluir projeto "${p.cliente}"?`))return;
+  PROJETOS=PROJETOS.filter(x=>x.id!==id);
+  renderProjetos();
+  toast('Excluído.');
+}
+
+function delCh(id){
+  if(!confirm('Excluir chamado?'))return;
+  CHAMADOS=CHAMADOS.filter(x=>x.id!==id);
+  renderChamados();
+  toast('Chamado excluído.');
+}
+
+function closeMo(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt_data(d){if(!d)return'—';try{return new Date(d+'T12:00').toLocaleDateString('pt-BR');}catch{return d;}}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>{t.className='toast';},2800);}
+
+// INIT
+renderDash();
+renderProjetos();
+
+// ══════════════════════════════════════════
+// FIREBASE — SINCRONIZAÇÃO EM TEMPO REAL
+// ══════════════════════════════════════════
+
+function setFbStatus(ok, msg) {
+  const el = document.getElementById('fb-status');
+  if (!el) return;
+  if (ok === true)  el.textContent = '🟢 Firebase conectado';
+  else if (ok === false) el.textContent = '🔴 Erro no Firebase';
+  else el.textContent = '⚪ ' + (msg || 'Conectando…');
+  el.style.color = ok === true ? 'rgba(29,158,117,.9)' : ok === false ? 'rgba(216,90,48,.9)' : 'rgba(255,255,255,.35)';
+}
+
+// ── Projetos ──
+function fbSaveProjeto(p) {
+  const data = {...p};
+  if (data.id && typeof data.id === 'number') {
+    return db.collection('projetos').doc(String(data.id)).set(data)
+      .catch(e => console.error('fbSaveProjeto:', e));
+  }
+}
+
+function fbDeleteProjeto(id) {
+  return db.collection('projetos').doc(String(id)).delete()
+    .catch(e => console.error('fbDeleteProjeto:', e));
+}
+
+// ── Chamados ──
+function fbSaveChamado(c) {
+  const data = {...c};
+  return db.collection('chamados').doc(String(data.id)).set(data)
+    .catch(e => console.error('fbSaveChamado:', e));
+}
+
+function fbDeleteChamado(id) {
+  return db.collection('chamados').doc(String(id)).delete()
+    .catch(e => console.error('fbDeleteChamado:', e));
+}
+
+// ── Leituras ──
+function fbSaveLeitura(l) {
+  return db.collection('leituras').doc(String(l.id)).set(l)
+    .catch(e => console.error('fbSaveLeitura:', e));
+}
+
+// ── Listeners em tempo real ──
+function initFirebaseListeners() {
+  setFbStatus(null, 'Conectando…');
+
+  // Projetos
+  db.collection('projetos').onSnapshot(snap => {
+    if (snap.empty) {
+      // Primeira vez: salva os 35 projetos base no Firestore
+      const batch = db.batch();
+      PROJETOS.forEach(p => {
+        batch.set(db.collection('projetos').doc(String(p.id)), p);
+      });
+      batch.commit().then(() => setFbStatus(true)).catch(() => setFbStatus(false));
+    } else {
+      PROJETOS = snap.docs.map(d => d.data());
+      PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
+      renderProjetos();
+      renderDash();
+      setFbStatus(true);
+    }
+  }, err => {
+    console.error('Projetos listener:', err);
+    setFbStatus(false);
+  });
+
+  // Chamados
+  db.collection('chamados').onSnapshot(snap => {
+    if (!snap.empty) {
+      CHAMADOS = snap.docs.map(d => d.data());
+      CHAMADOS.sort((a, b) => (b.id || 0) - (a.id || 0));
+      renderChamados();
+    }
+  }, err => console.error('Chamados listener:', err));
+
+  // Leituras
+  db.collection('leituras').onSnapshot(snap => {
+    if (!snap.empty) {
+      LEITURAS = snap.docs.map(d => d.data());
+      renderLeituras();
+    }
+  }, err => console.error('Leituras listener:', err));
+}
+
+// ── Patches nas funções existentes para salvar no Firebase ──
+
+// Override saveProjeto
+const _origSaveProjeto = saveProjeto;
+saveProjeto = function() {
+  _origSaveProjeto();
+  // Pega o projeto recém salvo e sincroniza
+  setTimeout(() => {
+    const p = editProjId ? PROJETOS.find(x => x.id === editProjId) : PROJETOS[PROJETOS.length - 1];
+    if (p) fbSaveProjeto(p);
+  }, 100);
+};
+
+// Override delP
+const _origDelP = delP;
+delP = function(id) {
+  if (!confirm('Excluir projeto?')) return;
+  fbDeleteProjeto(id);
+  PROJETOS = PROJETOS.filter(x => x.id !== id);
+  renderProjetos();
+  toast('Excluído.');
+};
+
+// Override saveChamado
+const _origSaveChamado = saveChamado;
+saveChamado = function() {
+  _origSaveChamado();
+  setTimeout(() => {
+    const c = CHAMADOS[0];
+    if (c) fbSaveChamado(c);
+  }, 100);
+};
+
+// Override delCh
+const _origDelCh = delCh;
+delCh = function(id) {
+  if (!confirm('Excluir chamado?')) return;
+  fbDeleteChamado(id);
+  CHAMADOS = CHAMADOS.filter(x => x.id !== id);
+  renderChamados();
+  toast('Chamado excluído.');
+};
+
+// Override saveLeitura
+const _origSaveLeitura = saveLeitura;
+saveLeitura = function() {
+  _origSaveLeitura();
+  setTimeout(() => {
+    const l = LEITURAS[LEITURAS.length - 1];
+    if (l) fbSaveLeitura(l);
+  }, 100);
+};
+
+// Iniciar listeners assim que a página carregar
+window.addEventListener('load', () => {
+  setTimeout(initFirebaseListeners, 500);
+});
+
+</script>
+</body>
+</html>
