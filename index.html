@@ -318,7 +318,7 @@ tr:hover td{background:#faf9f5}
       <div class="ic">🗺</div><span>Mapa de Clientes</span>
     </div>
   </nav>
-  <div class="sb-foot">
+  <div class="sb-foot" ondblclick="migrarDatasNascimento()" oncontextmenu="migrarLocalizacoes();return false;" title="Duplo clique: migrar datas | Clique direito: migrar localizações">
     <div id="fb-status" style="font-size:9.5px;margin-bottom:8px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
     <div class="usr">Admin Solar Machado</div>
     <div class="cnpj">00.000.000/0001-00</div>
@@ -896,9 +896,10 @@ function openDet(id) {
       </a>`
     : (p.tel || '—');
 
-  const mapsHtml = (p.lat && p.lng)
-    ? `<a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--az);font-weight:500;text-decoration:none;padding:3px 9px;border-radius:6px;background:var(--azs);border:1px solid #b5d4f4;font-size:12px">📍 Ver no Maps</a>`
-    : (p.end || '—');
+  const mapsLink = p.mapsUrl || (p.lat && p.lng ? `https://www.google.com/maps?q=${p.lat},${p.lng}` : null);
+  const mapsHtml = mapsLink
+    ? `<a href="${mapsLink}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--az);font-weight:500;text-decoration:none;padding:3px 9px;border-radius:6px;background:var(--azs);border:1px solid #b5d4f4;font-size:12px">📍 Ver no Maps</a>`
+    : '—';
 
   document.getElementById('det-content').innerHTML = `
     <div class="det-sec">
@@ -1328,6 +1329,141 @@ go = function(p) {
   _goOrigMapa(p);
   if (p === 'mapa') renderMapa();
   if (p === 'projetos') { atualizarContadoresAbas(); }
+};
+
+
+// ══════════════════════════════════════════
+// MIGRAÇÃO — Datas de Nascimento da planilha
+// ══════════════════════════════════════════
+const DATAS_NASC = {
+  1:  "1958-09-07",  // Marcelo-Eugenio
+  2:  "1982-05-22",  // Raimunda Fabiana
+  3:  "1973-10-29",  // Dailton Castro
+  4:  "1985-05-25",  // Rennee Anderson
+  5:  "1987-11-05",  // Raquel Marques
+  6:  "1963-09-25",  // Roberta/BETO
+  7:  "1974-06-17",  // Paulo Victor
+  8:  "1986-10-19",  // Andresa
+  9:  "2003-11-30",  // Ernanes
+  10: "1973-04-25",  // Djames
+  11: "1947-07-09",  // Fabiano
+  12: "1962-07-25",  // Edilene
+  13: "1972-12-26",  // José Alberto
+  14: "1974-12-13",  // Sebastião
+  15: "1978-02-09",  // Jorge Aldo
+  16: "1996-08-06",  // Jefferson
+  17: "1970-02-24",  // Maria do Socorro
+  18: "1966-04-15",  // Ediliano
+  19: "1934-12-09",  // Maria de Fatima
+  20: "1987-07-07",  // Ediane
+  21: "1958-12-01",  // Dona Regina
+  22: "1966-05-26",  // Maltide
+  23: "1969-02-07",  // Roberto
+  24: "1964-11-22",  // Wanescla
+  25: "1995-01-14",  // Gabriel Alexandrino
+  26: "1989-07-17",  // Maria do Socorro 2
+  27: "1997-09-25",  // Wallison
+  28: "1995-02-20",  // Irvayne
+  29: "1952-01-01",  // Jamille
+  30: "1995-09-17",  // James Frutaria
+  31: "1992-12-06",  // Osmir
+  32: "1956-11-18",  // Mirian
+  33: "1980-03-01",  // Franscisaura
+  34: "1958-01-26",  // João Batista
+  35: "2002-04-13",  // Jardel
+};
+
+async function migrarDatasNascimento() {
+  if (!db) { toast('Firebase não conectado.', 'er'); return; }
+  let ok = 0, err = 0;
+  const ids = Object.keys(DATAS_NASC);
+  toast('Atualizando ' + ids.length + ' registros...', '');
+  for (const id of ids) {
+    try {
+      await db.collection('projetos').doc(String(id)).update({
+        dataNascimento: DATAS_NASC[id]
+      });
+      ok++;
+    } catch(e) {
+      console.error('Erro id', id, e);
+      err++;
+    }
+  }
+  toast(`✅ ${ok} atualizados${err ? ', ' + err + ' erros' : ''}!`, 'ok');
+}
+
+
+// ══════════════════════════════════════════
+// MIGRAÇÃO — Endereços e Localizações
+// ══════════════════════════════════════════
+const LOCALIZACOES = {
+  1:  {end:"R. Taumaturgo Azevedo, 2000, Centro Sul - Teresina PI", mapsUrl:"https://maps.app.goo.gl/bbCjHqjXL3h8RcyL8", lat:"", lng:""},
+  2:  {end:"FA São Pedro, 67, Zona Rural - Campo Maior PI", mapsUrl:"", lat:"-4.874055", lng:"-42.138847"},
+  3:  {end:"R. Areal, 12, QD 14, Portal das Flores - Bacabal MA", mapsUrl:"https://maps.app.goo.gl/kX8CDNHm8x8LYLsSA", lat:"", lng:""},
+  4:  {end:"CD Manoel Evangelista I, QD 25 Casa 10, Novo Horizonte - Teresina PI", mapsUrl:"", lat:"-5.162702", lng:"-42.786701"},
+  5:  {end:"CJ Herbert de Sousa, Q08 C05, Angelim - Teresina PI", mapsUrl:"", lat:"-5.162702", lng:"-42.786701"},
+  6:  {end:"R. Napoleão Azevedo, 5801, Parque Poti - Teresina PI", mapsUrl:"https://maps.app.goo.gl/mqQ5MpVJBqfUtjnk7", lat:"", lng:""},
+  7:  {end:"Av. Ind. Gil Martins, 3100, Tabuleta - Teresina PI", mapsUrl:"https://maps.app.goo.gl/iWLPu9sfSzgxwthJA", lat:"", lng:""},
+  8:  {end:"Av. Miguel Rosa, 5069, Nossa Sra das Graças - Teresina PI", mapsUrl:"https://maps.app.goo.gl/8GtkWcLjpxes6n8w8", lat:"", lng:""},
+  9:  {end:"R. João Alves Delmondes, S/N, Bairro Santa Cruz - Landri Sales PI", mapsUrl:"https://maps.app.goo.gl/jvJzZMVD9zHP8HbNA", lat:"", lng:""},
+  10: {end:"R. Canastra, 2651, Colorado - Teresina PI", mapsUrl:"https://maps.app.goo.gl/nFqPBunPuRunt5qb9", lat:"", lng:""},
+  11: {end:"Av. Miguel Rosa, 2125, Teresina PI", mapsUrl:"https://maps.app.goo.gl/75XkRfgXVpfbiKch8", lat:"", lng:""},
+  12: {end:"Av. Miguel Rosa, 2131, Teresina PI", mapsUrl:"https://maps.app.goo.gl/75XkRfgXVpfbiKch8", lat:"", lng:""},
+  13: {end:"R. Maestro Pedro Alcântara, 4453, Extrema - Teresina PI", mapsUrl:"https://maps.app.goo.gl/g3U7EJVv14W27EYb6", lat:"", lng:""},
+  14: {end:"CJ Dirceu Arcoverde II, QD 248 Casa 01, Teresina PI", mapsUrl:"https://maps.app.goo.gl/a4t6M5PysMhg5jx77", lat:"", lng:""},
+  15: {end:"R. Medelim, 4701, Novo Horizonte - Teresina PI", mapsUrl:"https://maps.app.goo.gl/1eqV4vFPSiPFAk6b6", lat:"", lng:""},
+  16: {end:"Vl. Dandara dos Cocais, QD 07 Casa 01, Teresina PI", mapsUrl:"https://maps.app.goo.gl/mRtM1PucnYBcy2QPA", lat:"", lng:""},
+  17: {end:"R. Enfermeira Mundoca, 129, Cabral - Teresina PI", mapsUrl:"https://maps.app.goo.gl/5e9Bts1eLJGgzxKC7", lat:"", lng:""},
+  18: {end:"R. Dr. Ocílio Lago, 1136, Ininga - Teresina PI", mapsUrl:"https://maps.app.goo.gl/VbRdXWKKru98ZyEN6", lat:"", lng:""},
+  19: {end:"Av. Sen. Área Leão, 1305, Jóquei - Teresina PI", mapsUrl:"https://maps.app.goo.gl/zE92ZtaazMBykjrZ7", lat:"", lng:""},
+  20: {end:"R. J, 2073, Parque Alvorada - Timon MA", mapsUrl:"https://maps.app.goo.gl/vedLpCyTMBL8ETCb9", lat:"", lng:""},
+  21: {end:"CJ Dirceu Arcoverde II, QD 248 Casa 13, Teresina PI", mapsUrl:"https://maps.app.goo.gl/y2PKNu2UomSssMCU7", lat:"", lng:""},
+  22: {end:"CJ Dirceu Arcoverde II, QD 295 Casa 04, Teresina PI", mapsUrl:"https://maps.app.goo.gl/vGEDLzHk11Smkoyr8", lat:"", lng:""},
+  23: {end:"CJ Dirceu Arcoverde I, Quadra 129, Teresina PI", mapsUrl:"https://maps.app.goo.gl/vGEDLzHk11Smkoyr8", lat:"", lng:""},
+  24: {end:"Av. Mal. Castelo Branco, 1271, Sala 02 - Teresina PI", mapsUrl:"https://maps.app.goo.gl/5c5akZXEFo7xYyWB7", lat:"", lng:""},
+  25: {end:"Rua Francisca de Melo Lobo, 355, Cond. Vila Vitória Casa 103, Saci - Teresina PI", mapsUrl:"https://maps.app.goo.gl/HrFQ4tgguGChhYXf6", lat:"", lng:""},
+  26: {end:"R. Corozal, 3971, Teresina PI", mapsUrl:"https://maps.app.goo.gl/7qsRm4fPA6FXX64r8", lat:"", lng:""},
+  27: {end:"R. Cedral, 4849, Novo Horizonte - Teresina PI", mapsUrl:"https://maps.app.goo.gl/Gig1zKWRm8Jz2LFu6", lat:"", lng:""},
+  28: {end:"CJ Dirceu Arcoverde II, QD 309 Casa 02, Teresina PI", mapsUrl:"https://maps.app.goo.gl/9xhTQcQoiGJSS1f1A", lat:"", lng:""},
+  29: {end:"Rua Motorista Gregório, 2824, Planalto Ininga - Teresina PI, CEP 64050-030", mapsUrl:"https://maps.app.goo.gl/kMzohaCdxjaZXS2p7", lat:"", lng:""},
+  31: {end:"CJ São Raimundo, 80, QD 01 Casa 48, Cristo Rei - Teresina PI", mapsUrl:"https://maps.app.goo.gl/C6mqUWBo8TMRp7EQ6", lat:"", lng:""},
+  33: {end:"Rua Desembargador João Gabriel Batista, 4100, Extrema - Teresina PI", mapsUrl:"https://maps.app.goo.gl/fTys3etMaweJjm5JA", lat:"-5.117200", lng:"-42.758701"},
+  34: {end:"RD 343, S/N, Sítio Água Boa - Altos PI, CEP 64290-000", mapsUrl:"https://maps.app.goo.gl/gZZ3ppVGdHZpdPnJ6", lat:"", lng:""},
+  35: {end:"Rua Antônio da Clara, 63, Centro - Lagoinha do Piauí PI", mapsUrl:"https://maps.app.goo.gl/31vkTNv3En94DAuz8", lat:"", lng:""},
+  36: {end:"R. Pernambuco, 1718, Pirajá - Teresina PI, CEP 64003-500", mapsUrl:"https://maps.app.goo.gl/y76S9nwPRHwy4gFr7", lat:"", lng:""},
+};
+
+async function migrarLocalizacoes() {
+  if (!db) { toast('Firebase não conectado.', 'er'); return; }
+  const ids = Object.keys(LOCALIZACOES);
+  toast('Atualizando localizações de ' + ids.length + ' projetos...', '');
+  let ok = 0, err = 0;
+  for (const id of ids) {
+    const loc = LOCALIZACOES[id];
+    try {
+      const upd = { end: loc.end, mapsUrl: loc.mapsUrl };
+      if (loc.lat) upd.lat = loc.lat;
+      if (loc.lng) upd.lng = loc.lng;
+      await db.collection('projetos').doc(String(id)).update(upd);
+      ok++;
+    } catch(e) {
+      console.warn('Erro id', id, e);
+      err++;
+    }
+  }
+  toast(`✅ ${ok} localizações salvas${err ? ', ' + err + ' erros' : ''}!`, 'ok');
+}
+
+// Atualizar openDet para usar mapsUrl quando disponível
+const _openDetOrigLoc = openDet;
+openDet = function(id) {
+  _openDetOrigLoc(id);
+  // Injetar link do Maps correto após renderização
+  setTimeout(() => {
+    const p = PROJETOS.find(x => x.id === id || x.id === String(id));
+    if (!p) return;
+    // Já tratado no openDet principal via mapsUrl
+  }, 10);
 };
 
 </script>
