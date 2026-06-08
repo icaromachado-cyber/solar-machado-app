@@ -237,6 +237,31 @@ tr:hover td{background:#faf9f5}
   .kpi .kv{ font-size:18px }
   .btn-y{ font-size:12px;padding:7px 11px }
 }
+
+/* ── ABAS DE ETAPA ── */
+.etapa-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.etab{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--txts);background:#f0efe8;border:1px solid #e4e3dc;transition:all .15s;white-space:nowrap;user-select:none}
+.etab:hover{background:var(--cz);color:var(--txt)}
+.etab.on{background:var(--az);color:#fff;border-color:var(--az)}
+.etab-cnt{background:rgba(255,255,255,.22);border-radius:20px;padding:1px 7px;font-size:11px;font-weight:600}
+.etab:not(.on) .etab-cnt{background:rgba(0,0,0,.09);color:var(--txts)}
+
+/* ── WHATSAPP INLINE ── */
+.wpp-link{display:inline-flex;align-items:center;gap:4px;color:#1a8045;font-size:11.5px;font-weight:500;text-decoration:none;padding:2px 7px;border-radius:5px;background:#e8f8ef;border:1px solid #b2e0c4;transition:all .15s;vertical-align:middle}
+.wpp-link:hover{background:#c0e8d4}
+.wpp-link svg{flex-shrink:0}
+.td-cli-wrap{display:flex;flex-direction:column;gap:3px}
+.td-cli-name{font-size:13px;font-weight:500}
+
+/* ── MAPA ── */
+.mapa-card{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.mapa-card-pin{width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.mapa-card-info{flex:1;min-width:0}
+.mapa-card-nome{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mapa-card-end{font-size:11.5px;color:var(--txts);margin-top:2px}
+.mapa-card-acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.btn-maps{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11.5px;font-weight:500;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none;transition:all .15s}
+.btn-maps:hover{background:#d0dcff}
 </style>
 
 <style>
@@ -841,26 +866,68 @@ function openDet(id) {
   const p = PROJETOS.find(x=>x.id===id); if(!p) return;
   const hist = CHAMADOS.filter(c=>c.projetoId===id);
   document.getElementById('det-title').textContent = p.cliente;
+
+  const wppNum = (p.tel||'').replace(/\D/g,'');
+  const wppHtml = wppNum
+    ? `<a href="https://wa.me/${wppNum}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:#1a8045;font-weight:500;text-decoration:none;padding:3px 9px;border-radius:6px;background:#e8f8ef;border:1px solid #b2e0c4;font-size:12px">
+        <svg width="13" height="13" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4zm-7.4 16.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5s2.5 3.7 2.5 6c0 4.7-3.8 8.5-8.4 8.5zm4.6-6.3c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.2-.7.7-1 1.5-1 2.4 0 .9.6 1.8 1.3 2.5 1.4 1.7 3.2 2.9 5.2 3.5 1.5.4 2.1.1 2.5-.2.4-.3 1-1.2 1.2-1.7.2-.5.2-.9.1-1z" fill="white"/></svg>
+        ${p.tel}
+      </a>`
+    : (p.tel || '—');
+
+  const mapsHtml = (p.lat && p.lng)
+    ? `<a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--az);font-weight:500;text-decoration:none;padding:3px 9px;border-radius:6px;background:var(--azs);border:1px solid #b5d4f4;font-size:12px">📍 Ver no Maps</a>`
+    : (p.end || '—');
+
   document.getElementById('det-content').innerHTML = `
     <div class="det-sec">
-      <div class="det-sec-ttl">Informações</div>
+      <div class="det-sec-ttl">👤 Dados do Cliente</div>
+      <div class="det-row"><span>Nome completo</span><span style="text-align:right;max-width:60%">${p.nome || '—'}</span></div>
+      <div class="det-row"><span>CPF / CNPJ</span><span><code style="font-size:12px;background:#f0efe8;padding:2px 7px;border-radius:5px">${p.cpf || '—'}</code></span></div>
       <div class="det-row"><span>Nascimento</span><span>${fmt_data(p.dataNascimento)}</span></div>
+      <div class="det-row"><span>WhatsApp</span><span>${wppHtml}</span></div>
+      <div class="det-row"><span>UC (Unid. Consumidora)</span><span><code style="font-size:12px;background:#f0efe8;padding:2px 7px;border-radius:5px">${p.uc || '—'}</code></span></div>
+      <div class="det-row"><span>Localização</span><span>${mapsHtml}</span></div>
+      ${p.end && p.lat ? `<div class="det-row"><span>Endereço</span><span style="text-align:right;max-width:60%;font-size:12px">${p.end}</span></div>` : ''}
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-ttl">⚡ Sistema Fotovoltaico</div>
+      <div class="det-row"><span>Potência</span><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--az)">${p.kwp} kWp</span></div>
+      <div class="det-row"><span>Módulos</span><span>${p.modulos || '—'} × ${p.wpMod || '—'} Wp</span></div>
+      <div class="det-row"><span>Inversor</span><span>${p.inversor || '—'} ${p.potInv || ''}</span></div>
+      <div class="det-row"><span>Montador</span><span>${p.montador || '—'}</span></div>
       <div class="det-row"><span>Beneficiário</span><span>${p.possuiBeneficiario || 'Não'}</span></div>
-      <div class="det-row"><span>Potência</span><span>${p.kwp} kWp</span></div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-ttl">📅 Datas</div>
       <div class="det-row"><span>Início</span><span>${fmt_data(p.dataInicio)}</span></div>
       <div class="det-row"><span>Ligação</span><span>${fmt_data(p.dataLigacao)}</span></div>
+      <div class="det-row"><span>Etapa atual</span><span><span class="bd ${p.etapa==='Concluído'?'bd-ok':p.etapa==='Instalação'||p.etapa==='Ligação'?'bd-am':'bd-az'}">${p.etapa}</span></span></div>
     </div>
+
     ${p.obs ? `<div class="det-sec">
       <div class="det-sec-ttl">📝 Observações Internas</div>
       <div style="font-size:13px;line-height:1.6;color:var(--txt);background:#faf9f5;border-radius:8px;padding:12px 14px;border-left:3px solid var(--am)">${p.obs}</div>
     </div>` : ''}
+
     <div class="det-sec">
-      <div class="det-sec-ttl">Histórico de Chamados</div>
-      ${hist.map(c=>`<div class="hist-item"><div class="hist-hdr"><span class="hist-tipo">${c.tipo}</span><span class="hist-data">${fmt_data(c.data)}</span></div><div class="hist-desc">${c.desc}</div></div>`).join('') || '<div class="empty">Sem histórico.</div>'}
+      <div class="det-sec-ttl">🛠 Histórico de Chamados</div>
+      ${hist.length ? hist.map(c=>`
+        <div class="hist-item">
+          <div class="hist-hdr">
+            <span class="hist-tipo">${c.tipo}</span>
+            <span class="hist-data">${fmt_data(c.data)}</span>
+          </div>
+          <div class="hist-desc">${c.desc}</div>
+          ${c.res ? `<div style="font-size:11.5px;color:var(--txts);margin-top:3px">↳ ${c.res}</div>` : ''}
+        </div>`).join('') : '<div style="font-size:13px;color:var(--txts);padding:8px 0">Sem chamados registrados.</div>'}
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
-      <button class="btn btn-p" onclick="openEditProj(${p.id})">Editar Projeto</button>
-      <button class="btn btn-y" onclick="openModalChamado(${p.id})">Novo Chamado</button>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+      <button class="btn btn-p" onclick="openEditProj(${p.id})">✎ Editar</button>
+      <button class="btn btn-y" onclick="openModalChamado(${p.id})">🛠 Chamado</button>
     </div>
   `;
   document.getElementById('det-panel').classList.add('open');
@@ -1131,22 +1198,27 @@ renderProjetos = function() {
 
   // Renderizar tabela
   document.getElementById('b-projetos').innerHTML = filtered.map(p => {
-    const wpp = p.tel ? `<a href="https://wa.me/${p.tel.replace(/\D/g,'')}" target="_blank" class="btn-wpp" title="WhatsApp" onclick="event.stopPropagation()">💬</a>` : '';
-    return `<tr>
-      <td>#${p.id}</td>
-      <td>${p.cliente || '—'}</td>
-      <td>${p.kwp} kWp</td>
-      <td>${p.etapa}</td>
-      <td>${fmt_data(p.dataLigacao)}</td>
+    const wppNum = (p.tel||'').replace(/\D/g,'');
+    const wppLink = wppNum ? `<a href="https://wa.me/${wppNum}" target="_blank" class="wpp-link" onclick="event.stopPropagation()" title="Abrir WhatsApp"><svg width="13" height="13" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4zm-7.4 16.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5s2.5 3.7 2.5 6c0 4.7-3.8 8.5-8.4 8.5zm4.6-6.3c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.2-.7.7-1 1.5-1 2.4 0 .9.6 1.8 1.3 2.5 1.4 1.7 3.2 2.9 5.2 3.5 1.5.4 2.1.1 2.5-.2.4-.3 1-1.2 1.2-1.7.2-.5.2-.9.1-1z" fill="white"/></svg> WhatsApp</a>` : '';
+    return \`<tr>
+      <td>#\${p.id}</td>
       <td>
-        <div class="ab">
-          ${wpp}
-          <button class="bi v" onclick="openDet(${p.id})" title="Visualizar">👁</button>
-          <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
-          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Abrir Chamado">🛠</button>
+        <div class="td-cli-wrap">
+          <span class="td-cli-name">\${p.cliente || '—'}</span>
+          \${wppLink}
         </div>
       </td>
-    </tr>`;
+      <td>\${p.kwp} kWp</td>
+      <td>\${p.etapa}</td>
+      <td>\${fmt_data(p.dataLigacao)}</td>
+      <td>
+        <div class="ab">
+          <button class="bi v" onclick="openDet(\${p.id})" title="Visualizar">👁</button>
+          <button class="bi e" onclick="openEditProj(\${p.id})" title="Editar">✎</button>
+          <button class="bi ch" onclick="openModalChamado(\${p.id})" title="Abrir Chamado">🛠</button>
+        </div>
+      </td>
+    </tr>\`;
   }).join('');
 
   // Cards mobile
