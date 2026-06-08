@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Solar Machado — Pós-Venda & Projetos</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -470,9 +471,9 @@ tr:hover td{background:#faf9f5}
       <div style="border-radius:12px;overflow:hidden;border:1px solid #e4e3dc;margin-bottom:16px;position:relative">
         <div id="mapa-leaflet" style="width:100%;height:460px;border-radius:12px"></div>
         <div id="mapa-infobar" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(46,52,134,.92);color:#fff;padding:8px 18px;border-radius:20px;font-size:12.5px;font-weight:500;z-index:999;white-space:nowrap;pointer-events:none;display:none"></div>
-        <div id="mapa-loading" style="position:absolute;inset:0;background:rgba(255,255,255,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:998;border-radius:12px">
-          <div style="font-size:32px;margin-bottom:10px">🗺️</div>
-          <div style="font-size:13px;color:#2E3486;font-weight:500" id="mapa-loading-txt">Aguardando dados…</div>
+        <div id="mapa-loading" style="position:absolute;inset:0;background:rgba(255,255,255,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:998;border-radius:12px">
+          <div style="font-size:32px;margin-bottom:10px">📍</div>
+          <div style="font-size:13px;color:#2E3486;font-weight:500" id="mapa-loading-txt">Localizando endereços…</div>
           <div style="font-size:11px;color:#5a5b6e;margin-top:4px" id="mapa-loading-sub"></div>
         </div>
       </div>
@@ -1246,52 +1247,122 @@ function buscarLocalizacao() {
 // ══════════════════════════════════════════
 // MAPA DE CLIENTES
 // ══════════════════════════════════════════
-function renderMapa() {
-  // Todos que têm endereço OU link do Maps
+// ── MAPA LEAFLET ─────────────────────────────
+let _leafletMap = null;
+let _mapaMarkers = [];
+let _geocodeCache = {};
+
+function iniciarLeafletMap() {
+  if (_leafletMap) return;
+  if (typeof L === 'undefined') { setTimeout(iniciarLeafletMap, 400); return; }
+  const el = document.getElementById('mapa-leaflet');
+  if (!el) { setTimeout(iniciarLeafletMap, 400); return; }
+  _leafletMap = L.map('mapa-leaflet', { zoomControl: true }).setView([-5.0892, -42.8019], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19
+  }).addTo(_leafletMap);
+  // Forçar renderização correta do tamanho
+  setTimeout(() => _leafletMap.invalidateSize(), 100);
+}
+
+function criarPinSolar(kwp) {
+  const k = parseFloat(kwp) || 0;
+  const size = k >= 20 ? 36 : k >= 10 ? 30 : 26;
+  const cor = k >= 20 ? '#FDC300' : k >= 10 ? '#2E3486' : '#4a52c8';
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + (size+8) + '" viewBox="0 0 28 36">'
+    + '<path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="' + cor + '" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>'
+    + '<circle cx="14" cy="14" r="5" fill="rgba(255,255,255,.9)"/></svg>';
+  return L.divIcon({ html: svg, className: '', iconSize: [size, size+8], iconAnchor: [size/2, size+8], popupAnchor: [0, -(size+8)] });
+}
+
+async function geocodificarEndereco(end, idx) {
+  if (!end) return null;
+  const chave = end.trim().toLowerCase();
+  if (_geocodeCache[chave] !== undefined) return _geocodeCache[chave];
+  if (idx > 0) await new Promise(r => setTimeout(r, 1100));
+  try {
+    const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(end + ', Brasil') + '&format=json&limit=1&countrycodes=br';
+    const r = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+    const data = await r.json();
+    if (data && data[0]) {
+      const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      _geocodeCache[chave] = result;
+      return result;
+    }
+  } catch(e) {}
+  _geocodeCache[chave] = null;
+  return null;
+}
+
+async function renderMapa() {
+  iniciarLeafletMap();
   const comLoc = PROJETOS.filter(p => p.end || p.mapsUrl || (p.lat && p.lng));
   const semLoc = PROJETOS.filter(p => !p.end && !p.mapsUrl && !p.lat);
-
   const cntEl = document.getElementById('mapa-cnt');
   if (cntEl) cntEl.textContent = comLoc.length + ' cliente(s) com localização · ' + semLoc.length + ' sem localização';
-
   const lista = document.getElementById('mapa-lista');
   if (lista) {
-    if (!comLoc.length) {
-      lista.innerHTML = '<div style="font-size:13px;color:var(--txts);padding:20px 0">Nenhum cliente com localização ainda. Execute a migração no Dashboard.</div>';
-    } else {
-      lista.innerHTML = comLoc.map(p => {
-        const wppNum = (p.tel || '').replace(/[^0-9]/g, '');
-        // Prioridade: link fixo do Maps > coords > busca por endereço
-        const mapsLink = p.mapsUrl
-          ? p.mapsUrl
-          : (p.lat && p.lng)
-            ? 'https://www.google.com/maps?q=' + p.lat + ',' + p.lng
-            : p.end
-              ? 'https://www.google.com/maps/search/' + encodeURIComponent(p.end)
-              : null;
-        const wppUrl = wppNum ? 'https://wa.me/' + wppNum : null;
-        const endTxt = p.end || (p.lat ? p.lat + ', ' + p.lng : '—');
-        const kwp = parseFloat(p.kwp) || 0;
-        return '<div class="mapa-card">'
-          + '<div class="mapa-card-pin">📍</div>'
-          + '<div class="mapa-card-info">'
-          + '<div class="mapa-card-nome">' + (p.cliente || '—') + '</div>'
-          + '<div class="mapa-card-end">' + endTxt + '</div>'
-          + '<div style="font-size:11px;color:var(--txts);margin-top:2px">' + kwp.toFixed(2) + ' kWp · ' + (p.etapa || '') + '</div>'
-          + '<div class="mapa-card-acts">'
-          + (mapsLink ? '<a href="' + mapsLink + '" target="_blank" class="btn-maps">🗺 Ver no Maps</a>' : '')
-          + (wppUrl ? '<a href="' + wppUrl + '" target="_blank" class="btn-wpp"><svg width="13" height="13" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4z" fill="white"/></svg> WhatsApp</a>' : '')
-          + '</div></div></div>';
-      }).join('');
-    }
+    lista.innerHTML = comLoc.length ? comLoc.map(p => {
+      const wppNum = (p.tel || '').replace(/[^0-9]/g, '');
+      const mapsLink = p.mapsUrl || (p.lat && p.lng ? 'https://www.google.com/maps?q=' + p.lat + ',' + p.lng : p.end ? 'https://www.google.com/maps/search/' + encodeURIComponent(p.end) : null);
+      const wppUrl = wppNum ? 'https://wa.me/' + wppNum : null;
+      const kwp = parseFloat(p.kwp) || 0;
+      return '<div class="mapa-card"><div class="mapa-card-pin">📍</div><div class="mapa-card-info">'
+        + '<div class="mapa-card-nome">' + (p.cliente || '—') + '</div>'
+        + '<div class="mapa-card-end">' + (p.end || '—') + '</div>'
+        + '<div style="font-size:11px;color:var(--txts);margin-top:2px">' + kwp.toFixed(2) + ' kWp · ' + (p.etapa || '') + '</div>'
+        + '<div class="mapa-card-acts">'
+        + (mapsLink ? '<a href="' + mapsLink + '" target="_blank" class="btn-maps">🗺 Ver no Maps</a>' : '')
+        + (wppUrl ? '<a href="' + wppUrl + '" target="_blank" class="btn-wpp">💬 WhatsApp</a>' : '')
+        + '</div></div></div>';
+    }).join('') : '<div style="font-size:13px;color:var(--txts);padding:20px 0">Execute a migração no Dashboard primeiro.</div>';
   }
-
-  // Iframe: mapa fixo de Teresina centralizado (overview geral)
-  // Não precisa de coordenadas individuais — é só referência visual
-  const iframe = document.getElementById('mapa-iframe');
-  if (iframe) {
-    iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=-42.95%2C-5.22%2C-42.65%2C-4.95&layer=mapnik';
+  if (!_leafletMap) { setTimeout(renderMapa, 500); return; }
+  _mapaMarkers.forEach(m => _leafletMap.removeLayer(m));
+  _mapaMarkers = [];
+  const comEnd = PROJETOS.filter(p => p.end);
+  if (!comEnd.length) { document.getElementById('mapa-loading').style.display = 'none'; return; }
+  const loading = document.getElementById('mapa-loading');
+  const loadingTxt = document.getElementById('mapa-loading-txt');
+  const loadingSub = document.getElementById('mapa-loading-sub');
+  const infobar = document.getElementById('mapa-infobar');
+  loading.style.display = 'flex';
+  infobar.style.display = 'none';
+  let ok = 0, fail = 0;
+  const bounds = [];
+  const jitter = () => (Math.random() - 0.5) * 0.003;
+  for (let i = 0; i < comEnd.length; i++) {
+    const p = comEnd[i];
+    loadingTxt.textContent = 'Localizando ' + (p.cliente || '#' + p.id) + '…';
+    loadingSub.textContent = (i + 1) + ' / ' + comEnd.length;
+    const coord = await geocodificarEndereco(p.end, i);
+    if (coord) {
+      const lat = coord.lat + jitter();
+      const lng = coord.lng + jitter();
+      const kwp = parseFloat(p.kwp) || 0;
+      const wppNum = (p.tel || '').replace(/[^0-9]/g, '');
+      const mapsLink = p.mapsUrl || 'https://www.google.com/maps/search/' + encodeURIComponent(p.end);
+      const popup = '<div style="font-size:13px;min-width:180px">'
+        + '<strong>' + (p.cliente || '—') + '</strong><br>'
+        + '<span style="font-size:11px;color:#888">' + (p.end || '') + '</span><br>'
+        + '<span style="font-size:13px;color:#2E3486;font-weight:700">' + kwp.toFixed(2) + ' kWp</span>'
+        + ' · <span style="font-size:11px">' + (p.etapa || '') + '</span><br><br>'
+        + '<a href="' + mapsLink + '" target="_blank" style="color:#2E3486;font-size:12px">🗺 Ver no Maps</a>'
+        + (wppNum ? ' &nbsp; <a href="https://wa.me/' + wppNum + '" target="_blank" style="color:#1D9E75;font-size:12px">💬 WhatsApp</a>' : '')
+        + '</div>';
+      const marker = L.marker([lat, lng], { icon: criarPinSolar(kwp) })
+        .bindPopup(popup, { maxWidth: 260 }).addTo(_leafletMap);
+      _mapaMarkers.push(marker);
+      bounds.push([lat, lng]);
+      ok++;
+    } else { fail++; }
   }
+  loading.style.display = 'none';
+  infobar.style.display = 'block';
+  infobar.textContent = '✅ ' + ok + ' no mapa' + (fail ? ' · ' + fail + ' não localizados' : '');
+  if (bounds.length > 1) _leafletMap.fitBounds(bounds, { padding: [40, 40] });
+  else if (bounds.length === 1) _leafletMap.setView(bounds[0], 14);
+  setTimeout(() => _leafletMap && _leafletMap.invalidateSize(), 300);
 }
 
 // ══════════════════════════════════════════
@@ -1343,7 +1414,13 @@ fbWrite = function(col, id, obj) {
 const _goOrigMapa = go;
 go = function(p) {
   _goOrigMapa(p);
-  if (p === 'mapa') renderMapa();
+  if (p === 'mapa') {
+    // Garantir que o div está visível antes de iniciar
+    setTimeout(() => {
+      iniciarLeafletMap();
+      renderMapa();
+    }, 50);
+  }
   if (p === 'projetos') { atualizarContadoresAbas(); }
 };
 
@@ -1483,6 +1560,5 @@ openDet = function(id) {
 };
 
 </script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
