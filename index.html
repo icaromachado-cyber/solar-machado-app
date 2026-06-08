@@ -880,12 +880,22 @@ function openEditProj(id) {
 function saveProjeto() {
   const id = editProjId || (PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1);
   const obj = {
-    id, cliente: document.getElementById('p-cli').value, nome: document.getElementById('p-nome').value,
-    dataNascimento: document.getElementById('p-nasc').value, cpf: document.getElementById('p-cpf').value,
-    tel: document.getElementById('p-tel').value, uc: document.getElementById('p-uc').value,
-    etapa: document.getElementById('p-etapa').value, possuiBeneficiario: document.getElementById('p-ben').value,
-    modulos: parseInt(document.getElementById('p-mod').value)||0, wpMod: parseInt(document.getElementById('p-wpmod').value)||0,
-    kwp: parseFloat(document.getElementById('p-kwp').value)||0, valor: parseFloat(document.getElementById('p-val').value)||0
+    id,
+    cliente: document.getElementById('p-cli').value,
+    nome: document.getElementById('p-nome').value,
+    dataNascimento: document.getElementById('p-nasc').value,
+    cpf: document.getElementById('p-cpf').value,
+    tel: document.getElementById('p-tel').value,
+    uc: document.getElementById('p-uc').value,
+    etapa: document.getElementById('p-etapa').value,
+    possuiBeneficiario: document.getElementById('p-ben').value,
+    modulos: parseInt(document.getElementById('p-mod').value)||0,
+    wpMod: parseInt(document.getElementById('p-wpmod').value)||0,
+    kwp: parseFloat(document.getElementById('p-kwp').value)||0,
+    valor: parseFloat(document.getElementById('p-val').value)||0,
+    dataInicio: document.getElementById('p-dini').value || '',
+    dataLigacao: document.getElementById('p-dlig').value || '',
+    obs: document.getElementById('p-obs').value.trim() || ''
   };
   fbWrite('projetos', id, obj).then(() => { toast('Salvo!', 'ok'); closeMo('mo-proj'); });
 }
