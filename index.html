@@ -426,7 +426,8 @@ tr:hover td{background:#faf9f5}
       <div class="tabs">
         <div class="tab on" onclick="setTab(0)">Dados Gerais</div>
         <div class="tab" onclick="setTab(1)">Técnico</div>
-        <div class="tab" onclick="setTab(2)">Datas</div>
+        <div class="tab" onclick="setTab(2)">Proteção</div>
+        <div class="tab" onclick="setTab(3)">Datas</div>
       </div>
       
       <div id="tab-0" class="tcon on">
@@ -454,6 +455,17 @@ tr:hover td{background:#faf9f5}
       </div>
 
       <div id="tab-2" class="tcon" style="display:none">
+        <div class="fg">
+          <div class="fgrp full"><label style="color:var(--az);font-weight:700">Proteção do Medidor</label></div>
+          <div class="fgrp full"><label>Disjuntor do Medidor (A)</label><input type="text" id="p-prot-med" placeholder="Ex: 40A Bifásico"></div>
+          
+          <div class="fgrp full" style="margin-top:10px"><label style="color:var(--az);font-weight:700">Proteção CA (Quadro)</label></div>
+          <div class="fgrp"><label>Disjuntor CA (A)</label><input type="text" id="p-prot-ca-disj" placeholder="Ex: 32A"></div>
+          <div class="fgrp"><label>DPS CA</label><input type="text" id="p-prot-ca-dps" placeholder="Ex: 275V 20kA"></div>
+        </div>
+      </div>
+
+      <div id="tab-3" class="tcon" style="display:none">
         <div class="fg">
           <div class="fgrp"><label>Data Início</label><input type="date" id="p-dini"></div>
           <div class="fgrp"><label>Data Ligação</label><input type="date" id="p-dlig"></div>
@@ -853,6 +865,12 @@ function openDet(id) {
       <div class="det-row"><span class="det-lbl">Valor Contrato</span><span class="det-val">R$ ${fmt(p.valor)}</span></div>
     </div>
     <div class="det-sec">
+      <div class="det-sec-ttl">Proteção</div>
+      <div class="det-row"><span class="det-lbl">Disj. Medidor</span><span class="det-val">${p.protMed || '—'}</span></div>
+      <div class="det-row"><span class="det-lbl">Disj. CA</span><span class="det-val">${p.protCaDisj || '—'}</span></div>
+      <div class="det-row"><span class="det-lbl">DPS CA</span><span class="det-val">${p.protCaDps || '—'}</span></div>
+    </div>
+    <div class="det-sec">
       <div class="det-sec-ttl">Pós-Venda</div>
       <div class="det-row"><span class="det-lbl">Chamados</span><span class="det-val">${chs.length} registrados</span></div>
       <div class="det-row"><span class="det-lbl">Última Leitura</span><span class="det-val">${leits.length ? leits[leits.length-1].kwh + ' kWh' : '—'}</span></div>
@@ -895,24 +913,27 @@ function openEditProj(id) {
   if(!p) return;
   editProjId = id;
   document.getElementById('mpt').textContent = 'Editar Projeto #' + id;
-  document.getElementById('p-nome').value = p.nome;
-  document.getElementById('p-cli').value = p.cliente;
-  document.getElementById('p-cpf').value = p.cpf;
-  document.getElementById('p-tel').value = p.tel;
-  document.getElementById('p-uc').value = p.uc;
-  document.getElementById('p-est').value = p.estado;
+  document.getElementById('p-nome').value = p.nome || '';
+  document.getElementById('p-cli').value = p.cliente || '';
+  document.getElementById('p-cpf').value = p.cpf || '';
+  document.getElementById('p-tel').value = p.tel || '';
+  document.getElementById('p-uc').value = p.uc || '';
+  document.getElementById('p-est').value = p.estado || 'PI';
   const sel = document.getElementById('p-etapa');
   sel.innerHTML = ETAPAS.map(e=>`<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
-  document.getElementById('p-kwp').value = p.kwp;
-  document.getElementById('p-val').value = p.valor;
-  document.getElementById('p-inv').value = p.inversor;
-  document.getElementById('p-pinv').value = p.potInv;
-  document.getElementById('p-mod').value = p.modulos;
-  document.getElementById('p-wpmod').value = p.wpMod;
-  document.getElementById('p-mont').value = p.montador;
-  document.getElementById('p-dini').value = p.dataInicio;
-  document.getElementById('p-dlig').value = p.dataLigacao;
-  document.getElementById('p-obs').value = p.obs;
+  document.getElementById('p-kwp').value = p.kwp || '';
+  document.getElementById('p-val').value = p.valor || '';
+  document.getElementById('p-inv').value = p.inversor || '';
+  document.getElementById('p-pinv').value = p.potInv || '';
+  document.getElementById('p-mod').value = p.modulos || '';
+  document.getElementById('p-wpmod').value = p.wpMod || '';
+  document.getElementById('p-mont').value = p.montador || '';
+  document.getElementById('p-prot-med').value = p.protMed || '';
+  document.getElementById('p-prot-ca-disj').value = p.protCaDisj || '';
+  document.getElementById('p-prot-ca-dps').value = p.protCaDps || '';
+  document.getElementById('p-dini').value = p.dataInicio || '';
+  document.getElementById('p-dlig').value = p.dataLigacao || '';
+  document.getElementById('p-obs').value = p.obs || '';
   
   closeDet();
   document.getElementById('mo-proj').classList.add('open');
@@ -943,6 +964,9 @@ function saveProjeto() {
     modulos: parseInt(document.getElementById('p-mod').value)||0,
     wpMod: parseInt(document.getElementById('p-wpmod').value)||0,
     montador: document.getElementById('p-mont').value,
+    protMed: document.getElementById('p-prot-med').value,
+    protCaDisj: document.getElementById('p-prot-ca-disj').value,
+    protCaDps: document.getElementById('p-prot-ca-dps').value,
     dataInicio: document.getElementById('p-dini').value,
     dataLigacao: document.getElementById('p-dlig').value,
     obs: document.getElementById('p-obs').value
