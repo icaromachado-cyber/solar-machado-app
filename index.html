@@ -113,17 +113,10 @@ tr:hover td{background:#faf9f5}
 .bi.d:hover{background:var(--er2);color:var(--er);border-color:#f5c4b3}
 .bi.v:hover{background:var(--ok2);color:#085041;border-color:#9FE1CB}
 
-/* ── BADGES ── */
-.bd{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
-.bd-ok{background:var(--ok2);color:#085041}
-.bd-go{background:var(--warn2);color:var(--warn)}
-.bd-az{background:var(--azs);color:var(--az)}
-.bd-er{background:var(--er2);color:var(--er)}
-.bd-cz{background:#f0efe8;color:var(--cz3)}
-.bd-am{background:#fff8e0;color:#633806}
-
 /* ── PIPELINE / KANBAN ── */
-.pipeline{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;margin-bottom:20px;scrollbar-width: thin;}
+.pipeline-wrapper{overflow-x:auto;padding-bottom:12px;margin-bottom:20px;cursor:grab}
+.pipeline-wrapper:active{cursor:grabbing}
+.pipeline{display:flex;gap:12px;width:max-content}
 .pipe-col{flex:0 0 280px;background:#f7f6f1;border-radius:10px;border:1px solid #e4e3dc}
 .pipe-hdr{padding:12px 14px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between}
 .pipe-hdr .pt{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--az)}
@@ -134,18 +127,6 @@ tr:hover td{background:#faf9f5}
 .pcard .pcn{font-size:12.5px;font-weight:500;line-height:1.3;margin-bottom:4px}
 .pcard .pcs{font-size:11px;color:var(--txts)}
 .pcard .pckwp{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--az);margin-top:4px}
-
-/* ── ETAPAS PROGRESS ── */
-.etapas{display:flex;align-items:center;gap:0;margin:16px 0}
-.etapa{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
-.etapa:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:var(--cz2);z-index:0}
-.etapa.done::after{background:var(--ok)}
-.etapa.active::after{background:linear-gradient(90deg,var(--ok),var(--cz2))}
-.etapa-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--cz2);background:var(--br);display:flex;align-items:center;justify-content:center;font-size:11px;position:relative;z-index:1;transition:all .2s}
-.etapa.done .etapa-dot{background:var(--ok);border-color:var(--ok);color:#fff}
-.etapa.active .etapa-dot{background:var(--az);border-color:var(--az);color:#fff}
-.etapa-lbl{font-size:10px;color:var(--txts);margin-top:5px;text-align:center;line-height:1.3}
-.etapa.done .etapa-lbl,.etapa.active .etapa-lbl{color:var(--az);font-weight:500}
 
 /* ── DETAIL PANEL ── */
 .det-panel{display:none;position:fixed;right:0;top:0;width:440px;height:100vh;background:var(--br);border-left:1px solid #e4e3dc;z-index:150;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08)}
@@ -160,21 +141,12 @@ tr:hover td{background:#faf9f5}
 .det-lbl{color:var(--txts)}
 .det-val{font-weight:500;text-align:right;max-width:60%}
 
-/* ── PÓS-VENDA ── */
-.pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
-.chamado-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0efe8}
-.chamado-row:last-child{border-bottom:none}
-.ch-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.ch-info{flex:1}
-.ch-info .cn{font-size:13px;font-weight:500}
-.ch-info .cs{font-size:11.5px;color:var(--txts);margin-top:2px}
-.ch-info .cd{font-size:11px;color:var(--cz3);margin-top:3px}
-
-/* ── LEITURA ── */
-.leit-row{display:grid;grid-template-columns:100px 80px 90px 90px 1fr;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid #f0efe8;font-size:13px}
-.leit-row:last-child{border-bottom:none}
-.leit-row:hover{background:#faf9f5}
-.leit-hdr{background:#f7f6f1;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)}
+/* ── HISTÓRICO DE CHAMADOS ── */
+.hist-item{padding:10px;border-radius:8px;background:#f9f9f7;border:1px solid #e4e3dc;margin-bottom:8px}
+.hist-hdr{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.hist-tipo{font-weight:600;color:var(--az)}
+.hist-data{color:var(--txts)}
+.hist-desc{font-size:12px;line-height:1.4}
 
 /* ── MODAL ── */
 .mo{display:none;position:fixed;inset:0;background:rgba(30,34,96,.45);z-index:200;align-items:center;justify-content:center}
@@ -204,12 +176,6 @@ tr:hover td{background:#faf9f5}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--cz2);border-radius:3px}
 
-/* CHECKLIST */
-.ck-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f7f6f1;cursor:pointer}
-.ck-item:last-child{border-bottom:none}
-.ck-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--az);cursor:pointer;flex-shrink:0}
-.ck-item .ckt{font-size:13px}.ck-item.done .ckt{text-decoration:line-through;color:var(--txts)}
-
 /* CHARTS ROW */
 .charts-row{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px}
 .chart-container{position:relative;height:180px;width:100%}
@@ -219,7 +185,6 @@ tr:hover td{background:#faf9f5}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .charts-row{grid-template-columns: 1fr;}
 }
-
 @media(max-width:768px){
   :root{ --sw: 0px; }
   .sb{ transform: translateX(-250px); width: 250px; }
@@ -230,15 +195,8 @@ tr:hover td{background:#faf9f5}
   .topbar{ padding: 0 16px; }
   .content{ padding: 16px; }
   .kpi-grid{ grid-template-columns: 1fr; }
-  .ph h2{ font-size: 17px; }
-  .btn{ padding: 8px 12px; font-size: 12px; }
-  .pv-grid{ grid-template-columns: 1fr; }
   .det-panel{ width: 100%; }
-  .fg{ grid-template-columns: 1fr; }
   .mbox{ width: 100%; border-radius: 0; height: 100vh; max-height: 100vh; }
-  .leit-row{ grid-template-columns: 1fr 1fr; gap: 5px; }
-  .leit-row > div:last-child{ grid-column: 1/-1; font-style: italic; font-size: 11px; }
-  .chart-container{ height: 160px; }
 }
 </style>
 </head>
@@ -297,20 +255,18 @@ tr:hover td{background:#faf9f5}
     <!-- DASHBOARD -->
     <div id="page-dash" class="page on">
       <div class="kpi-grid" id="dash-kpis"></div>
+      
       <div class="charts-row">
         <div class="card">
-          <div class="ph"><h2>Geração Mensal (kWh)</h2></div>
-          <div class="chart-container">
-            <canvas id="chart-mes"></canvas>
-          </div>
+          <div class="ph" style="margin-bottom:12px"><h2>Geração Total (kWh)</h2></div>
+          <div class="chart-container"><canvas id="chart-mes"></canvas></div>
         </div>
         <div class="card">
-          <div class="ph"><h2>Status dos Projetos</h2></div>
-          <div class="chart-container">
-            <canvas id="chart-status"></canvas>
-          </div>
+          <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
+          <div class="chart-container"><canvas id="chart-status"></canvas></div>
         </div>
       </div>
+
       <div class="card">
         <div class="ph">
           <h2>Chamados Recentes</h2>
@@ -322,7 +278,9 @@ tr:hover td{background:#faf9f5}
 
     <!-- PIPELINE -->
     <div id="page-pipeline" class="page">
-      <div class="pipeline" id="pipe-container"></div>
+      <div class="pipeline-wrapper" id="pipe-wrapper">
+        <div class="pipeline" id="pipe-container"></div>
+      </div>
     </div>
 
     <!-- PROJETOS -->
@@ -392,13 +350,6 @@ tr:hover td{background:#faf9f5}
         <button class="btn btn-p" onclick="openModalLeitura()">+ Registrar Leitura</button>
       </div>
       <div class="tw">
-        <div class="leit-row leit-hdr">
-          <div>Mês</div>
-          <div>kWh</div>
-          <div>Projeto</div>
-          <div>Cliente</div>
-          <div>Observações</div>
-        </div>
         <div id="b-leituras"></div>
       </div>
     </div>
@@ -434,22 +385,29 @@ tr:hover td{background:#faf9f5}
         <div class="fg">
           <div class="fgrp full"><label>Nome Completo do Cliente *</label><input type="text" id="p-nome"></div>
           <div class="fgrp"><label>Nome p/ Exibição *</label><input type="text" id="p-cli"></div>
+          <div class="fgrp"><label>Data de Nascimento</label><input type="date" id="p-nasc"></div>
           <div class="fgrp"><label>CPF/CNPJ</label><input type="text" id="p-cpf"></div>
           <div class="fgrp"><label>Telefone/WhatsApp</label><input type="text" id="p-tel"></div>
           <div class="fgrp"><label>Unidade Consumidora (UC)</label><input type="text" id="p-uc"></div>
           <div class="fgrp"><label>Estado</label><select id="p-est"><option value="PI">Piauí</option><option value="MA">Maranhão</option><option value="CE">Ceará</option></select></div>
           <div class="fgrp"><label>Etapa Atual</label><select id="p-etapa"></select></div>
+          <div class="fgrp"><label>Possui Beneficiário?</label>
+            <select id="p-ben">
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <div id="tab-1" class="tcon" style="display:none">
         <div class="fg">
-          <div class="fgrp"><label>Potência (kWp)</label><input type="number" step="0.01" id="p-kwp"></div>
+          <div class="fgrp"><label>Qtd Módulos</label><input type="number" id="p-mod" oninput="calcKwp()"></div>
+          <div class="fgrp"><label>Wp por Módulo</label><input type="number" id="p-wpmod" oninput="calcKwp()"></div>
+          <div class="fgrp"><label>Potência Total (kWp)</label><input type="number" step="0.01" id="p-kwp" readonly style="background:#f7f6f1"></div>
           <div class="fgrp"><label>Valor do Projeto (R$)</label><input type="number" id="p-val"></div>
           <div class="fgrp"><label>Inversor</label><input type="text" id="p-inv"></div>
           <div class="fgrp"><label>Potência Inversor</label><input type="text" id="p-pinv"></div>
-          <div class="fgrp"><label>Qtd Módulos</label><input type="number" id="p-mod"></div>
-          <div class="fgrp"><label>Wp por Módulo</label><input type="number" id="p-wpmod"></div>
           <div class="fgrp full"><label>Montador Responsável</label><input type="text" id="p-mont"></div>
         </div>
       </div>
@@ -457,11 +415,10 @@ tr:hover td{background:#faf9f5}
       <div id="tab-2" class="tcon" style="display:none">
         <div class="fg">
           <div class="fgrp full"><label style="color:var(--az);font-weight:700">Proteção do Medidor</label></div>
-          <div class="fgrp full"><label>Disjuntor do Medidor (A)</label><input type="text" id="p-prot-med" placeholder="Ex: 40A Bifásico"></div>
-          
+          <div class="fgrp full"><label>Disjuntor do Medidor (A)</label><input type="text" id="p-prot-med"></div>
           <div class="fgrp full" style="margin-top:10px"><label style="color:var(--az);font-weight:700">Proteção CA (Quadro)</label></div>
-          <div class="fgrp"><label>Disjuntor CA (A)</label><input type="text" id="p-prot-ca-disj" placeholder="Ex: 32A"></div>
-          <div class="fgrp"><label>DPS CA</label><input type="text" id="p-prot-ca-dps" placeholder="Ex: 275V 20kA"></div>
+          <div class="fgrp"><label>Disjuntor CA (A)</label><input type="text" id="p-prot-ca-disj"></div>
+          <div class="fgrp"><label>DPS CA</label><input type="text" id="p-prot-ca-dps"></div>
         </div>
       </div>
 
@@ -489,7 +446,8 @@ tr:hover td{background:#faf9f5}
     </div>
     <div class="mbdy">
       <div class="fg">
-        <div class="fgrp full"><label>Projeto / Cliente *</label><select id="mc-proj"></select></div>
+        <div class="fgrp full"><label>Projeto / Cliente (Opcional)</label><select id="mc-proj"></select></div>
+        <div class="fgrp full"><label>Nome do Cliente (Para Chamados Avulsos)</label><input type="text" id="mc-avulso" placeholder="Preencha se não houver projeto vinculado"></div>
         <div class="fgrp"><label>Tipo de Ocorrência</label>
           <select id="mc-tipo">
             <option>Manutenção Preventiva</option>
@@ -516,8 +474,8 @@ tr:hover td{background:#faf9f5}
             <option>Resolvido</option>
           </select>
         </div>
-        <div class="fgrp full"><label>Descrição do Problema *</label><textarea id="mc-desc" placeholder="Descreva o que está acontecendo…"></textarea></div>
-        <div class="fgrp full"><label>Resolução / Notas Técnicas</label><textarea id="mc-res" placeholder="O que foi feito para resolver…"></textarea></div>
+        <div class="fgrp full"><label>Descrição do Problema *</label><textarea id="mc-desc"></textarea></div>
+        <div class="fgrp full"><label>Resolução / Notas Técnicas</label><textarea id="mc-res"></textarea></div>
       </div>
     </div>
     <div class="mftr">
@@ -536,10 +494,10 @@ tr:hover td{background:#faf9f5}
     </div>
     <div class="mbdy">
       <div class="fg">
-        <div class="fgrp full"><label>Projeto / Cliente *</label><select id="ml-proj"><option value="">Selecione…</option></select></div>
+        <div class="fgrp full"><label>Projeto / Cliente *</label><select id="ml-proj"></select></div>
         <div class="fgrp"><label>Mês de Referência</label><input type="month" id="ml-mes"></div>
-        <div class="fgrp"><label>kWh Gerado</label><input type="number" id="ml-kwh" placeholder="0"></div>
-        <div class="fgrp full"><label>Observações</label><textarea id="ml-obs" placeholder="Condições, anomalias…" style="min-height:56px"></textarea></div>
+        <div class="fgrp"><label>kWh Gerado</label><input type="number" id="ml-kwh"></div>
+        <div class="fgrp full"><label>Observações</label><textarea id="ml-obs"></textarea></div>
       </div>
     </div>
     <div class="mftr">
@@ -553,94 +511,77 @@ tr:hover td{background:#faf9f5}
 
 <script>
 // ══════════════════════════════════════════
+// PIPELINE DRAG SCROLL
+// ══════════════════════════════════════════
+const wrapper = document.getElementById('pipe-wrapper');
+let isDown = false; let startX; let scrollLeft;
+if(wrapper) {
+  wrapper.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - wrapper.offsetLeft; scrollLeft = wrapper.scrollLeft; });
+  wrapper.addEventListener('mouseleave', () => { isDown = false; });
+  wrapper.addEventListener('mouseup', () => { isDown = false; });
+  wrapper.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - wrapper.offsetLeft; const walk = (x - startX) * 2; wrapper.scrollLeft = scrollLeft - walk; });
+}
+
+// ══════════════════════════════════════════
 // MOBILE MENU
 // ══════════════════════════════════════════
 function toggleMenu(force) {
   const sb = document.getElementById('sidebar');
   const overlay = document.getElementById('sb-overlay');
   const isOpen = force !== undefined ? force : !sb.classList.contains('open');
-  
-  if (isOpen) {
-    sb.classList.add('open');
-    overlay.classList.add('open');
-  } else {
-    sb.classList.remove('open');
-    overlay.classList.remove('open');
-  }
+  if (isOpen) { sb.classList.add('open'); overlay.classList.add('open'); }
+  else { sb.classList.remove('open'); overlay.classList.remove('open'); }
 }
 
 // ══════════════════════════════════════════
-// DADOS INICIAIS (Serão sobrescritos pelo Firebase se existirem)
+// FIREBASE & DATA
 // ══════════════════════════════════════════
-let PROJETOS = [];
-let CHAMADOS = [];
-let LEITURAS = [];
+let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
 const ETAPAS = ["Visita","Proposta","Aprovação","Instalação","Ligação","Concluído"];
 
-// ══════════════════════════════════════════
-// FIREBASE — CORE LOGIC
-// ══════════════════════════════════════════
-
-function setFbStatus(ok, msg) {
+function setFbStatus(ok) {
   const el = document.getElementById('fb-status');
   if (!el) return;
-  if (ok === true)  el.textContent = '🟢 Firebase conectado';
-  else if (ok === false) el.textContent = '🔴 Erro no Firebase';
-  else el.textContent = '⚪ ' + (msg || 'Conectando…');
-  el.style.color = ok === true ? 'rgba(29,158,117,.9)' : ok === false ? 'rgba(216,90,48,.9)' : 'rgba(255,255,255,.35)';
+  el.textContent = ok ? '🟢 Firebase conectado' : '🔴 Erro no Firebase';
+  el.style.color = ok ? 'rgba(29,158,117,.9)' : 'rgba(216,90,48,.9)';
 }
 
-// Listeners em tempo real
 function initFirebaseListeners() {
-  setFbStatus(null, 'Conectando…');
-
-  // Projetos
   db.collection('projetos').onSnapshot(snap => {
     PROJETOS = snap.docs.map(d => d.data());
     PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
-    renderProjetos();
-    renderDash();
-    renderPipeline();
+    renderProjetos(); renderDash(); renderPipeline();
     setFbStatus(true);
-  }, err => {
-    console.error('Firestore Error (Projetos):', err);
-    setFbStatus(false);
-    toast('Erro ao ler dados do Firebase. Verifique as regras ou o domínio.', 'er');
-  });
+  }, err => { setFbStatus(false); });
 
-  // Chamados
   db.collection('chamados').onSnapshot(snap => {
     CHAMADOS = snap.docs.map(d => d.data());
     CHAMADOS.sort((a, b) => (b.id || 0) - (a.id || 0));
-    renderChamados();
+    renderChamados(); renderDash();
   });
 
-  // Leituras
   db.collection('leituras').onSnapshot(snap => {
     LEITURAS = snap.docs.map(d => d.data());
     renderLeituras();
   });
 }
 
-// Funções de escrita (Promise-based)
 function fbWrite(coll, id, data) {
-  return db.collection(coll).doc(String(id)).set(data)
-    .then(() => { console.log(`Saved to ${coll}: ${id}`); return true; })
-    .catch(err => {
-      console.error(`Error saving to ${coll}:`, err);
-      toast(`Erro ao salvar no Firebase: ${err.message}`, 'er');
-      throw err;
-    });
+  return db.collection(coll).doc(String(id)).set(data).catch(err => { toast('Erro ao salvar: ' + err.message, 'er'); throw err; });
 }
 
 function fbDelete(coll, id) {
-  return db.collection(coll).doc(String(id)).delete()
-    .then(() => { console.log(`Deleted from ${coll}: ${id}`); return true; })
-    .catch(err => {
-      console.error(`Error deleting from ${coll}:`, err);
-      toast(`Erro ao excluir: ${err.message}`, 'er');
-      throw err;
-    });
+  return db.collection(coll).doc(String(id)).delete().catch(err => { toast('Erro ao excluir: ' + err.message, 'er'); throw err; });
+}
+
+// ══════════════════════════════════════════
+// CÁLCULOS AUTOMÁTICOS
+// ══════════════════════════════════════════
+function calcKwp() {
+  const mod = parseInt(document.getElementById('p-mod').value) || 0;
+  const wp = parseInt(document.getElementById('p-wpmod').value) || 0;
+  const kwp = (mod * wp) / 1000;
+  document.getElementById('p-kwp').value = kwp.toFixed(2);
 }
 
 // ══════════════════════════════════════════
@@ -652,10 +593,7 @@ function go(p) {
   document.getElementById('page-' + p).classList.add('on');
   const map = {dash:0,pipeline:1,projetos:2,chamados:3,leituras:4};
   document.querySelectorAll('.ni')[map[p]]?.classList.add('on');
-  const ttls = {dash:'Dashboard',pipeline:'Pipeline de Projetos',projetos:'Todos os Projetos',chamados:'Chamados de Pós-Venda',leituras:'Leituras de Geração'};
-  document.getElementById('tb-title').textContent = ttls[p] || p;
-  const btnNovo = document.getElementById('btn-novo');
-  btnNovo.style.display = ['dash','pipeline','projetos'].includes(p) ? 'flex' : 'none';
+  document.getElementById('tb-title').textContent = p.toUpperCase();
   if(p==='dash') renderDash();
   if(p==='pipeline') renderPipeline();
   if(p==='projetos') renderProjetos();
@@ -664,42 +602,26 @@ function go(p) {
 }
 
 // ══════════════════════════════════════════
-// DASHBOARD
+// RENDERIZAÇÃO
 // ══════════════════════════════════════════
 let chDM=null, chDS=null;
 function renderDash() {
-  const total = PROJETOS.length;
   const conc = PROJETOS.filter(p=>p.etapa==='Concluído').length;
   const kwp = PROJETOS.reduce((s,p)=>s+(p.kwp||0),0);
   const chAbertos = CHAMADOS.filter(c=>c.status!=='Resolvido').length;
+  
+  document.getElementById('dash-kpis').innerHTML = `
+    <div class="kpi"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${PROJETOS.length}</div></div>
+    <div class="kpi"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
+    <div class="kpi"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} kWp</div></div>
+    <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
+  `;
 
-  const kpisEl = document.getElementById('dash-kpis');
-  if (kpisEl) {
-    kpisEl.innerHTML = `
-      <div class="kpi"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${total}</div></div>
-      <div class="kpi"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
-      <div class="kpi"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} <small>kWp</small></div></div>
-      <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
-    `;
-  }
-
-  const rec = CHAMADOS.slice(0,4);
-  const dashChamEl = document.getElementById('dash-chamados');
-  if (dashChamEl) {
-    dashChamEl.innerHTML = rec.length ? rec.map(c=>{
-      const p = PROJETOS.find(x=>x.id===c.projetoId);
-      return `
-        <div class="chamado-row">
-          <div class="ch-ico ${c.status==='Resolvido'?'ig':'ir'}">${c.status==='Resolvido'?'✓':'!'}</div>
-          <div class="ch-info">
-            <div class="cn">${c.tipo} — ${p?.cliente||'Desconhecido'}</div>
-            <div class="cs">${c.desc}</div>
-            <div class="cd">${fmt_data(c.data)} • ${c.status}</div>
-          </div>
-        </div>
-      `;
-    }).join('') : '<div class="empty">Nenhum chamado recente.</div>';
-  }
+  const rec = CHAMADOS.slice(0,5);
+  document.getElementById('dash-chamados').innerHTML = rec.map(c=>{
+    const p = PROJETOS.find(x=>x.id===c.projetoId);
+    return `<div class="chamado-row"><div class="ch-info"><div class="cn">${c.tipo} — ${p?.cliente || c.clienteAvulso || 'Avulso'}</div><div class="cs">${c.desc}</div><div class="cd">${fmt_data(c.data)} • ${c.status}</div></div></div>`;
+  }).join('') || '<div class="empty">Nenhum chamado.</div>';
 
   renderCharts();
 }
@@ -708,422 +630,180 @@ function renderCharts() {
   const ctxM = document.getElementById('chart-mes');
   const ctxS = document.getElementById('chart-status');
   if(!ctxM || !ctxS) return;
-
-  if(chDM) chDM.destroy();
-  if(chDS) chDS.destroy();
-
-  const ultMeses = ["Jan","Fev","Mar","Abr","Mai","Jun"];
-  const dadosGer = [2800, 3100, 4200, 3800, 5200, 4800];
-
-  chDM = new Chart(ctxM, {
-    type:'line',
-    data:{
-      labels:ultMeses,
-      datasets:[{label:'kWh',data:dadosGer,borderColor:'#2E3486',backgroundColor:'rgba(46,52,134,.1)',fill:true,tension:.4}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
-  });
-
+  if(chDM) chDM.destroy(); if(chDS) chDS.destroy();
+  chDM = new Chart(ctxM, { type:'line', data:{ labels:["Jan","Fev","Mar","Abr","Mai","Jun"], datasets:[{label:'kWh',data:[2800,3100,4200,3800,5200,4800],borderColor:'#2E3486',fill:true,tension:.4}] }, options:{responsive:true,maintainAspectRatio:false} });
   const stCounts = ETAPAS.map(e => PROJETOS.filter(p=>p.etapa===e).length);
-  chDS = new Chart(ctxS, {
-    type:'doughnut',
-    data:{
-      labels:ETAPAS,
-      datasets:[{data:stCounts,backgroundColor:['#EDECE5','#d3d1c7','#b5d4f4','#4a52c8','#FDC300','#1D9E75']}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}}}}
-  });
+  chDS = new Chart(ctxS, { type:'doughnut', data:{ labels:ETAPAS, datasets:[{data:stCounts,backgroundColor:['#EDECE5','#d3d1c7','#b5d4f4','#4a52c8','#FDC300','#1D9E75']}] }, options:{responsive:true,maintainAspectRatio:false} });
 }
 
-// ══════════════════════════════════════════
-// PIPELINE
-// ══════════════════════════════════════════
 function renderPipeline() {
   const cont = document.getElementById('pipe-container');
-  if (!cont) return;
+  if(!cont) return;
   cont.innerHTML = ETAPAS.map(e => {
     const projs = PROJETOS.filter(p=>p.etapa===e);
-    return `
-      <div class="pipe-col">
-        <div class="pipe-hdr"><span class="pt">${e}</span><span class="pc">${projs.length}</span></div>
-        <div class="pipe-body">
-          ${projs.map(p=>`
-            <div class="pcard" onclick="openDet(${p.id})">
-              <div class="pcn">${p.cliente}</div>
-              <div class="pcs">${p.kwp} kWp • ${p.estado}</div>
-              <div class="pckwp">R$ ${fmt(p.valor)}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
+    return `<div class="pipe-col"><div class="pipe-hdr"><span class="pt">${e}</span><span class="pc">${projs.length}</span></div><div class="pipe-body">${projs.map(p=>`<div class="pcard" onclick="openDet(${p.id})"><div class="pcn">${p.cliente}</div><div class="pcs">${p.kwp} kWp</div></div>`).join('')}</div></div>`;
+  }).join('');
+}
+
+function renderProjetos() {
+  const q = document.getElementById('f-proj').value.toLowerCase();
+  const filtered = PROJETOS.filter(p => (p.cliente||'').toLowerCase().includes(q) || (p.cpf||'').includes(q));
+  document.getElementById('b-projetos').innerHTML = filtered.map(p => `<tr><td>#${p.id}</td><td>${p.cliente}</td><td>${p.kwp}</td><td>${p.etapa}</td><td>${fmt_data(p.dataLigacao)}</td><td><button class="bi v" onclick="openDet(${p.id})">👁</button></td></tr>`).join('');
+}
+
+function renderChamados() {
+  const q = document.getElementById('f-cham').value.toLowerCase();
+  const filtered = CHAMADOS.filter(c => (c.tipo||'').toLowerCase().includes(q) || (c.desc||'').toLowerCase().includes(q));
+  document.getElementById('b-chamados').innerHTML = filtered.map(c => {
+    const p = PROJETOS.find(x=>x.id===c.projetoId);
+    return `<tr><td>${fmt_data(c.data)}</td><td>${p?.cliente || c.clienteAvulso || 'Avulso'}</td><td>${c.tipo}</td><td>${c.prioridade}</td><td>${c.status}</td><td><button class="bi e" onclick="editChamado(${c.id})">✎</button></td></tr>`;
+  }).join('');
+}
+
+function renderLeituras() {
+  const sorted = [...LEITURAS].sort((a,b)=>b.mes.localeCompare(a.mes));
+  document.getElementById('b-leituras').innerHTML = sorted.map(l => {
+    const p = PROJETOS.find(x=>x.id===l.projetoId);
+    return `<div class="card-sm" style="margin-bottom:10px"><b>${l.mes}</b>: ${l.kwh} kWh — ${p?.cliente || '—'}</div>`;
   }).join('');
 }
 
 // ══════════════════════════════════════════
-// PROJETOS
-// ══════════════════════════════════════════
-function renderProjetos() {
-  const fProj = document.getElementById('f-proj');
-  const fEtapa = document.getElementById('f-etapa');
-  if (!fProj || !fEtapa) return;
-
-  const q = fProj.value.toLowerCase();
-  const e = fEtapa.value;
-  const filtered = PROJETOS.filter(p => {
-    const matchQ = (p.cliente||'').toLowerCase().includes(q) || (p.nome||'').toLowerCase().includes(q) || (p.cpf||'').includes(q) || (p.uc||'').includes(q);
-    const matchE = !e || p.etapa === e;
-    return matchQ && matchE;
-  });
-
-  if(fEtapa.options.length <= 1) {
-    ETAPAS.forEach(et => fEtapa.add(new Option(et, et)));
-  }
-
-  const tbody = document.getElementById('b-projetos');
-  if (tbody) {
-    tbody.innerHTML = filtered.map(p => `
-      <tr>
-        <td>#${p.id}</td>
-        <td>
-          <div style="font-weight:500">${p.cliente}</div>
-          <div style="font-size:11px;color:var(--txts)">${p.estado} • ${p.tel}</div>
-        </td>
-        <td>${p.kwp} <small>kWp</small></td>
-        <td><span class="bd ${p.etapa==='Concluído'?'bd-ok':p.etapa==='Ligação'?'bd-am':'bd-az'}">${p.etapa}</span></td>
-        <td>${fmt_data(p.dataLigacao)}</td>
-        <td>
-          <div class="ab">
-            <button class="bi v" onclick="openDet(${p.id})" title="Ver">👁</button>
-            <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
-            <button class="bi d" onclick="delP(${p.id})" title="Excluir">✕</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
-  }
-}
-
-// ══════════════════════════════════════════
-// CHAMADOS
-// ══════════════════════════════════════════
-function renderChamados() {
-  const fCham = document.getElementById('f-cham');
-  const fSt = document.getElementById('f-st-cham');
-  if (!fCham || !fSt) return;
-
-  const q = fCham.value.toLowerCase();
-  const st = fSt.value;
-  const filtered = CHAMADOS.filter(c => {
-    const p = PROJETOS.find(x=>x.id===c.projetoId);
-    const matchQ = (c.tipo||'').toLowerCase().includes(q) || (c.desc||'').toLowerCase().includes(q) || (p?.cliente||'').toLowerCase().includes(q);
-    const matchSt = !st || c.status === st;
-    return matchQ && matchSt;
-  });
-
-  const tbody = document.getElementById('b-chamados');
-  if (tbody) {
-    tbody.innerHTML = filtered.map(c => {
-      const p = PROJETOS.find(x=>x.id===c.projetoId);
-      const prioCls = c.prioridade==='Urgente'?'bd-er':c.prioridade==='Alta'?'bd-go':'bd-cz';
-      const stCls = c.status==='Resolvido'?'bd-ok':c.status==='Em Andamento'?'bd-az':'bd-cz';
-      return `
-        <tr>
-          <td>${fmt_data(c.data)}</td>
-          <td>
-            <div style="font-weight:500">${p?.cliente||'—'}</div>
-            <div style="font-size:11px;color:var(--txts)">#${c.projetoId}</div>
-          </td>
-          <td>${c.tipo}</td>
-          <td><span class="bd ${prioCls}">${c.prioridade}</span></td>
-          <td><span class="bd ${stCls}">${c.status}</span></td>
-          <td>
-            <div class="ab">
-              <button class="bi e" onclick="editChamado(${c.id})">✎</button>
-              <button class="bi d" onclick="delCh(${c.id})">✕</button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-}
-
-// ══════════════════════════════════════════
-// LEITURAS
-// ══════════════════════════════════════════
-function renderLeituras() {
-  const sorted = [...LEITURAS].sort((a,b)=>b.mes.localeCompare(a.mes));
-  const cont = document.getElementById('b-leituras');
-  if (cont) {
-    cont.innerHTML = sorted.map(l => {
-      const p = PROJETOS.find(x=>x.id===l.projetoId);
-      return `
-        <div class="leit-row">
-          <div style="font-weight:600">${l.mes}</div>
-          <div style="color:var(--ok);font-weight:700">${l.kwh}</div>
-          <div style="color:var(--txts)">#${l.projetoId}</div>
-          <div style="font-weight:500">${p?.cliente||'—'}</div>
-          <div style="color:var(--txts);font-size:12px">${l.obs||'—'}</div>
-        </div>
-      `;
-    }).join('');
-  }
-}
-
-// ══════════════════════════════════════════
-// DETALHES
+// DETALHES E HISTÓRICO
 // ══════════════════════════════════════════
 function openDet(id) {
-  const p = PROJETOS.find(x=>x.id===id);
-  if(!p) return;
+  const p = PROJETOS.find(x=>x.id===id); if(!p) return;
+  const hist = CHAMADOS.filter(c=>c.projetoId===id);
   document.getElementById('det-title').textContent = p.cliente;
-  
-  const chs = CHAMADOS.filter(c=>c.projetoId===id);
-  const leits = LEITURAS.filter(l=>l.projetoId===id);
-
   document.getElementById('det-content').innerHTML = `
     <div class="det-sec">
-      <div class="det-sec-ttl">Informações Gerais</div>
-      <div class="det-row"><span class="det-lbl">Nome Completo</span><span class="det-val">${p.nome || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">CPF/CNPJ</span><span class="det-val">${p.cpf || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">Telefone</span><span class="det-val">${p.tel || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">UC</span><span class="det-val">${p.uc || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">Localização</span><span class="det-val">${p.estado || '—'}</span></div>
+      <div class="det-sec-ttl">Informações</div>
+      <div class="det-row"><span>Nascimento</span><span>${fmt_data(p.dataNascimento)}</span></div>
+      <div class="det-row"><span>Beneficiário</span><span>${p.possuiBeneficiario || 'Não'}</span></div>
+      <div class="det-row"><span>Potência</span><span>${p.kwp} kWp</span></div>
     </div>
     <div class="det-sec">
-      <div class="det-sec-ttl">Dados Técnicos</div>
-      <div class="det-row"><span class="det-lbl">Potência Sistema</span><span class="det-val">${p.kwp || 0} kWp</span></div>
-      <div class="det-row"><span class="det-lbl">Inversor</span><span class="det-val">${p.inversor || '—'} (${p.potInv || '—'})</span></div>
-      <div class="det-row"><span class="det-lbl">Módulos</span><span class="det-val">${p.modulos || 0}x ${p.wpMod || 0}Wp</span></div>
-      <div class="det-row"><span class="det-lbl">Montador</span><span class="det-val">${p.montador || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">Valor Contrato</span><span class="det-val">R$ ${fmt(p.valor)}</span></div>
+      <div class="det-sec-ttl">Histórico de Chamados</div>
+      ${hist.map(c=>`<div class="hist-item"><div class="hist-hdr"><span class="hist-tipo">${c.tipo}</span><span class="hist-data">${fmt_data(c.data)}</span></div><div class="hist-desc">${c.desc}</div></div>`).join('') || '<div class="empty">Sem histórico.</div>'}
     </div>
-    <div class="det-sec">
-      <div class="det-sec-ttl">Proteção</div>
-      <div class="det-row"><span class="det-lbl">Disj. Medidor</span><span class="det-val">${p.protMed || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">Disj. CA</span><span class="det-val">${p.protCaDisj || '—'}</span></div>
-      <div class="det-row"><span class="det-lbl">DPS CA</span><span class="det-val">${p.protCaDps || '—'}</span></div>
-    </div>
-    <div class="det-sec">
-      <div class="det-sec-ttl">Pós-Venda</div>
-      <div class="det-row"><span class="det-lbl">Chamados</span><span class="det-val">${chs.length} registrados</span></div>
-      <div class="det-row"><span class="det-lbl">Última Leitura</span><span class="det-val">${leits.length ? leits[leits.length-1].kwh + ' kWh' : '—'}</span></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      <button class="btn btn-p" style="flex:1" onclick="openEditProj(${p.id})">Editar Dados</button>
-      <button class="btn btn-y" onclick="openModalChamado(${p.id})">Abrir Chamado</button>
-    </div>
+    <button class="btn btn-p" style="width:100%" onclick="openEditProj(${p.id})">Editar Projeto</button>
   `;
   document.getElementById('det-panel').classList.add('open');
 }
 function closeDet(){document.getElementById('det-panel').classList.remove('open');}
 
 // ══════════════════════════════════════════
-// MODAIS E SALVAMENTO
+// MODAIS
 // ══════════════════════════════════════════
-let editProjId = null;
-let editChId = null;
+let editProjId = null; let editChId = null;
 
 function openNovo() {
-  const p = document.querySelector('.page.on').id.replace('page-','');
-  if(p==='chamados') openModalChamado();
-  else if(p==='leituras') openModalLeitura();
+  const p = document.querySelector('.page.on').id;
+  if(p==='page-chamados') openModalChamado();
+  else if(p==='page-leituras') openModalLeitura();
   else openModalProj();
 }
 
 function openModalProj() {
-  editProjId = null;
-  document.getElementById('mpt').textContent = 'Novo Projeto';
+  editProjId = null; document.getElementById('mpt').textContent = 'Novo Projeto';
   document.getElementById('mo-proj').classList.add('open');
   document.querySelectorAll('#mo-proj input, #mo-proj select, #mo-proj textarea').forEach(i=>i.value='');
-  document.getElementById('p-est').value = 'PI';
-  const sel = document.getElementById('p-etapa');
-  sel.innerHTML = ETAPAS.map(e=>`<option>${e}</option>`).join('');
+  document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option>${e}</option>`).join('');
   setTab(0);
 }
 
 function openEditProj(id) {
-  const p = PROJETOS.find(x=>x.id===id);
-  if(!p) return;
-  editProjId = id;
-  document.getElementById('mpt').textContent = 'Editar Projeto #' + id;
+  const p = PROJETOS.find(x=>x.id===id); if(!p) return;
+  editProjId = id; document.getElementById('mpt').textContent = 'Editar Projeto #' + id;
   document.getElementById('p-nome').value = p.nome || '';
   document.getElementById('p-cli').value = p.cliente || '';
+  document.getElementById('p-nasc').value = p.dataNascimento || '';
   document.getElementById('p-cpf').value = p.cpf || '';
   document.getElementById('p-tel').value = p.tel || '';
   document.getElementById('p-uc').value = p.uc || '';
-  document.getElementById('p-est').value = p.estado || 'PI';
-  const sel = document.getElementById('p-etapa');
-  sel.innerHTML = ETAPAS.map(e=>`<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
-  document.getElementById('p-kwp').value = p.kwp || '';
-  document.getElementById('p-val').value = p.valor || '';
-  document.getElementById('p-inv').value = p.inversor || '';
-  document.getElementById('p-pinv').value = p.potInv || '';
+  document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
   document.getElementById('p-mod').value = p.modulos || '';
   document.getElementById('p-wpmod').value = p.wpMod || '';
-  document.getElementById('p-mont').value = p.montador || '';
-  document.getElementById('p-prot-med').value = p.protMed || '';
-  document.getElementById('p-prot-ca-disj').value = p.protCaDisj || '';
-  document.getElementById('p-prot-ca-dps').value = p.protCaDps || '';
-  document.getElementById('p-dini').value = p.dataInicio || '';
-  document.getElementById('p-dlig').value = p.dataLigacao || '';
-  document.getElementById('p-obs').value = p.obs || '';
-  
-  closeDet();
-  document.getElementById('mo-proj').classList.add('open');
-  setTab(0);
+  document.getElementById('p-kwp').value = p.kwp || '';
+  document.getElementById('p-val').value = p.valor || '';
+  document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
+  closeDet(); document.getElementById('mo-proj').classList.add('open'); setTab(0);
+}
+
+function saveProjeto() {
+  const id = editProjId || (PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1);
+  const obj = {
+    id, cliente: document.getElementById('p-cli').value, nome: document.getElementById('p-nome').value,
+    dataNascimento: document.getElementById('p-nasc').value, cpf: document.getElementById('p-cpf').value,
+    tel: document.getElementById('p-tel').value, uc: document.getElementById('p-uc').value,
+    etapa: document.getElementById('p-etapa').value, possuiBeneficiario: document.getElementById('p-ben').value,
+    modulos: parseInt(document.getElementById('p-mod').value)||0, wpMod: parseInt(document.getElementById('p-wpmod').value)||0,
+    kwp: parseFloat(document.getElementById('p-kwp').value)||0, valor: parseFloat(document.getElementById('p-val').value)||0
+  };
+  fbWrite('projetos', id, obj).then(() => { toast('Salvo!', 'ok'); closeMo('mo-proj'); });
+}
+
+function openModalChamado(projetoId) {
+  editChId=null;
+  const sel=document.getElementById('mc-proj');
+  sel.innerHTML='<option value="">Nenhum (Chamado Avulso)</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
+  document.getElementById('mc-avulso').value='';
+  document.getElementById('mc-desc').value='';
+  document.getElementById('mc-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mo-ch').classList.add('open');
+}
+
+function editChamado(id) {
+  const c = CHAMADOS.find(x=>x.id===id); if(!c) return;
+  editChId = id; document.getElementById('mct').textContent = 'Editar Chamado #' + id;
+  const sel = document.getElementById('mc-proj');
+  sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>' + PROJETOS.map(p => `<option value="${p.id}" ${c.projetoId==p.id?'selected':''}>${p.cliente}</option>`).join('');
+  document.getElementById('mc-avulso').value = c.clienteAvulso || '';
+  document.getElementById('mc-tipo').value = c.tipo;
+  document.getElementById('mc-pri').value = c.prioridade;
+  document.getElementById('mc-data').value = c.data;
+  document.getElementById('mc-st').value = c.status;
+  document.getElementById('mc-desc').value = c.desc;
+  document.getElementById('mc-res').value = c.res || '';
+  document.getElementById('mo-ch').classList.add('open');
+}
+
+function saveChamado() {
+  const id = editChId || (CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
+  const obj = {
+    id, projetoId: parseInt(document.getElementById('mc-proj').value) || null,
+    clienteAvulso: document.getElementById('mc-avulso').value,
+    tipo: document.getElementById('mc-tipo').value, prioridade: document.getElementById('mc-pri').value,
+    status: document.getElementById('mc-st').value, desc: document.getElementById('mc-desc').value,
+    data: document.getElementById('mc-data').value, res: document.getElementById('mc-res').value
+  };
+  fbWrite('chamados', id, obj).then(() => { toast('Chamado Salvo!', 'ok'); closeMo('mo-ch'); });
+}
+
+function openModalLeitura() {
+  const sel=document.getElementById('ml-proj');
+  sel.innerHTML=PROJETOS.map(p=>`<option value="${p.id}">${p.cliente}</option>`).join('');
+  document.getElementById('ml-mes').value=new Date().toISOString().slice(0,7);
+  document.getElementById('ml-kwh').value='';
+  document.getElementById('mo-leit').classList.add('open');
+}
+
+function saveLeitura() {
+  const id = LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
+  const obj = { id, projetoId: parseInt(document.getElementById('ml-proj').value), mes: document.getElementById('ml-mes').value, kwh: parseFloat(document.getElementById('ml-kwh').value) };
+  fbWrite('leituras', id, obj).then(() => { toast('Leitura Salva!', 'ok'); closeMo('mo-leit'); });
 }
 
 function setTab(i) {
   document.querySelectorAll('.tab').forEach((t,idx)=>t.classList.toggle('on', idx===i));
   document.querySelectorAll('.tcon').forEach((c,idx)=>c.style.display = idx===i?'block':'none');
 }
-
-function saveProjeto() {
-  const cli = document.getElementById('p-cli').value.trim();
-  if(!cli) { toast('Nome do cliente é obrigatório.','er'); return; }
-  
-  const id = editProjId || (PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1);
-  const obj = {
-    id: id,
-    cliente: cli,
-    nome: document.getElementById('p-nome').value,
-    cpf: document.getElementById('p-cpf').value,
-    tel: document.getElementById('p-tel').value,
-    uc: document.getElementById('p-uc').value,
-    estado: document.getElementById('p-est').value,
-    etapa: document.getElementById('p-etapa').value,
-    kwp: parseFloat(document.getElementById('p-kwp').value)||0,
-    valor: parseFloat(document.getElementById('p-val').value)||0,
-    inversor: document.getElementById('p-inv').value,
-    potInv: document.getElementById('p-pinv').value,
-    modulos: parseInt(document.getElementById('p-mod').value)||0,
-    wpMod: parseInt(document.getElementById('p-wpmod').value)||0,
-    montador: document.getElementById('p-mont').value,
-    protMed: document.getElementById('p-prot-med').value,
-    protCaDisj: document.getElementById('p-prot-ca-disj').value,
-    protCaDps: document.getElementById('p-prot-ca-dps').value,
-    dataInicio: document.getElementById('p-dini').value,
-    dataLigacao: document.getElementById('p-dlig').value,
-    obs: document.getElementById('p-obs').value
-  };
-
-  fbWrite('projetos', id, obj).then(() => {
-    toast(editProjId ? 'Projeto atualizado!' : 'Projeto criado!', 'ok');
-    closeMo('mo-proj');
-  });
-}
-
-function openModalChamado(projetoId) {
-  editChId=null;
-  const sel=document.getElementById('mc-proj');
-  sel.innerHTML='<option value="">Selecione…</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente} — #${p.id}</option>`).join('');
-  ['mc-tipo','mc-pri','mc-st'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
-  document.getElementById('mc-desc').value='';
-  document.getElementById('mc-res').value='';
-  document.getElementById('mc-data').value=new Date().toISOString().slice(0,10);
-  document.getElementById('mct').textContent='Novo Chamado';
-  document.getElementById('mo-ch').classList.add('open');
-}
-
-function editChamado(id){
-  const c=CHAMADOS.find(x=>x.id===id);
-  if(!c) return;
-  editChId=id;
-  const sel=document.getElementById('mc-proj');
-  sel.innerHTML='<option value="">Selecione…</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id===c.projetoId?'selected':''}>${p.cliente} — #${p.id}</option>`).join('');
-  document.getElementById('mc-tipo').value=c.tipo;
-  document.getElementById('mc-pri').value=c.prioridade;
-  document.getElementById('mc-st').value=c.status;
-  document.getElementById('mc-desc').value=c.desc;
-  document.getElementById('mc-res').value=c.res||'';
-  document.getElementById('mc-data').value=c.data;
-  document.getElementById('mct').textContent='Editar Chamado';
-  document.getElementById('mo-ch').classList.add('open');
-}
-
-function saveChamado(){
-  const pid=parseInt(document.getElementById('mc-proj').value);
-  const desc=document.getElementById('mc-desc').value.trim();
-  if(!pid){toast('Selecione o projeto.','er');return;}
-  if(!desc){toast('Informe a descrição.','er');return;}
-  
-  const id = editChId || (CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
-  const obj={
-    id: id,
-    projetoId:pid,
-    tipo:document.getElementById('mc-tipo').value,
-    desc: desc,
-    data:document.getElementById('mc-data').value,
-    prioridade:document.getElementById('mc-pri').value,
-    status:document.getElementById('mc-st').value,
-    res:document.getElementById('mc-res').value.trim(),
-  };
-
-  fbWrite('chamados', id, obj).then(() => {
-    toast(editChId ? 'Chamado atualizado!' : 'Chamado registrado!', 'ok');
-    closeMo('mo-ch');
-  });
-}
-
-function openModalLeitura(projetoId){
-  const sel=document.getElementById('ml-proj');
-  sel.innerHTML='<option value="">Selecione…</option>'+PROJETOS.filter(p=>p.etapa==='Concluído').map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente} (${p.kwp} kWp)</option>`).join('');
-  document.getElementById('ml-mes').value=new Date().toISOString().slice(0,7);
-  document.getElementById('ml-kwh').value='';
-  document.getElementById('ml-obs').value='';
-  document.getElementById('mo-leit').classList.add('open');
-}
-
-function saveLeitura(){
-  const pid=parseInt(document.getElementById('ml-proj').value);
-  const kwh=parseFloat(document.getElementById('ml-kwh').value);
-  if(!pid){toast('Selecione o projeto.','er');return;}
-  if(!kwh){toast('Informe o kWh gerado.','er');return;}
-  
-  const id = LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
-  const obj={
-    id: id,
-    projetoId:pid,
-    mes:document.getElementById('ml-mes').value,
-    kwh: kwh,
-    obs:document.getElementById('ml-obs').value.trim(),
-  };
-
-  fbWrite('leituras', id, obj).then(() => {
-    toast('Leitura registrada!', 'ok');
-    closeMo('mo-leit');
-  });
-}
-
-function delP(id){
-  const p=PROJETOS.find(x=>x.id===id);
-  if(!p||!confirm(`Excluir projeto "${p.cliente}"?`))return;
-  fbDelete('projetos', id).then(() => toast('Projeto excluído.'));
-}
-
-function delCh(id){
-  if(!confirm('Excluir chamado?'))return;
-  fbDelete('chamados', id).then(() => toast('Chamado excluído.'));
-}
-
 function closeMo(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+function fmt_data(d){if(!d)return'—'; return new Date(d+'T12:00').toLocaleDateString('pt-BR');}
+function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});}
+function toast(msg,type){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>{t.className='toast';},2800);}
 
-// ══════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════
-function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmt_data(d){if(!d)return'—';try{return new Date(d+'T12:00').toLocaleDateString('pt-BR');}catch{return d;}}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(msg,type){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>{t.className='toast';},2800);}
-
-// INIT
-window.addEventListener('load', () => {
-  setTimeout(initFirebaseListeners, 500);
-});
-
+window.addEventListener('load', () => { setTimeout(initFirebaseListeners, 500); });
 </script>
 </body>
 </html>
