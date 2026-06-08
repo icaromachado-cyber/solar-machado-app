@@ -746,6 +746,7 @@ const ETAPAS = ["Visita","Proposta","Aprovação","Instalação","Ligação","Co
 // NAVEGAÇÃO
 // ══════════════════════════════════════════
 function go(p) {
+  closeSidebar();
   document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p).classList.add('on');
@@ -885,6 +886,7 @@ function renderProjetos() {
 
   const tb = document.getElementById('proj-tb');
   document.getElementById('proj-cnt').textContent = d.length+' projeto(s)';
+  renderProjetosCards(d);
   const hoje = new Date();
   tb.innerHTML = d.map(p=>{
     const ecls = p.etapa==='Concluído'?'bd-ok':p.etapa==='Instalação'||p.etapa==='Ligação'?'bd-am':p.etapa==='Aprovação'?'bd-az':'bd-cz';
@@ -1151,10 +1153,12 @@ function saveProjeto(){
     const i=PROJETOS.findIndex(x=>x.id===editProjId);
     if(i>=0){obj.id=editProjId;PROJETOS[i]=obj;}
     toast('Projeto atualizado!','ok');
+    if(typeof fbSaveProjeto==='function') fbSaveProjeto(obj);
   } else {
     obj.id=PROJETOS.length?Math.max(...PROJETOS.map(x=>x.id))+1:1;
     PROJETOS.push(obj);
     toast('Projeto criado!','ok');
+    if(typeof fbSaveProjeto==='function') fbSaveProjeto(obj);
   }
   closeMo('mo-proj');
   renderProjetos();
@@ -1209,6 +1213,8 @@ function saveChamado(){
     CHAMADOS.push(obj);
     toast('Chamado registrado!','ok');
   }
+  const cSaved = editChId ? CHAMADOS.find(x=>x.id===editChId) : CHAMADOS[0];
+  if(cSaved && typeof fbSaveChamado==='function') fbSaveChamado(cSaved);
   closeMo('mo-ch');
   renderChamados();
 }
@@ -1233,6 +1239,7 @@ function saveLeitura(){
   };
   obj.id=LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
   LEITURAS.push(obj);
+  if(typeof fbSaveLeitura==='function') fbSaveLeitura(obj);
   toast('Leitura registrada!','ok');
   closeMo('mo-leit');
   renderLeituras();
@@ -1242,12 +1249,14 @@ function delP(id){
   const p=PROJETOS.find(x=>x.id===id);
   if(!p||!confirm(`Excluir projeto "${p.cliente}"?`))return;
   PROJETOS=PROJETOS.filter(x=>x.id!==id);
+  if(typeof fbDeleteProjeto==='function') fbDeleteProjeto(id);
   renderProjetos();
   toast('Excluído.');
 }
 
 function delCh(id){
   if(!confirm('Excluir chamado?'))return;
+  if(typeof fbDeleteChamado==='function') fbDeleteChamado(id);
   CHAMADOS=CHAMADOS.filter(x=>x.id!==id);
   renderChamados();
   toast('Chamado excluído.');
@@ -1358,56 +1367,15 @@ function initFirebaseListeners() {
 
 // ── Patches nas funções existentes para salvar no Firebase ──
 
-// Override saveProjeto
-const _origSaveProjeto = saveProjeto;
-saveProjeto = function() {
-  _origSaveProjeto();
-  // Pega o projeto recém salvo e sincroniza
-  setTimeout(() => {
-    const p = editProjId ? PROJETOS.find(x => x.id === editProjId) : PROJETOS[PROJETOS.length - 1];
-    if (p) fbSaveProjeto(p);
-  }, 100);
-};
+// [override removido]
 
-// Override delP
-const _origDelP = delP;
-delP = function(id) {
-  if (!confirm('Excluir projeto?')) return;
-  fbDeleteProjeto(id);
-  PROJETOS = PROJETOS.filter(x => x.id !== id);
-  renderProjetos();
-  toast('Excluído.');
-};
+// [override removido]
 
-// Override saveChamado
-const _origSaveChamado = saveChamado;
-saveChamado = function() {
-  _origSaveChamado();
-  setTimeout(() => {
-    const c = CHAMADOS[0];
-    if (c) fbSaveChamado(c);
-  }, 100);
-};
+// [override removido]
 
-// Override delCh
-const _origDelCh = delCh;
-delCh = function(id) {
-  if (!confirm('Excluir chamado?')) return;
-  fbDeleteChamado(id);
-  CHAMADOS = CHAMADOS.filter(x => x.id !== id);
-  renderChamados();
-  toast('Chamado excluído.');
-};
+// [override removido]
 
-// Override saveLeitura
-const _origSaveLeitura = saveLeitura;
-saveLeitura = function() {
-  _origSaveLeitura();
-  setTimeout(() => {
-    const l = LEITURAS[LEITURAS.length - 1];
-    if (l) fbSaveLeitura(l);
-  }, 100);
-};
+// [override removido]
 
 // Iniciar listeners assim que a página carregar
 window.addEventListener('load', () => {
@@ -1439,12 +1407,7 @@ function closeSidebar() {
   document.body.style.overflow = '';
 }
 
-// Fechar sidebar ao navegar (mobile)
-const _origGo = go;
-go = function(p) {
-  closeSidebar();
-  _origGo(p);
-};
+// [removido - integrado diretamente]
 
 // Renderizar cards de projeto para mobile
 function renderProjetosCards(data) {
@@ -1505,10 +1468,7 @@ function renderProjetosCards(data) {
   }).join('');
 }
 
-// Patch renderProjetos para também atualizar cards
-const _origRenderProjetos = renderProjetos;
-renderProjetos = function() {
-  _origRenderProjetos();
+// [removido - integrado diretamente]
   // Pegar dados filtrados
   const q = (document.getElementById('pq')?.value || '').toLowerCase();
   const st = document.getElementById('pst')?.value || '';
@@ -1518,12 +1478,7 @@ renderProjetos = function() {
     const s = !st || p.etapa === st;
     return m && s;
   });
-  if (or === 'kwp') d.sort((a,b) => b.kwp - a.kwp);
-  else if (or === 'val') d.sort((a,b) => b.valor - a.valor);
-  else if (or === 'data') d.sort((a,b) => (b.dataInicio||'') > (a.dataInicio||'') ? 1 : -1);
-  else d.sort((a,b) => a.id - b.id);
-  renderProjetosCards(d);
-};
+// [removido - duplicado]
 
 // Inicializar cards na primeira carga
 window.addEventListener('load', () => {
