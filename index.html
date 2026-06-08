@@ -1275,21 +1275,71 @@ function criarPinSolar(kwp) {
   return L.divIcon({ html: svg, className: '', iconSize: [size, size+8], iconAnchor: [size/2, size+8], popupAnchor: [0, -(size+8)] });
 }
 
-async function geocodificarEndereco(end, idx) {
+const COORDS_FIXAS = {
+  1: [-5.0934, -42.7967],
+  2: [-4.8736, -42.1388],
+  3: [-4.9761, -44.7834],
+  4: [-5.1627, -42.7867],
+  5: [-5.12, -42.805],
+  6: [-5.065, -42.82],
+  7: [-5.095, -42.875],
+  8: [-5.085, -42.81],
+  9: [-7.2333, -43.0333],
+  10: [-5.11, -42.8],
+  11: [-5.078, -42.81],
+  12: [-5.078, -42.81],
+  13: [-5.117, -42.787],
+  14: [-5.135, -42.79],
+  15: [-5.115, -42.795],
+  16: [-5.145, -42.783],
+  17: [-5.07, -42.805],
+  18: [-5.09, -42.805],
+  19: [-5.095, -42.8],
+  20: [-5.105, -42.83],
+  21: [-5.135, -42.79],
+  22: [-5.136, -42.789],
+  23: [-5.134, -42.791],
+  24: [-5.08, -42.802],
+  25: [-5.06, -42.78],
+  26: [-5.1, -42.81],
+  27: [-5.11, -42.805],
+  28: [-5.137, -42.788],
+  29: [-5.085, -42.802],
+  31: [-5.065, -42.815],
+  33: [-5.1172, -42.7587],
+  34: [-5.1167, -42.4678],
+  35: [-5.55, -42.68],
+  36: [-5.07, -42.83],
+};
+
+async function geocodificarEndereco(end, idx, pid) {
+  // 1. Usar coordenadas fixas pré-calculadas se disponível
+  if (pid && COORDS_FIXAS[pid]) {
+    return { lat: COORDS_FIXAS[pid][0], lng: COORDS_FIXAS[pid][1] };
+  }
   if (!end) return null;
   const chave = end.trim().toLowerCase();
   if (_geocodeCache[chave] !== undefined) return _geocodeCache[chave];
-  if (idx > 0) await new Promise(r => setTimeout(r, 1100));
-  try {
-    const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(end + ', Brasil') + '&format=json&limit=1&countrycodes=br';
-    const r = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
-    const data = await r.json();
-    if (data && data[0]) {
-      const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-      _geocodeCache[chave] = result;
-      return result;
-    }
-  } catch(e) {}
+  // 2. Tentar Nominatim com query simplificada
+  const queries = [
+    end,
+    end.replace(/\d+/g, '').trim(),  // sem números
+    end.split(',').slice(-2).join(',').trim(),  // só bairro+cidade
+  ];
+  if (idx > 0) await new Promise(r => setTimeout(r, 800));
+  for (const q of queries) {
+    try {
+      const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q + ', Piaui, Brasil') + '&format=json&limit=1&countrycodes=br';
+      const r = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+      const data = await r.json();
+      if (data && data[0]) {
+        const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        _geocodeCache[chave] = result;
+        return result;
+      }
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 500));
+  }
   _geocodeCache[chave] = null;
   return null;
 }
@@ -1326,7 +1376,8 @@ async function renderMapa() {
   const loadingTxt = document.getElementById('mapa-loading-txt');
   const loadingSub = document.getElementById('mapa-loading-sub');
   const infobar = document.getElementById('mapa-infobar');
-  loading.style.display = 'flex';
+  // Com coords fixas, o loading é muito rápido
+  loading.style.display = 'none';
   infobar.style.display = 'none';
   let ok = 0, fail = 0;
   const bounds = [];
@@ -1335,7 +1386,7 @@ async function renderMapa() {
     const p = comEnd[i];
     loadingTxt.textContent = 'Localizando ' + (p.cliente || '#' + p.id) + '…';
     loadingSub.textContent = (i + 1) + ' / ' + comEnd.length;
-    const coord = await geocodificarEndereco(p.end, i);
+    const coord = await geocodificarEndereco(p.end, i, p.id || parseInt(p.id));
     if (coord) {
       const lat = coord.lat + jitter();
       const lng = coord.lng + jitter();
