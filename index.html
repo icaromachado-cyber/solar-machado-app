@@ -126,7 +126,7 @@ tr:hover td{background:#faf9f5}
 .pipe-body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100vh - 250px);overflow-y:auto}
 .pcard{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:14px;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
 .pcard:hover{border-color:var(--az3);box-shadow:0 4px 12px rgba(46,52,134,0.1);transform:translateY(-2px)}
-.pcard-obs{font-size:11px;color:var(--txts);margin-top:6px;padding-top:6px;border-top:1px solid #f0efe8;line-height:1.4;font-style:italic}
+.pcard-obs{font-size:11px;color:var(--txts);margin-top:7px;padding:6px 8px;border-radius:6px;background:#faf9f5;border:1px solid #ede8d5;line-height:1.4;font-style:italic}
 .pcard.dragging{opacity:0.5;border:2px dashed var(--az)}
 .pcard .pcn{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px;color:var(--az)}
 .pcard .pcs{font-size:11.5px;color:var(--txts);display:flex;justify-content:space-between;align-items:center}
@@ -319,7 +319,7 @@ tr:hover td{background:#faf9f5}
       
       <div class="charts-row">
         <div class="card">
-          <div class="ph" style="margin-bottom:12px"><h2>Geração Total (kWh)</h2></div>
+          <div class="ph" style="margin-bottom:12px"><h2>Projetos por Mês</h2></div>
           <div class="chart-container"><div class="chart-wrap" style="position:relative;height:200px"><canvas id="chart-mes"></canvas></div></div>
         </div>
         <div class="card">
@@ -690,7 +690,7 @@ function renderCharts() {
     const m = p.dataInicio.slice(0,7);
     mmap[m] = (mmap[m]||0)+1;
   });
-  const mkeys = Object.keys(mmap).sort().slice(-6);
+  const mkeys = Object.keys(mmap).sort();
   const mlabels = mkeys.map(k => {
     const [y,mo] = k.split('-');
     return ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo]+'/'+y.slice(2);
@@ -701,7 +701,10 @@ function renderCharts() {
     data:{ labels:mlabels, datasets:[{label:'Projetos',data:mkeys.map(k=>mmap[k]),backgroundColor:'#2E3486',borderRadius:5,borderSkipped:false}] },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' projeto'+(ctx.parsed.y!==1?'s':'')}}
+      },
       scales:{
         y:{beginAtZero:true,ticks:{stepSize:1,font:{size:mob?9:10}},grid:{color:'#f0efe8'}},
         x:{ticks:{font:{size:mob?9:10},maxRotation:mob?40:0},grid:{display:false}}
@@ -735,7 +738,7 @@ function renderPipeline() {
               <div class="pcn">${p.cliente}</div>
               <div class="pcs"><span>${p.kwp} kWp</span></div>
               <span class="pckwp">R$ ${fmt(p.valor)}</span>
-              ${p.obs ? `<div class="pcard-obs">📝 ${p.obs.length > 60 ? p.obs.slice(0,60)+'…' : p.obs}</div>` : ''}
+              ${p.obs ? `<div class="pcard-obs"><span style="color:var(--am);font-style:normal">📝</span> ${p.obs.length > 65 ? p.obs.slice(0,65)+'…' : p.obs}</div>` : ''}
             </div>
           `).join('')}
         </div>
