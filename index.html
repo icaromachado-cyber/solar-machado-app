@@ -289,6 +289,9 @@ tr:hover td{background:#faf9f5}
     <div class="ni" onclick="go('leituras');toggleMenu(false)">
       <div class="ic">⚡</div><span>Leituras</span>
     </div>
+    <div class="ni" onclick="go('mapa');toggleMenu(false)">
+      <div class="ic">🗺</div><span>Mapa de Clientes</span>
+    </div>
   </nav>
   <div class="sb-foot">
     <div id="fb-status" style="font-size:9.5px;margin-bottom:8px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
@@ -346,14 +349,20 @@ tr:hover td{background:#faf9f5}
 
     <!-- PROJETOS -->
     <div id="page-projetos" class="page">
+      <div class="etapa-tabs" id="etapa-tabs">
+        <div class="etab on" onclick="setEtapaTab('')">Todos <span class="etab-cnt" id="ecnt-all"></span></div>
+        <div class="etab" onclick="setEtapaTab('Visita')">Visita <span class="etab-cnt" id="ecnt-Visita"></span></div>
+        <div class="etab" onclick="setEtabaTab('Proposta')">Proposta <span class="etab-cnt" id="ecnt-Proposta"></span></div>
+        <div class="etab" onclick="setEtapaTab('Aprovação')">Aprovação <span class="etab-cnt" id="ecnt-Aprovação"></span></div>
+        <div class="etab" onclick="setEtapaTab('Instalação')">Instalação <span class="etab-cnt" id="ecnt-Instalação"></span></div>
+        <div class="etab" onclick="setEtapaTab('Ligação')">Ligação <span class="etab-cnt" id="ecnt-Ligação"></span></div>
+        <div class="etab" onclick="setEtapaTab('Concluído')">Concluído <span class="etab-cnt" id="ecnt-Concluído"></span></div>
+      </div>
       <div class="fbar">
         <div class="fs">
           <span class="sic">🔍</span>
           <input type="text" id="f-proj" placeholder="Buscar por cliente, CPF ou UC…" oninput="renderProjetos()">
         </div>
-        <select class="fsel" id="f-etapa" onchange="renderProjetos()">
-          <option value="">Todas as Etapas</option>
-        </select>
       </div>
       <div class="tw">
         <table id="t-projetos">
@@ -416,6 +425,19 @@ tr:hover td{background:#faf9f5}
       </div>
     </div>
 
+    <!-- MAPA DE CLIENTES -->
+    <div id="page-mapa" class="page">
+      <div class="ph" style="margin-bottom:16px">
+        <h2>🗺 Mapa de Clientes</h2>
+        <div style="font-size:13px;color:var(--txts)" id="mapa-cnt"></div>
+      </div>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid #e4e3dc;margin-bottom:16px">
+        <iframe id="mapa-iframe" style="width:100%;height:460px;border:none;display:block" src="https://www.openstreetmap.org/export/embed.html?bbox=-42.9%2C-5.15%2C-42.7%2C-4.95&layer=mapnik"></iframe>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az);margin-bottom:12px">Clientes com localização cadastrada</div>
+      <div id="mapa-lista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px"></div>
+    </div>
+
   </div>
 </main>
 
@@ -449,8 +471,17 @@ tr:hover td{background:#faf9f5}
           <div class="fgrp"><label>Nome p/ Exibição *</label><input type="text" id="p-cli"></div>
           <div class="fgrp"><label>Data de Nascimento</label><input type="date" id="p-nasc"></div>
           <div class="fgrp"><label>CPF/CNPJ</label><input type="text" id="p-cpf"></div>
-          <div class="fgrp"><label>Telefone/WhatsApp</label><input type="text" id="p-tel"></div>
+          <div class="fgrp"><label>Telefone/WhatsApp</label><input type="tel" id="p-tel" placeholder="5586999999999"></div>
           <div class="fgrp"><label>Unidade Consumidora (UC)</label><input type="text" id="p-uc"></div>
+          <div class="fgrp full"><label>Endereço / Localização</label><input type="text" id="p-end" placeholder="Rua, número, bairro, cidade"></div>
+          <div class="fgrp">
+            <label>Latitude</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" id="p-lat" placeholder="-5.0920">
+              <button type="button" onclick="buscarLocalizacao()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;background:var(--azs);color:var(--az);cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0">📍 Buscar</button>
+            </div>
+          </div>
+          <div class="fgrp"><label>Longitude</label><input type="text" id="p-lng" placeholder="-42.8019"></div>
           <div class="fgrp"><label>Estado</label><select id="p-est"><option value="PI">Piauí</option><option value="MA">Maranhão</option><option value="CE">Ceará</option></select></div>
           <div class="fgrp"><label>Etapa Atual</label><select id="p-etapa"></select></div>
           <div class="fgrp"><label>Possui Beneficiário?</label>
@@ -1058,6 +1089,201 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// ABAS DE ETAPA — Projetos
+// ══════════════════════════════════════════
+let etapaTabAtual = '';
+
+function setEtapaTab(etapa) {
+  etapaTabAtual = etapa;
+  document.querySelectorAll('.etab').forEach(el => el.classList.remove('on'));
+  const etapas = ['', 'Visita', 'Proposta', 'Aprovação', 'Instalação', 'Ligação', 'Concluído'];
+  const idx = etapas.indexOf(etapa);
+  document.querySelectorAll('.etab')[idx]?.classList.add('on');
+  renderProjetos();
+}
+
+// Corrigir typo na aba Proposta
+function setEtabaTab(e) { setEtapaTab(e); }
+
+function atualizarContadoresAbas() {
+  const etapas = ['', 'Visita', 'Proposta', 'Aprovação', 'Instalação', 'Ligação', 'Concluído'];
+  const ids = ['all', 'Visita', 'Proposta', 'Aprovação', 'Instalação', 'Ligação', 'Concluído'];
+  etapas.forEach((e, i) => {
+    const el = document.getElementById('ecnt-' + ids[i]);
+    if (!el) return;
+    const cnt = e === '' ? PROJETOS.length : PROJETOS.filter(p => p.etapa === e).length;
+    el.textContent = cnt;
+  });
+}
+
+// Patch renderProjetos para filtrar por aba
+const _rpOrigEtapa = renderProjetos;
+renderProjetos = function() {
+  atualizarContadoresAbas();
+  const q = (document.getElementById('f-proj')?.value || '').toLowerCase();
+  let filtered = PROJETOS.filter(p => {
+    const matchQ = !q || (p.cliente||'').toLowerCase().includes(q) || (p.cpf||'').includes(q) || (p.uc||'').includes(q);
+    const matchE = !etapaTabAtual || p.etapa === etapaTabAtual;
+    return matchQ && matchE;
+  });
+
+  // Renderizar tabela
+  document.getElementById('b-projetos').innerHTML = filtered.map(p => {
+    const wpp = p.tel ? `<a href="https://wa.me/${p.tel.replace(/\D/g,'')}" target="_blank" class="btn-wpp" title="WhatsApp" onclick="event.stopPropagation()">💬</a>` : '';
+    return `<tr>
+      <td>#${p.id}</td>
+      <td>${p.cliente || '—'}</td>
+      <td>${p.kwp} kWp</td>
+      <td>${p.etapa}</td>
+      <td>${fmt_data(p.dataLigacao)}</td>
+      <td>
+        <div class="ab">
+          ${wpp}
+          <button class="bi v" onclick="openDet(${p.id})" title="Visualizar">👁</button>
+          <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
+          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Abrir Chamado">🛠</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Cards mobile
+  if (typeof renderProjetosCards === 'function') renderProjetosCards(filtered);
+};
+
+// ══════════════════════════════════════════
+// LOCALIZAÇÃO — Buscar coordenadas pelo endereço
+// ══════════════════════════════════════════
+function buscarLocalizacao() {
+  const end = document.getElementById('p-end')?.value;
+  if (!end) { toast('Digite um endereço primeiro.', 'er'); return; }
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(end + ', Teresina, Piauí, Brasil');
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.length > 0) {
+        document.getElementById('p-lat').value = parseFloat(data[0].lat).toFixed(6);
+        document.getElementById('p-lng').value = parseFloat(data[0].lon).toFixed(6);
+        toast('Localização encontrada!', 'ok');
+      } else {
+        toast('Endereço não encontrado. Tente ser mais específico.', 'er');
+      }
+    })
+    .catch(() => toast('Erro ao buscar localização.', 'er'));
+}
+
+// ══════════════════════════════════════════
+// SALVAR localização no saveProjeto
+// já incluído — apenas garantir nos campos extras
+// ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// MAPA DE CLIENTES
+// ══════════════════════════════════════════
+function renderMapa() {
+  const comLoc = PROJETOS.filter(p => p.lat && p.lng);
+  const semLoc = PROJETOS.filter(p => !p.lat || !p.lng);
+
+  // Contador
+  const cntEl = document.getElementById('mapa-cnt');
+  if (cntEl) cntEl.textContent = comLoc.length + ' cliente(s) com localização · ' + semLoc.length + ' sem localização';
+
+  // Lista de cards
+  const lista = document.getElementById('mapa-lista');
+  if (lista) {
+    if (!comLoc.length) {
+      lista.innerHTML = '<div style="font-size:13px;color:var(--txts);padding:20px 0">Nenhum cliente com localização cadastrada ainda. Edite um projeto e adicione o endereço.</div>';
+    } else {
+      lista.innerHTML = comLoc.map(p => {
+        const wppNum = (p.tel||'').replace(/\D/g,'');
+        const mapsUrl = 'https://www.google.com/maps?q=' + p.lat + ',' + p.lng;
+        const wppUrl = wppNum ? 'https://wa.me/' + wppNum : null;
+        return `<div class="mapa-card">
+          <div class="mapa-card-pin">📍</div>
+          <div class="mapa-card-info">
+            <div class="mapa-card-nome">${p.cliente || '—'}</div>
+            <div class="mapa-card-end">${p.end || p.lat + ', ' + p.lng}</div>
+            <div style="font-size:11px;color:var(--txts);margin-top:2px">${p.kwp} kWp · ${p.etapa}</div>
+            <div class="mapa-card-acts">
+              <a href="${mapsUrl}" target="_blank" class="btn-maps">🗺 Ver no Maps</a>
+              ${wppUrl ? `<a href="${wppUrl}" target="_blank" class="btn-wpp">💬 WhatsApp</a>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Iframe com OpenStreetMap + marcadores via URL
+  const iframe = document.getElementById('mapa-iframe');
+  if (iframe && comLoc.length > 0) {
+    // Centralizar no primeiro ponto ou em Teresina
+    const centro = comLoc[0];
+    const lat = centro.lat || -5.0920;
+    const lng = centro.lng || -42.8019;
+    // Usar OpenStreetMap embed (gratuito, sem API key)
+    iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${+lng-0.1}%2C${+lat-0.1}%2C${+lng+0.1}%2C${+lat+0.1}&layer=mapnik&marker=${lat}%2C${lng}`;
+  } else if (iframe) {
+    // Mapa de Teresina centralizado
+    iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=-42.9%2C-5.15%2C-42.7%2C-4.95&layer=mapnik';
+  }
+}
+
+// ══════════════════════════════════════════
+// CARREGAR end/lat/lng no openEditProj
+// ══════════════════════════════════════════
+const _openEditOrigLoc = openEditProj;
+openEditProj = function(id) {
+  _openEditOrigLoc(id);
+  const p = PROJETOS.find(x => x.id === id);
+  if (!p) return;
+  setTimeout(() => {
+    const ef = document.getElementById('p-end');
+    const lf = document.getElementById('p-lat');
+    const lgf = document.getElementById('p-lng');
+    if (ef) ef.value = p.end || '';
+    if (lf) lf.value = p.lat || '';
+    if (lgf) lgf.value = p.lng || '';
+  }, 50);
+};
+
+// ══════════════════════════════════════════
+// INCLUIR end/lat/lng no saveProjeto
+// ══════════════════════════════════════════
+const _saveOrigLoc = saveProjeto;
+saveProjeto = function() {
+  // Injetar nos campos extras antes de salvar
+  const origFbWrite = fbWrite;
+  window._locPatch = {
+    end: document.getElementById('p-end')?.value || '',
+    lat: document.getElementById('p-lat')?.value || '',
+    lng: document.getElementById('p-lng')?.value || '',
+  };
+  _saveOrigLoc();
+};
+
+// Patch no fbWrite para injetar localização
+const _fbWriteOrig = fbWrite;
+fbWrite = function(col, id, obj) {
+  if (col === 'projetos' && window._locPatch) {
+    obj.end = window._locPatch.end;
+    obj.lat = window._locPatch.lat;
+    obj.lng = window._locPatch.lng;
+    window._locPatch = null;
+  }
+  return _fbWriteOrig(col, id, obj);
+};
+
+// Integrar renderMapa no go()
+const _goOrigMapa = go;
+go = function(p) {
+  _goOrigMapa(p);
+  if (p === 'mapa') renderMapa();
+  if (p === 'projetos') { atualizarContadoresAbas(); }
+};
+
 </script>
 </body>
 </html>
