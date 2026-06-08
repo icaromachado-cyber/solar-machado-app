@@ -356,6 +356,16 @@ tr:hover td{background:#faf9f5}
         </div>
       </div>
 
+      <!-- Botões de Migração -->
+      <div id="mig-bar" style="background:#fff8e0;border:1px solid #fac775;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div style="font-size:13px;color:#633806;font-weight:500">⚠ Migração de dados pendente — execute uma vez para importar dados da planilha</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" style="background:#2E3486;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarDatasNascimento()">📅 Migrar Datas de Nascimento</button>
+          <button class="btn" style="background:#1D9E75;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarLocalizacoes()">📍 Migrar Localizações</button>
+          <button class="btn" style="background:#888;color:#fff;font-size:12px;padding:6px 14px" onclick="document.getElementById('mig-bar').style.display='none'">✕ Fechar</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="ph">
           <h2>Chamados Recentes</h2>
@@ -1377,19 +1387,19 @@ async function migrarDatasNascimento() {
   if (!db) { toast('Firebase não conectado.', 'er'); return; }
   let ok = 0, err = 0;
   const ids = Object.keys(DATAS_NASC);
-  toast('Atualizando ' + ids.length + ' registros...', '');
+  toast('Migrando datas de nascimento...', '');
   for (const id of ids) {
     try {
-      await db.collection('projetos').doc(String(id)).update({
-        dataNascimento: DATAS_NASC[id]
-      });
+      await db.collection('projetos').doc(String(id)).set(
+        { dataNascimento: DATAS_NASC[id] }, { merge: true }
+      );
       ok++;
     } catch(e) {
       console.error('Erro id', id, e);
       err++;
     }
   }
-  toast(`✅ ${ok} atualizados${err ? ', ' + err + ' erros' : ''}!`, 'ok');
+  toast('✅ ' + ok + ' datas atualizadas' + (err ? ', ' + err + ' erros' : '') + '!', 'ok');
 }
 
 
@@ -1436,7 +1446,7 @@ const LOCALIZACOES = {
 async function migrarLocalizacoes() {
   if (!db) { toast('Firebase não conectado.', 'er'); return; }
   const ids = Object.keys(LOCALIZACOES);
-  toast('Atualizando localizações de ' + ids.length + ' projetos...', '');
+  toast('Migrando localizações...', '');
   let ok = 0, err = 0;
   for (const id of ids) {
     const loc = LOCALIZACOES[id];
@@ -1444,14 +1454,14 @@ async function migrarLocalizacoes() {
       const upd = { end: loc.end, mapsUrl: loc.mapsUrl };
       if (loc.lat) upd.lat = loc.lat;
       if (loc.lng) upd.lng = loc.lng;
-      await db.collection('projetos').doc(String(id)).update(upd);
+      await db.collection('projetos').doc(String(id)).set(upd, { merge: true });
       ok++;
     } catch(e) {
       console.warn('Erro id', id, e);
       err++;
     }
   }
-  toast(`✅ ${ok} localizações salvas${err ? ', ' + err + ' erros' : ''}!`, 'ok');
+  toast('✅ ' + ok + ' localizações salvas' + (err ? ', ' + err + ' erros' : '') + '!', 'ok');
 }
 
 // Atualizar openDet para usar mapsUrl quando disponível
