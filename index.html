@@ -7,7 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 // ── FIREBASE CONFIG ──────────────────────────────
 const firebaseConfig = {
@@ -132,11 +133,11 @@ tr:hover td{background:#faf9f5}
 .pcard .pckwp{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ok);margin-top:6px;display:block}
 
 /* ── DETAIL PANEL ── */
-.det-panel{display:none;position:fixed;right:0;top:0;width:440px;height:100vh;background:var(--br);border-left:1px solid #e4e3dc;z-index:150;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08)}
+.det-panel{display:none;position:fixed;right:0;top:0;width:440px;height:100vh;max-height:100vh;background:var(--br);border-left:1px solid #e4e3dc;z-index:150;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08);overflow:hidden}
 .det-panel.open{display:flex}
-.det-hdr{padding:18px 22px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.det-hdr{padding:18px 22px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:60px}
 .det-hdr h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--az)}
-.det-body{padding:20px 22px;overflow-y:auto;flex:1}
+.det-body{padding:20px 22px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;height:0}
 .det-sec{margin-bottom:20px}
 .det-sec-ttl{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--txts);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #f0efe8}
 .det-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f7f6f1;font-size:13px}
@@ -218,7 +219,94 @@ tr:hover td{background:#faf9f5}
 </head>
 <body>
 
-<div class="sb-overlay" id="sb-overlay" onclick="toggleMenu()"></div>
+<!-- TELA DE LOGIN -->
+<div id="login-screen" style="position:fixed;inset:0;background:#2E3486;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;padding:20px">
+  <div style="background:#fff;border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:36px;margin-bottom:8px">☀</div>
+      <div style="font-size:22px;font-weight:800;color:#2E3486;letter-spacing:-0.5px"><span style="font-weight:800">Solar</span> <span style="font-weight:400">Machado</span></div>
+      <div style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-top:4px">Pós-Venda & Projetos</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#5a5b6e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Email</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" style="width:100%;padding:11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2E3486'" onblur="this.style.borderColor='#e4e3dc'" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#5a5b6e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Senha</label>
+        <div style="position:relative">
+          <input type="password" id="login-senha" placeholder="••••••••" style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2E3486'" onblur="this.style.borderColor='#e4e3dc'" onkeydown="if(event.key==='Enter')fazerLogin()">
+          <button onclick="toggleSenha()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#888;padding:0">👁</button>
+        </div>
+      </div>
+      <div id="login-erro" style="display:none;background:#fdf0ec;border:1px solid #f5b8a0;border-radius:8px;padding:10px 14px;font-size:13px;color:#D85A30"></div>
+      <button onclick="fazerLogin()" id="login-btn" style="background:#FDC300;color:#2E3486;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
+        Entrar no Sistema
+      </button>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:#aaa">Acesso restrito · Solar Machado Eng.</div>
+  </div>
+</div>
+
+<!-- MODAL GERENCIAR USUÁRIOS (admin) -->
+<div id="mo-usuarios" class="mo" style="display:none">
+  <div class="mbox" style="max-width:520px">
+    <div class="mhdr"><span>👥 Gerenciar Usuários</span><button class="mcl" onclick="closeMo('mo-usuarios')">✕</button></div>
+    <div style="padding:20px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:12px">Criar novo usuário</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1">
+          <label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Nome completo</label>
+          <input type="text" id="nu-nome" placeholder="Ex: João Silva" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Email</label>
+          <input type="email" id="nu-email" placeholder="usuario@email.com" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Senha inicial</label>
+          <input type="password" id="nu-senha" placeholder="mínimo 6 caracteres" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Perfil</label>
+          <select id="nu-perfil" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            <option value="usuario">Usuário</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-y" onclick="criarUsuario()" style="width:100%;justify-content:center;margin-bottom:20px">+ Criar Usuário</button>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:10px">Usuários cadastrados</div>
+      <div id="lista-usuarios" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO DE AÇÕES -->
+<div id="mo-historico" class="mo" style="display:none">
+  <div class="mbox" style="max-width:600px">
+    <div class="mhdr"><span>📋 Histórico de Ações</span><button class="mcl" onclick="closeMo('mo-historico')">✕</button></div>
+    <div style="padding:20px">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <select id="hist-filtro-user" onchange="renderHistorico()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;flex:1">
+          <option value="">Todos os usuários</option>
+        </select>
+        <select id="hist-filtro-tipo" onchange="renderHistorico()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;flex:1">
+          <option value="">Todas as ações</option>
+          <option value="criou_projeto">Criou projeto</option>
+          <option value="editou_projeto">Editou projeto</option>
+          <option value="mudou_etapa">Mudou etapa</option>
+          <option value="criou_chamado">Criou chamado</option>
+          <option value="editou_chamado">Editou chamado</option>
+        </select>
+      </div>
+      <div id="lista-historico" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sb-overlay"
+ id="sb-overlay" onclick="toggleMenu()"></div>
 
 <!-- SIDEBAR -->
 <aside class="sb" id="sidebar">
@@ -256,9 +344,18 @@ tr:hover td{background:#faf9f5}
     </div>
   </nav>
   <div class="sb-foot">
-    <div id="fb-status" style="font-size:9.5px;margin-bottom:8px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
-    <div class="usr">Admin Solar Machado</div>
-    <div class="cnpj">00.000.000/0001-00</div>
+    <div id="fb-status" style="font-size:9.5px;margin-bottom:6px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div class="usr" id="usr-nome">—</div>
+        <div class="cnpj" id="usr-email-display" style="font-size:9px;color:rgba(255,255,255,.35);margin-top:1px"></div>
+      </div>
+      <button onclick="fazerLogout()" title="Sair" style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px;flex-shrink:0" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">↩ Sair</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button onclick="abrirHistorico()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px;cursor:pointer;font-size:10px" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">📋 Histórico</button>
+      <button id="btn-usuarios" onclick="abrirUsuarios()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px;cursor:pointer;font-size:10px;display:none" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">👥 Usuários</button>
+    </div>
   </div>
 </aside>
 
@@ -1137,6 +1234,249 @@ const LOCALIZACOES={1:{end:"R. Taumaturgo Azevedo, 2000, Centro Sul - Teresina P
 async function migrarDatasNascimento(){if(!db){toast('Firebase não conectado.','er');return;}toast('Migrando datas...','');let ok=0,err=0;for(const id of Object.keys(DATAS_NASC)){try{await db.collection('projetos').doc(String(id)).set({dataNascimento:DATAS_NASC[id]},{merge:true});ok++;}catch(e){err++;}}toast('✅ '+ok+' datas'+(err?', '+err+' erros':'')+'!','ok');}
 async function migrarLocalizacoes(){if(!db){toast('Firebase não conectado.','er');return;}toast('Migrando localizações...','');let ok=0,err=0;for(const id of Object.keys(LOCALIZACOES)){const loc=LOCALIZACOES[id];try{const upd={end:loc.end,mapsUrl:loc.mapsUrl};if(loc.lat)upd.lat=loc.lat;if(loc.lng)upd.lng=loc.lng;await db.collection('projetos').doc(String(id)).set(upd,{merge:true});ok++;}catch(e){err++;}}toast('✅ '+ok+' localizações'+(err?', '+err+' erros':'')+'!','ok');}
 async function migrarEtapas(){if(!db){toast('Firebase não conectado.','er');return;}const mapa={'Visita':'Proposta','Ligação':'Vistoria'};let ok=0;for(const p of PROJETOS){if(mapa[p.etapa]){try{await db.collection('projetos').doc(String(p.id)).set({etapa:mapa[p.etapa]},{merge:true});ok++;}catch(e){}}}toast(ok>0?'✅ '+ok+' etapas migradas!':'Nenhuma etapa antiga.','ok');}
+
+
+// ══════════════════════════════════════════
+// AUTENTICAÇÃO E AUDITORIA
+// ══════════════════════════════════════════
+const auth = firebase.auth();
+let usuarioAtual = null;
+let USUARIOS_CACHE = [];
+let HISTORICO_CACHE = [];
+
+// ── LOGIN / LOGOUT ──────────────────────
+function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  const btn = document.getElementById('login-btn');
+  const erro = document.getElementById('login-erro');
+  if (!email || !senha) { mostrarErroLogin('Preencha email e senha.'); return; }
+  btn.textContent = 'Entrando…';
+  btn.disabled = true;
+  erro.style.display = 'none';
+  auth.signInWithEmailAndPassword(email, senha)
+    .then(() => {})
+    .catch(e => {
+      btn.textContent = 'Entrar no Sistema';
+      btn.disabled = false;
+      const msgs = {
+        'auth/user-not-found': 'Email não encontrado.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/invalid-email': 'Email inválido.',
+        'auth/too-many-requests': 'Muitas tentativas. Tente mais tarde.',
+        'auth/invalid-credential': 'Email ou senha incorretos.'
+      };
+      mostrarErroLogin(msgs[e.code] || 'Erro ao entrar: ' + e.message);
+    });
+}
+
+function mostrarErroLogin(msg) {
+  const el = document.getElementById('login-erro');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function toggleSenha() {
+  const inp = document.getElementById('login-senha');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function fazerLogout() {
+  if (!confirm('Deseja sair do sistema?')) return;
+  auth.signOut();
+}
+
+// ── OBSERVER DE AUTENTICAÇÃO ──────────────
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    usuarioAtual = user;
+    document.getElementById('login-screen').style.display = 'none';
+    // Carregar perfil do usuário no Firestore
+    try {
+      const perfil = await db.collection('usuarios').doc(user.uid).get();
+      const nome = perfil.exists ? (perfil.data().nome || user.email) : user.email;
+      const isAdmin = perfil.exists ? perfil.data().perfil === 'admin' : false;
+      document.getElementById('usr-nome').textContent = nome;
+      document.getElementById('usr-email-display').textContent = user.email;
+      // Mostrar botão de usuários só para admin
+      if (isAdmin) document.getElementById('btn-usuarios').style.display = 'block';
+    } catch(e) {
+      document.getElementById('usr-nome').textContent = user.email;
+    }
+    initFirebaseListeners();
+  } else {
+    usuarioAtual = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-btn').textContent = 'Entrar no Sistema';
+    document.getElementById('login-btn').disabled = false;
+  }
+});
+
+// ── AUDITORIA ──────────────────────────────
+async function registrarAcao(tipo, descricao, dados={}) {
+  if (!usuarioAtual) return;
+  try {
+    const perfil = await db.collection('usuarios').doc(usuarioAtual.uid).get();
+    const nomeUsuario = perfil.exists ? (perfil.data().nome || usuarioAtual.email) : usuarioAtual.email;
+    await db.collection('auditoria').add({
+      tipo,
+      descricao,
+      dados,
+      usuarioId: usuarioAtual.uid,
+      usuarioEmail: usuarioAtual.email,
+      usuarioNome: nomeUsuario,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      timestampLocal: new Date().toISOString()
+    });
+  } catch(e) { console.warn('Erro ao registrar ação:', e); }
+}
+
+// ── GERENCIAR USUÁRIOS (admin) ──────────────
+async function criarUsuario() {
+  const nome = document.getElementById('nu-nome').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
+  const senha = document.getElementById('nu-senha').value;
+  const perfil = document.getElementById('nu-perfil').value;
+  if (!nome || !email || !senha) { toast('Preencha todos os campos.', 'er'); return; }
+  if (senha.length < 6) { toast('Senha mínimo 6 caracteres.', 'er'); return; }
+  try {
+    // Criar usuário via Firebase Auth (usando secondary app trick)
+    const secondApp = firebase.initializeApp(firebase.apps[0].options, 'secondary_' + Date.now());
+    const cred = await secondApp.auth().createUserWithEmailAndPassword(email, senha);
+    const uid = cred.user.uid;
+    await secondApp.auth().signOut();
+    await secondApp.delete();
+    // Salvar perfil no Firestore
+    await db.collection('usuarios').doc(uid).set({
+      uid, nome, email, perfil,
+      criadoPor: usuarioAtual.uid,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await registrarAcao('criou_usuario', 'Criou usuário ' + nome + ' (' + email + ')', {uid, email, perfil});
+    toast('✅ Usuário ' + nome + ' criado!', 'ok');
+    document.getElementById('nu-nome').value = '';
+    document.getElementById('nu-email').value = '';
+    document.getElementById('nu-senha').value = '';
+    carregarListaUsuarios();
+  } catch(e) {
+    const msgs = {'auth/email-already-in-use':'Email já cadastrado.','auth/invalid-email':'Email inválido.'};
+    toast('Erro: ' + (msgs[e.code] || e.message), 'er');
+  }
+}
+
+async function carregarListaUsuarios() {
+  const lista = document.getElementById('lista-usuarios');
+  if (!lista) return;
+  lista.innerHTML = '<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Carregando…</div>';
+  try {
+    const snap = await db.collection('usuarios').orderBy('criadoEm','desc').get();
+    USUARIOS_CACHE = snap.docs.map(d => d.data());
+    if (!snap.docs.length) { lista.innerHTML = '<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Nenhum usuário.</div>'; return; }
+    lista.innerHTML = USUARIOS_CACHE.map(u => {
+      const isMe = u.uid === usuarioAtual?.uid;
+      return '<div style="background:var(--cz);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+        + '<div><div style="font-size:13px;font-weight:500">' + u.nome + (isMe?' <span style="font-size:10px;color:var(--az)">(você)</span>':'') + '</div>'
+        + '<div style="font-size:11px;color:var(--txts);margin-top:2px">' + u.email + ' · <span style="font-weight:500;color:' + (u.perfil==='admin'?'#2E3486':'#5a5b6e') + '">' + u.perfil + '</span></div></div>'
+        + (!isMe ? '<button onclick="desativarUsuario(''+u.uid+'',''+u.nome+'')" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px">Remover</button>' : '')
+        + '</div>';
+    }).join('');
+    // Atualizar filtro do histórico
+    const sel = document.getElementById('hist-filtro-user');
+    if (sel) {
+      sel.innerHTML = '<option value="">Todos os usuários</option>' + USUARIOS_CACHE.map(u => '<option value="'+u.uid+'">'+u.nome+'</option>').join('');
+    }
+  } catch(e) { lista.innerHTML = '<div style="font-size:13px;color:#D85A30;padding:16px">Erro ao carregar.</div>'; }
+}
+
+async function desativarUsuario(uid, nome) {
+  if (!confirm('Remover acesso de ' + nome + '? O usuário não conseguirá mais fazer login.')) return;
+  try {
+    await db.collection('usuarios').doc(uid).update({desativado: true, desativadoEm: firebase.firestore.FieldValue.serverTimestamp()});
+    await registrarAcao('removeu_usuario', 'Removeu acesso de ' + nome, {uid});
+    toast('✅ Acesso de ' + nome + ' removido.', 'ok');
+    carregarListaUsuarios();
+  } catch(e) { toast('Erro: ' + e.message, 'er'); }
+}
+
+function abrirUsuarios() {
+  document.getElementById('mo-usuarios').style.display = 'flex';
+  carregarListaUsuarios();
+}
+
+// ── HISTÓRICO ──────────────────────────────
+async function abrirHistorico() {
+  document.getElementById('mo-historico').style.display = 'flex';
+  renderHistorico();
+}
+
+async function renderHistorico() {
+  const lista = document.getElementById('lista-historico');
+  if (!lista) return;
+  lista.innerHTML = '<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Carregando…</div>';
+  const filtroUser = document.getElementById('hist-filtro-user')?.value || '';
+  const filtroTipo = document.getElementById('hist-filtro-tipo')?.value || '';
+  try {
+    let query = db.collection('auditoria').orderBy('timestamp', 'desc').limit(100);
+    const snap = await query.get();
+    let registros = snap.docs.map(d => ({id:d.id,...d.data()}));
+    if (filtroUser) registros = registros.filter(r => r.usuarioId === filtroUser);
+    if (filtroTipo) registros = registros.filter(r => r.tipo === filtroTipo);
+    if (!registros.length) { lista.innerHTML = '<div style="font-size:13px;color:var(--txts);text-align:center;padding:20px">Nenhuma ação encontrada.</div>'; return; }
+    const ICONES = {
+      'criou_projeto':'✅','editou_projeto':'✏️','mudou_etapa':'🔄','criou_chamado':'🛠',
+      'editou_chamado':'📝','criou_usuario':'👤','removeu_usuario':'🚫','fez_login':'🔑',
+      'criou_proposta':'📋'
+    };
+    lista.innerHTML = registros.map(r => {
+      const dt = r.timestamp ? new Date(r.timestamp.toDate()).toLocaleString('pt-BR') : (r.timestampLocal ? new Date(r.timestampLocal).toLocaleString('pt-BR') : '—');
+      const icone = ICONES[r.tipo] || '•';
+      return '<div style="background:var(--cz);border-radius:8px;padding:10px 14px;border-left:3px solid var(--azs)">'
+        + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+        + '<div><div style="font-size:13px">' + icone + ' ' + (r.descricao||r.tipo) + '</div>'
+        + '<div style="font-size:11px;color:var(--txts);margin-top:3px">👤 ' + (r.usuarioNome||r.usuarioEmail||'—') + ' · 🕐 ' + dt + '</div></div>'
+        + '</div></div>';
+    }).join('');
+  } catch(e) { lista.innerHTML = '<div style="font-size:13px;color:#D85A30;padding:16px">Erro: ' + e.message + '</div>'; }
+}
+
+// ── PATCH nas funções para registrar ações ──
+const _fbWriteOrig2 = fbWrite;
+fbWrite = async function(col, id, data) {
+  const result = await _fbWriteOrig2(col, id, data);
+  // Registrar auditoria
+  if (col === 'projetos') {
+    const existe = PROJETOS.find(p => p.id == id);
+    if (existe) {
+      await registrarAcao('editou_projeto', 'Editou projeto #' + id + ' — ' + (data.cliente||''), {projetoId: id, cliente: data.cliente});
+    } else {
+      await registrarAcao('criou_projeto', 'Criou projeto #' + id + ' — ' + (data.cliente||''), {projetoId: id, cliente: data.cliente});
+    }
+  }
+  if (col === 'chamados') {
+    await registrarAcao('criou_chamado', 'Registrou chamado no projeto #' + (data.projetoId||''), {chamadoId: id, projetoId: data.projetoId});
+  }
+  return result;
+};
+
+// Registrar mudança de etapa no drag & drop
+const _dropOrig = drop;
+drop = async function(event, etapa) {
+  const id = event.dataTransfer.getData('projetoId') || event.dataTransfer.getData('text/plain');
+  const p = PROJETOS.find(x => x.id == id || x.id === parseInt(id));
+  const etapaAnterior = p ? p.etapa : '?';
+  _dropOrig(event, etapa);
+  if (p && etapaAnterior !== etapa) {
+    await registrarAcao('mudou_etapa', 'Moveu ' + (p.cliente||'#'+id) + ': ' + etapaAnterior + ' → ' + etapa, {projetoId: id, de: etapaAnterior, para: etapa});
+  }
+};
+
+// Registrar login
+auth.onAuthStateChanged(user => {
+  if (user && usuarioAtual && user.uid === usuarioAtual.uid) return; // já processado
+  if (user) {
+    setTimeout(() => registrarAcao('fez_login', 'Login realizado', {email: user.email}), 2000);
+  }
+});
 
 </script>
 </body>
