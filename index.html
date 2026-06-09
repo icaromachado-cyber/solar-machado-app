@@ -314,29 +314,6 @@ tr:hover td{background:#faf9f5}
   </div>
 </div>
 
-<!-- MODAL HISTÓRICO DE AÇÕES -->
-<div id="mo-historico" class="mo" style="display:none">
-  <div class="mbox" style="max-width:600px">
-    <div class="mhdr"><span>📋 Histórico de Ações</span><button class="mcl" onclick="closeMo('mo-historico')">✕</button></div>
-    <div style="padding:20px">
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <select id="hist-filtro-user" onchange="renderHistorico()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;flex:1">
-          <option value="">Todos os usuários</option>
-        </select>
-        <select id="hist-filtro-tipo" onchange="renderHistorico()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;flex:1">
-          <option value="">Todas as ações</option>
-          <option value="criou_projeto">Criou projeto</option>
-          <option value="editou_projeto">Editou projeto</option>
-          <option value="mudou_etapa">Mudou etapa</option>
-          <option value="criou_chamado">Criou chamado</option>
-          <option value="editou_chamado">Editou chamado</option>
-        </select>
-      </div>
-      <div id="lista-historico" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto"></div>
-    </div>
-  </div>
-</div>
-
 <div class="sb-overlay"
  id="sb-overlay" onclick="toggleMenu()"></div>
 
@@ -385,8 +362,7 @@ tr:hover td{background:#faf9f5}
       <button onclick="fazerLogout()" title="Sair" style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px;flex-shrink:0" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">↩ Sair</button>
     </div>
     <div style="display:flex;gap:6px;margin-top:8px">
-      <button onclick="abrirHistorico()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px;cursor:pointer;font-size:10px" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">📋 Histórico</button>
-      <button id="btn-usuarios" onclick="abrirUsuarios()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px;cursor:pointer;font-size:10px;display:none" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">👥 Usuários</button>
+      <button id="btn-usuarios" onclick="abrirUsuarios()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:6px;padding:5px;cursor:pointer;font-size:10px;display:none">👥 Usuários</button>
     </div>
   </div>
 </aside>
@@ -1066,34 +1042,55 @@ function openDet(id){
   const hist=CHAMADOS.filter(c=>c.projetoId===id);
   document.getElementById('det-title').textContent=p.cliente;
   const wppNum=(p.tel||'').replace(/[^0-9]/g,'');
-  const wppHtml=wppNum?`<a href="https://wa.me/${wppNum}" target="_blank" style="color:#1D9E75;font-weight:500;font-size:12px">💬 ${p.tel}</a>`:(p.tel||'—');
+  const wppHtml=wppNum?'<a href="https://wa.me/'+wppNum+'" target="_blank" style="color:#1D9E75;font-weight:500;font-size:12px">💬 '+p.tel+'</a>':(p.tel||'—');
   const mapsLink=p.mapsUrl||(p.lat&&p.lng?'https://www.google.com/maps?q='+p.lat+','+p.lng:p.end?'https://www.google.com/maps/search/'+encodeURIComponent(p.end):null);
-  const mapsHtml=mapsLink?`<a href="${mapsLink}" target="_blank" style="color:var(--az);font-size:12px">📍 Ver no Maps</a>`:'—';
-  document.getElementById('det-content').innerHTML=`
-    <div class="det-sec"><div class="det-sec-ttl">👤 Dados do Cliente</div>
-      <div class="det-row"><span>Nome</span><span style="font-size:12px;text-align:right;max-width:55%">${p.nome||'—'}</span></div>
-      <div class="det-row"><span>CPF</span><span><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">${p.cpf||'—'}</code></span></div>
-      <div class="det-row"><span>Nascimento</span><span>${fmt_data(p.dataNascimento)}</span></div>
-      <div class="det-row"><span>WhatsApp</span><span>${wppHtml}</span></div>
-      <div class="det-row"><span>UC</span><span><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">${p.uc||'—'}</code></span></div>
-      <div class="det-row"><span>Localização</span><span>${mapsHtml}</span></div>
-    </div>
-    <div class="det-sec"><div class="det-sec-ttl">⚡ Sistema</div>
-      <div class="det-row"><span>Potência</span><span style="font-weight:700;color:var(--az)">${p.kwp} kWp</span></div>
-      <div class="det-row"><span>Módulos</span><span>${p.modulos||'—'}x ${p.wpMod||'—'}Wp</span></div>
-      <div class="det-row"><span>Beneficiário</span><span>${p.possuiBeneficiario||'Não'}</span></div>
-      <div class="det-row"><span>Etapa</span><span>${p.etapa||'—'}</span></div>
-      <div class="det-row"><span>Início</span><span>${fmt_data(p.dataInicio)}</span></div>
-      <div class="det-row"><span>Ligação</span><span>${fmt_data(p.dataLigacao)}</span></div>
-    </div>
-    ${p.obs?`<div class="det-sec"><div class="det-sec-ttl">📝 Observações</div><div style="font-size:13px;line-height:1.6;background:#faf9f5;border-radius:8px;padding:10px 12px;border-left:3px solid var(--am)">${p.obs}</div></div>`:''}
-    <div class="det-sec"><div class="det-sec-ttl">🛠 Chamados</div>
-      ${hist.length?hist.map(c=>`<div class="hist-item"><div class="hist-hdr"><span class="hist-tipo">${c.tipo}</span><span class="hist-data">${fmt_data(c.data)}</span></div><div class="hist-desc">${c.desc}</div></div>`).join(''):'<div class="empty">Sem chamados.</div>'}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-      <button class="btn btn-p" onclick="openEditProj(${p.id})">✎ Editar</button>
-      <button class="btn btn-y" onclick="openModalChamado(${p.id})">🛠 Chamado</button>
-    </div>`;
+  const mapsHtml=mapsLink?'<a href="'+mapsLink+'" target="_blank" style="color:var(--az);font-size:12px">📍 Ver no Maps</a>':'—';
+  const kwpTotal=(parseFloat(p.kwp)||0).toFixed(2);
+  const chamadosHtml=hist.length?hist.map(ch=>{
+    const abertoPor=ch.abertoPorNome||ch.abertoPorEmail||'—';
+    const dtAbertura=ch.dataAbertura?new Date(ch.dataAbertura).toLocaleString('pt-BR'):(ch.data?fmt_data(ch.data):'—');
+    return '<div class="hist-item">'
+      +'<div class="hist-hdr"><span class="hist-tipo">'+ch.tipo+'</span><span class="hist-data">'+fmt_data(ch.data)+'</span></div>'
+      +'<div class="hist-desc">'+ch.desc+'</div>'
+      +'<div style="font-size:11px;color:var(--txts);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap">'
+      +'<span>👤 Aberto por: <strong>'+abertoPor+'</strong></span>'
+      +'<span>🕐 '+dtAbertura+'</span>'
+      +(ch.prioridade?'<span>⚡ '+ch.prioridade+'</span>':'')
+      +(ch.status?'<span>📌 '+ch.status+'</span>':'')
+      +'</div>'
+      +(ch.res?'<div style="font-size:11.5px;color:var(--txts);margin-top:4px;padding-top:4px;border-top:1px solid #f0efe8">↳ <em>'+ch.res+'</em></div>':'')
+      +'</div>';
+  }).join(''):'<div class="empty">Sem chamados.</div>';
+
+  document.getElementById('det-content').innerHTML=
+    '<div class="det-sec"><div class="det-sec-ttl">👤 Dados do Cliente</div>'
+    +'<div class="det-row"><span>Nome completo</span><span style="font-size:12px;text-align:right;max-width:55%">'+(p.nome||'—')+'</span></div>'
+    +'<div class="det-row"><span>CPF / CNPJ</span><span><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.cpf||'—')+'</code></span></div>'
+    +'<div class="det-row"><span>Nascimento</span><span>'+fmt_data(p.dataNascimento)+'</span></div>'
+    +'<div class="det-row"><span>WhatsApp</span><span>'+wppHtml+'</span></div>'
+    +'<div class="det-row"><span>UC</span><span><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code></span></div>'
+    +'<div class="det-row"><span>Endereço</span><span style="font-size:11px;text-align:right;max-width:60%">'+(p.end||'—')+'</span></div>'
+    +'<div class="det-row"><span>Localização</span><span>'+mapsHtml+'</span></div>'
+    +'<div class="det-row"><span>Beneficiário</span><span>'+(p.possuiBeneficiario||'Não')+'</span></div>'
+    +'</div>'
+    +'<div class="det-sec"><div class="det-sec-ttl">⚡ Sistema Fotovoltaico</div>'
+    +'<div class="det-row"><span>Potência total</span><span style="font-weight:700;color:var(--az)">'+kwpTotal+' kWp</span></div>'
+    +'<div class="det-row"><span>Módulos</span><span>'+(p.modulos||'—')+'x '+(p.wpMod||'—')+'Wp</span></div>'
+    +'<div class="det-row"><span>Inversor</span><span>'+(p.inversor||'—')+' '+(p.potInv||'')+'</span></div>'
+    +'<div class="det-row"><span>Montador</span><span>'+(p.montador||'—')+'</span></div>'
+    +'<div class="det-row"><span>Valor</span><span style="font-weight:600">R$ '+((parseFloat(p.valor)||0).toLocaleString('pt-BR',{minimumFractionDigits:2}))+'</span></div>'
+    +'</div>'
+    +'<div class="det-sec"><div class="det-sec-ttl">📅 Datas & Etapa</div>'
+    +'<div class="det-row"><span>Etapa atual</span><span style="font-weight:600;color:var(--az)">'+(p.etapa||'—')+'</span></div>'
+    +'<div class="det-row"><span>Data início</span><span>'+fmt_data(p.dataInicio)+'</span></div>'
+    +'<div class="det-row"><span>Data ligação</span><span>'+fmt_data(p.dataLigacao)+'</span></div>'
+    +'</div>'
+    +(p.obs?'<div class="det-sec"><div class="det-sec-ttl">📝 Observações Internas</div><div style="font-size:13px;line-height:1.6;background:#faf9f5;border-radius:8px;padding:10px 12px;border-left:3px solid var(--am)">'+p.obs+'</div></div>':'')
+    +'<div class="det-sec"><div class="det-sec-ttl">🛠 Chamados ('+hist.length+')</div>'+chamadosHtml+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">'
+    +'<button class="btn btn-p" onclick="openEditProj('+p.id+')">✎ Editar</button>'
+    +'<button class="btn btn-y" onclick="openModalChamado('+p.id+')">🛠 Chamado</button>'
+    +'</div>';
   document.getElementById('det-panel').classList.add('open');
 }
 function closeDet(){document.getElementById('det-panel').classList.remove('open');}
@@ -1185,6 +1182,13 @@ function saveChamado() {
     status: document.getElementById('mc-st').value, desc: document.getElementById('mc-desc').value,
     data: document.getElementById('mc-data').value, res: document.getElementById('mc-res').value
   };
+  // Registrar quem abriu (só na criação)
+  if (!editChId && usuarioAtual) {
+    obj.abertoPorId = usuarioAtual.uid;
+    obj.abertoPorEmail = usuarioAtual.email;
+    obj.abertoPorNome = document.getElementById('usr-nome')?.textContent || usuarioAtual.email;
+    obj.dataAbertura = new Date().toISOString();
+  }
   fbWrite('chamados', id, obj).then(() => { toast('Chamado Salvo!', 'ok'); closeMo('mo-ch'); });
 }
 
@@ -1411,41 +1415,9 @@ function abrirUsuarios() {
   carregarListaUsuarios();
 }
 
-// ── HISTÓRICO ──────────────────────────────
-async function abrirHistorico() {
-  document.getElementById('mo-historico').style.display = 'flex';
-  renderHistorico();
-}
 
-async function renderHistorico() {
-  const lista = document.getElementById('lista-historico');
-  if (!lista) return;
-  lista.innerHTML = '<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Carregando…</div>';
-  const filtroUser = document.getElementById('hist-filtro-user')?.value || '';
-  const filtroTipo = document.getElementById('hist-filtro-tipo')?.value || '';
-  try {
-    let query = db.collection('auditoria').orderBy('timestamp', 'desc').limit(100);
-    const snap = await query.get();
-    let registros = snap.docs.map(d => ({id:d.id,...d.data()}));
-    if (filtroUser) registros = registros.filter(r => r.usuarioId === filtroUser);
-    if (filtroTipo) registros = registros.filter(r => r.tipo === filtroTipo);
-    if (!registros.length) { lista.innerHTML = '<div style="font-size:13px;color:var(--txts);text-align:center;padding:20px">Nenhuma ação encontrada.</div>'; return; }
-    const ICONES = {
-      'criou_projeto':'✅','editou_projeto':'✏️','mudou_etapa':'🔄','criou_chamado':'🛠',
-      'editou_chamado':'📝','criou_usuario':'👤','removeu_usuario':'🚫','fez_login':'🔑',
-      'criou_proposta':'📋'
-    };
-    lista.innerHTML = registros.map(r => {
-      const dt = r.timestamp ? new Date(r.timestamp.toDate()).toLocaleString('pt-BR') : (r.timestampLocal ? new Date(r.timestampLocal).toLocaleString('pt-BR') : '—');
-      const icone = ICONES[r.tipo] || '•';
-      return '<div style="background:var(--cz);border-radius:8px;padding:10px 14px;border-left:3px solid var(--azs)">'
-        + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
-        + '<div><div style="font-size:13px">' + icone + ' ' + (r.descricao||r.tipo) + '</div>'
-        + '<div style="font-size:11px;color:var(--txts);margin-top:3px">👤 ' + (r.usuarioNome||r.usuarioEmail||'—') + ' · 🕐 ' + dt + '</div></div>'
-        + '</div></div>';
-    }).join('');
-  } catch(e) { lista.innerHTML = '<div style="font-size:13px;color:#D85A30;padding:16px">Erro: ' + e.message + '</div>'; }
-}
+
+
 
 // ── PATCH nas funções para registrar ações ──
 const _fbWriteOrig2 = fbWrite;
