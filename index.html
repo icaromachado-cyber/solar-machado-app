@@ -532,21 +532,34 @@ tr:hover td{background:#faf9f5}
                 <label>Valor Total (R$) *</label>
                 <input type="number" id="pp-valor" placeholder="15000" oninput="atualizarPreview()">
               </div>
-              <div class="prop-fgrp">
-                <label>Parcelas (até)</label>
-                <select id="pp-parcelas" onchange="atualizarPreview()">
-                  <option value="6">6x</option>
-                  <option value="12">12x</option>
-                  <option value="18">18x</option>
-                  <option value="24">24x</option>
-                  <option value="36">36x</option>
-                  <option value="48">48x</option>
-                  <option value="60">60x</option>
+              <div class="prop-fgrp full">
+                <label>Modalidade de Pagamento</label>
+                <select id="pp-modalidade" onchange="atualizarModalidade()">
+                  <option value="avista">À Vista</option>
+                  <option value="cartao">Cartão de Crédito</option>
+                  <option value="financiado">Financiado</option>
                 </select>
               </div>
-              <div class="prop-fgrp">
-                <label>Taxa de Juros (% a.m.)</label>
-                <input type="number" id="pp-juros" placeholder="1.49" step="0.01" oninput="atualizarPreview()">
+            </div>
+            <!-- Campos extras para parcelamento (ocultos por padrão) -->
+            <div id="pp-parcelas-wrap" style="display:none">
+              <div class="prop-fg" style="margin-top:10px">
+                <div class="prop-fgrp">
+                  <label>Parcelas (até)</label>
+                  <select id="pp-parcelas" onchange="atualizarPreview()">
+                    <option value="6">6x</option>
+                    <option value="12">12x</option>
+                    <option value="18">18x</option>
+                    <option value="24">24x</option>
+                    <option value="36">36x</option>
+                    <option value="48">48x</option>
+                    <option value="60">60x</option>
+                  </select>
+                </div>
+                <div class="prop-fgrp">
+                  <label>Taxa de Juros (% a.m.)</label>
+                  <input type="number" id="pp-juros" placeholder="1.49" step="0.01" oninput="atualizarPreview()">
+                </div>
               </div>
             </div>
 
@@ -566,52 +579,137 @@ tr:hover td{background:#faf9f5}
             <span style="font-size:11px;color:var(--txts)">480px × WhatsApp</span>
           </div>
           <div class="preview-scale-wrap">
-            <div id="prop-card">
-              <div class="pc-header">
-                <div class="logo-txt">☀ Solar Machado</div>
-                <div class="tagline">Energia Solar & Soluções Elétricas</div>
-              </div>
-              <div class="pc-saud" id="pc-saud">
-                Olá! Segue abaixo a proposta do seu sistema fotovoltaico personalizado.
-              </div>
-              <div class="pc-cards">
-                <div class="pc-info">
-                  <div class="ic">⚡</div>
-                  <div class="lbl">Sistema</div>
-                  <div class="val" id="pc-kwp">— kWp</div>
-                  <div class="sub" id="pc-modulos-sub">— módulos</div>
-                </div>
-                <div class="pc-info">
-                  <div class="ic">☀</div>
-                  <div class="lbl">Geração Mensal</div>
-                  <div class="val" id="pc-geracao">— kWh</div>
-                  <div class="sub" id="pc-geracao-sub">estimado</div>
-                </div>
-              </div>
-              <div class="pc-invest">
-                <div class="lbl">INVESTIMENTO TOTAL</div>
-                <div class="val" id="pc-valor">R$ —</div>
-                <div class="sub" id="pc-parcela-sub">ou em parcelas</div>
-              </div>
-              <div class="pc-fin" id="pc-fin">
-                <div class="fin-hdr">💳 OPÇÕES DE PAGAMENTO</div>
-                <div class="fin-row"><span class="fp">À Vista</span><span class="fv" id="pc-avista">R$ —</span></div>
-                <div id="pc-parcelas-rows"></div>
-              </div>
-              <div class="pc-economia" id="pc-economia" style="display:none">
-                <div class="lbl">ECONOMIA ESTIMADA</div>
-                <div class="val" id="pc-eco-val">R$ —/mês</div>
-                <div class="sub" id="pc-eco-sub">Retorno em — anos</div>
-              </div>
-              <div class="pc-footer">
-                <div class="contact">
-                  📞 (86) 9 9977-2559 &nbsp;|&nbsp; 📷 @solarmachado<br>
-                  🌐 solarmachado.com.br &nbsp;|&nbsp; 📍 Teresina, PI
-                </div>
-                <div class="cnpj">CNPJ 34.757.760/0001-60 • Ícaro Caio de Sousa Machado</div>
-              </div>
-            </div>
-          </div>
+            <div id="prop-card" style="width:520px;background:#fff;font-family:Arial,sans-serif;border-radius:4px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)">
+
+  <!-- CABEÇALHO AZUL -->
+  <div style="background:#2E3486;padding:18px 24px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:22px;font-weight:900;color:#FDC300;letter-spacing:-0.5px;font-family:'Arial Black',Arial">☀ Solar Machado</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.6);letter-spacing:2px;text-transform:uppercase;margin-top:3px">Energia solar e soluções elétricas</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:.5px">PROPOSTA COMERCIAL</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">SISTEMA DE ENERGIA SOLAR</div>
+    </div>
+  </div>
+
+  <!-- FOTO SOLAR placeholder -->
+  <div style="background:#EDECE5;height:90px;display:flex;align-items:center;justify-content:center;border-bottom:3px solid #2E3486">
+    <div style="text-align:center;color:#888">
+      <div style="font-size:28px">☀ ☀ ☀</div>
+      <div style="font-size:10px;letter-spacing:1px;margin-top:4px">ENERGIA FOTOVOLTAICA</div>
+    </div>
+  </div>
+
+  <!-- TEXTO INTRO -->
+  <div style="padding:14px 20px 10px;font-size:11px;color:#333;line-height:1.6;border-bottom:1px solid #f0efe8">
+    É com grande satisfação que apresentamos sua proposta personalizada para geração de energia solar.
+    O sistema foi dimensionado de acordo com seu perfil de consumo para maximizar sua economia.
+  </div>
+
+  <!-- RESUMO: SISTEMA + GERAÇÃO -->
+  <div style="padding:12px 20px 8px">
+    <div style="font-size:11px;font-weight:700;color:#2E3486;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase">Resumo da Proposta</div>
+    <div style="display:flex;gap:10px">
+      <!-- SISTEMA -->
+      <div style="flex:1;display:flex;align-items:center;gap:10px;background:#f7f6f1;border-radius:8px;padding:10px 12px">
+        <div style="width:36px;height:36px;background:#2E3486;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">☀</div>
+        <div>
+          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px">Sistema</div>
+          <div style="font-size:16px;font-weight:900;color:#2E3486;font-family:'Arial Black',Arial" id="pc-kwp">— kWp</div>
+          <div style="font-size:9.5px;color:#555;margin-top:1px" id="pc-modulos-sub">— módulos</div>
+        </div>
+      </div>
+      <!-- GERAÇÃO -->
+      <div style="flex:1;display:flex;align-items:center;gap:10px;background:#f7f6f1;border-radius:8px;padding:10px 12px">
+        <div style="width:36px;height:36px;background:#FDC300;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚡</div>
+        <div>
+          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px">Geração Mensal</div>
+          <div style="font-size:16px;font-weight:900;color:#2E3486;font-family:'Arial Black',Arial" id="pc-geracao">— kWh</div>
+          <div style="font-size:9.5px;color:#555;margin-top:1px" id="pc-geracao-sub">estimado/mês</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO GERAÇÃO MENSAL (barras) -->
+  <div style="padding:10px 20px">
+    <div style="font-size:11px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Geração Mensal — Teresina (kWh)</div>
+    <div id="pc-grafico" style="display:flex;align-items:flex-end;gap:3px;height:60px;background:#f7f6f1;border-radius:6px;padding:8px 8px 4px">
+      <!-- barras geradas via JS -->
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:3px">
+      <span style="font-size:8px;color:#888">Jan</span><span style="font-size:8px;color:#888">Fev</span>
+      <span style="font-size:8px;color:#888">Mar</span><span style="font-size:8px;color:#888">Abr</span>
+      <span style="font-size:8px;color:#888">Mai</span><span style="font-size:8px;color:#888">Jun</span>
+      <span style="font-size:8px;color:#888">Jul</span><span style="font-size:8px;color:#888">Ago</span>
+      <span style="font-size:8px;color:#888">Set</span><span style="font-size:8px;color:#888">Out</span>
+      <span style="font-size:8px;color:#888">Nov</span><span style="font-size:8px;color:#888">Dez</span>
+    </div>
+  </div>
+
+  <!-- INVESTIMENTO BOX AMARELO -->
+  <div style="margin:8px 20px;background:#FDC300;border-radius:8px;padding:14px 16px;text-align:center">
+    <div style="font-size:9px;font-weight:700;color:rgba(46,52,134,.7);text-transform:uppercase;letter-spacing:1.5px">Investimento Total</div>
+    <div style="font-size:26px;font-weight:900;color:#2E3486;font-family:'Arial Black',Arial;line-height:1.1;margin-top:4px" id="pc-valor">R$ —</div>
+    <div style="font-size:10px;color:rgba(46,52,134,.65);margin-top:4px" id="pc-parcela-sub" style="display:none"></div>
+  </div>
+
+  <!-- COMPONENTES + FINANCIAMENTO (2 colunas) -->
+  <div style="display:flex;gap:0;padding:10px 20px;gap:12px">
+    <!-- COMPONENTES -->
+    <div style="flex:1">
+      <div style="font-size:10px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Componentes do Sistema</div>
+      <div style="font-size:10px;color:#333;line-height:2">
+        <div id="pc-comp-inversor">✓ Inversor —</div>
+        <div id="pc-comp-modulos">✓ — módulos —Wp</div>
+        <div>✓ String Box e proteção</div>
+        <div>✓ Estrutura de fixação</div>
+        <div>✓ Projeto e homologação</div>
+        <div>✓ Instalação e comissionamento</div>
+      </div>
+    </div>
+    <!-- FINANCIAMENTO -->
+    <div id="pc-fin" style="flex:1;display:none">
+      <div class="fin-hdr" style="background:#2E3486;color:#fff;font-size:10px;font-weight:700;text-align:center;padding:7px;border-radius:6px 6px 0 0;text-transform:uppercase;letter-spacing:.5px">Opções de Financiamento</div>
+      <div style="border:1px solid #e4e3dc;border-top:none;border-radius:0 0 6px 6px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;background:#EDECE5;padding:5px 10px;font-size:9px;font-weight:700;color:#333;text-transform:uppercase">
+          <span>Parcelas</span><span style="color:#2E3486">Valor</span>
+        </div>
+        <div id="pc-parcelas-rows"></div>
+        <div style="display:flex;justify-content:space-between;background:#fff;padding:6px 10px;font-size:10px">
+          <span style="color:#555">À Vista</span><span style="font-weight:700;color:#2E3486" id="pc-avista">R$ —</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ECONOMIA -->
+  <div id="pc-economia" style="display:none;margin:4px 20px 8px;background:#e8f8ef;border-radius:8px;padding:10px 16px;text-align:center;border:1px solid #9FE1CB">
+    <div style="font-size:9px;font-weight:700;color:#085041;text-transform:uppercase;letter-spacing:1px">Economia Estimada</div>
+    <div style="font-size:18px;font-weight:900;color:#1D9E75;font-family:'Arial Black',Arial" id="pc-eco-val">R$ —/mês</div>
+    <div style="font-size:10px;color:#0f6e56;margin-top:2px" id="pc-eco-sub">Retorno em — anos</div>
+  </div>
+
+  <!-- RODAPÉ AZUL -->
+  <div style="background:#2E3486;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <div style="font-size:9.5px;color:rgba(255,255,255,.75);line-height:1.8">
+      📞 (86) 99977-2559 &nbsp;|&nbsp; 📷 @solarmachado<br>
+      🌐 solarmachado.com.br &nbsp;|&nbsp; 📍 Teresina, PI
+    </div>
+    <div style="display:flex;gap:6px">
+      <div style="background:#2E3486;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 8px;text-align:center;font-size:8.5px;color:#fff">👤 +500<br>sistemas</div>
+      <div style="background:#2E3486;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 8px;text-align:center;font-size:8.5px;color:#fff">👥 Equipe<br>certificada</div>
+      <div style="background:#FDC300;border-radius:5px;padding:6px 8px;text-align:center;font-size:8.5px;color:#2E3486;font-weight:700">🎧 Suporte<br>completo</div>
+    </div>
+  </div>
+
+  <!-- CNPJ -->
+  <div style="background:#1e2260;padding:6px 20px;text-align:center;font-size:8.5px;color:rgba(255,255,255,.4)">
+    CNPJ 34.757.760/0001-60 • Ícaro Caio de Sousa Machado • Solar Machado Engenharia
+  </div>
+
+</div>
         </div>
       </div>
     </div>
@@ -1856,19 +1954,46 @@ function atualizarPreview() {
     parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + (valor/parcMax).toLocaleString('pt-BR', {minimumFractionDigits:2});
   }
 
-  // À vista
+  const modalidade = document.getElementById('pp-modalidade')?.value || 'avista';
+  const finSection = document.getElementById('pc-fin');
   const aVistaEl = document.getElementById('pc-avista');
-  if (aVistaEl) aVistaEl.textContent = valor ? 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ —';
-
-  // Parcelas
   const pRows = document.getElementById('pc-parcelas-rows');
-  if (pRows && valor) {
-    const opts = [6, 12, 18, 24, 36, 48, 60].filter(p => p <= parcMax);
-    pRows.innerHTML = opts.map(p => {
-      const pmt = juros > 0 ? calcPMT(valor, juros/100, p) : valor/p;
-      return '<div class="fin-row"><span class="fp">' + p + 'x</span><span class="fv">R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês</span></div>';
-    }).join('');
-  } else if (pRows) pRows.innerHTML = '';
+  const parSub = document.getElementById('pc-parcela-sub');
+
+  if (modalidade === 'avista') {
+    // Só valor à vista, sem tabela de parcelas
+    if (finSection) finSection.style.display = 'none';
+    if (parSub) parSub.style.display = 'none';
+  } else {
+    // Cartão ou Financiado — mostrar tabela
+    if (finSection) finSection.style.display = 'block';
+    if (parSub) parSub.style.display = 'block';
+
+    // Título da seção
+    const finHdr = finSection?.querySelector('.fin-hdr');
+    if (finHdr) finHdr.textContent = modalidade === 'cartao' ? '💳 Parcelamento no Cartão' : '🏦 Opções de Financiamento';
+
+    // À vista
+    if (aVistaEl) aVistaEl.textContent = valor ? 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ —';
+
+    // Parcelas
+    if (pRows && valor) {
+      const opts = [2, 3, 4, 5, 6, 12, 18, 24, 36, 48, 60].filter(p => p <= parcMax);
+      pRows.innerHTML = opts.map((p, i) => {
+        const pmt = juros > 0 ? calcPMT(valor, juros/100, p) : valor/p;
+        const bg = i % 2 === 0 ? '#EDECE5' : '#fff';
+        return '<div style="display:flex;justify-content:space-between;background:' + bg + ';padding:6px 10px;font-size:10px">'
+          + '<span style="color:#555">' + p + 'x</span>'
+          + '<span style="font-weight:700;color:#2E3486">R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês</span></div>';
+      }).join('');
+    } else if (pRows) pRows.innerHTML = '';
+
+    // Parcela destaque no box amarelo
+    if (parSub && valor && parcMax) {
+      const pmt = juros > 0 ? calcPMT(valor, juros/100, parcMax) : valor/parcMax;
+      parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2});
+    }
+  }
 
   // Economia
   const ecoDiv = document.getElementById('pc-economia');
@@ -1879,6 +2004,36 @@ function atualizarPreview() {
     document.getElementById('pc-eco-val').textContent = 'R$ ' + ecoMes.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês';
     document.getElementById('pc-eco-sub').textContent = 'Retorno estimado em ' + retorno + ' anos';
   } else if (ecoDiv) ecoDiv.style.display = 'none';
+}
+
+  // Gráfico de barras mensal
+  const irr = [4.9, 5.14, 5.25, 5.19, 5.3, 5.54, 5.74, 6.24, 6.51, 6.25, 5.89, 5.53];
+  const kwpNum = parseFloat(kwp) || 0;
+  const grafico = document.getElementById('pc-grafico');
+  if (grafico && kwpNum > 0 && geracao > 0) {
+    const geracoes = irr.map(i => Math.round(kwpNum * i * 30 * 0.75));
+    const maxG = Math.max(...geracoes);
+    grafico.innerHTML = geracoes.map((g, idx) => {
+      const h = Math.round((g / maxG) * 44);
+      const destaque = idx === 7 || idx === 8; // Ago/Set maior irradiação
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px">'
+        + '<div style="font-size:7px;color:#2E3486;font-weight:600">' + g + '</div>'
+        + '<div style="width:100%;background:' + (destaque?'#FDC300':'#2E3486') + ';border-radius:2px 2px 0 0;height:' + h + 'px"></div>'
+        + '</div>';
+    }).join('');
+  }
+
+  // Componentes
+  const compInv = document.getElementById('pc-comp-inversor');
+  if (compInv) compInv.textContent = '✓ Inversor ' + (inv ? inv + ' ' + pinv : '—');
+  const compMod = document.getElementById('pc-comp-modulos');
+  if (compMod) compMod.textContent = '✓ ' + (mods||'—') + ' módulos ' + (wp||'—') + 'Wp';
+
+function atualizarModalidade() {
+  const mod = document.getElementById('pp-modalidade')?.value || 'avista';
+  const wrap = document.getElementById('pp-parcelas-wrap');
+  if (wrap) wrap.style.display = (mod === 'avista') ? 'none' : 'block';
+  atualizarPreview();
 }
 
 function calcPMT(pv, taxa, n) {
