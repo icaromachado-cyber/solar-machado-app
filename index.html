@@ -1131,6 +1131,11 @@ function openEditProj(id) {
   document.getElementById('p-val').value = p.valor || '';
   document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
   const sf=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||'';};
+  // Técnico
+  sf('p-inv',p.inversor);sf('p-pinv',p.potInv);sf('p-mont',p.montador);
+  // Proteção
+  sf('p-prot-med',p.protMedidor);sf('p-prot-ca-disj',p.protCaDisj);sf('p-prot-ca-dps',p.protCaDps);
+  // Datas e obs
   sf('p-dini',p.dataInicio);sf('p-dlig',p.dataLigacao);sf('p-obs',p.obs);
   sf('p-end',p.end);sf('p-lat',p.lat);sf('p-lng',p.lng);
   closeDet(); document.getElementById('mo-proj').classList.add('open'); setTab(0);
@@ -1139,12 +1144,22 @@ function openEditProj(id) {
 function saveProjeto(){
   const id=editProjId||(PROJETOS.length?Math.max(...PROJETOS.map(x=>x.id))+1:1);
   const g=i=>document.getElementById(i)?.value||'';
-  const obj={id,cliente:g('p-cli'),nome:g('p-nome'),dataNascimento:g('p-nasc'),cpf:g('p-cpf'),
-    tel:g('p-tel'),uc:g('p-uc'),etapa:g('p-etapa'),possuiBeneficiario:g('p-ben'),
-    modulos:parseInt(g('p-mod'))||0,wpMod:parseInt(g('p-wpmod'))||0,
-    kwp:parseFloat(g('p-kwp'))||0,valor:parseFloat(g('p-val'))||0,
-    dataInicio:g('p-dini'),dataLigacao:g('p-dlig'),obs:g('p-obs'),
-    end:g('p-end'),lat:g('p-lat'),lng:g('p-lng')};
+  const obj={
+    id,
+    // Dados gerais
+    cliente:g('p-cli'), nome:g('p-nome'), dataNascimento:g('p-nasc'),
+    cpf:g('p-cpf'), tel:g('p-tel'), uc:g('p-uc'),
+    etapa:g('p-etapa'), possuiBeneficiario:g('p-ben'),
+    end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'),
+    // Técnico
+    modulos:parseInt(g('p-mod'))||0, wpMod:parseInt(g('p-wpmod'))||0,
+    kwp:parseFloat(g('p-kwp'))||0, valor:parseFloat(g('p-val'))||0,
+    inversor:g('p-inv'), potInv:g('p-pinv'), montador:g('p-mont'),
+    // Proteção
+    protMedidor:g('p-prot-med'), protCaDisj:g('p-prot-ca-disj'), protCaDps:g('p-prot-ca-dps'),
+    // Datas e obs
+    dataInicio:g('p-dini'), dataLigacao:g('p-dlig'), obs:g('p-obs')
+  };
   fbWrite('projetos',id,obj).then(()=>{toast('Salvo!','ok');closeMo('mo-proj');});
 }
 
