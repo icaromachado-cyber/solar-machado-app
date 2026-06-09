@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Solar Machado — Pós-Venda & Projetos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -319,6 +320,10 @@ tr:hover td{background:#faf9f5}
     <div class="ni" onclick="go('mapa');toggleMenu(false)">
       <div class="ic">🗺</div><span>Mapa de Clientes</span>
     </div>
+    <div class="nav-sec">Comercial</div>
+    <div class="ni" onclick="go('propostas');toggleMenu(false)">
+      <div class="ic">📋</div><span>Propostas</span>
+    </div>
   </nav>
   <div class="sb-foot" ondblclick="migrarDatasNascimento()" oncontextmenu="migrarLocalizacoes();return false;" title="Duplo clique: migrar datas | Clique direito: migrar localizações">
     <div id="fb-status" style="font-size:9.5px;margin-bottom:8px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
@@ -462,6 +467,152 @@ tr:hover td{background:#faf9f5}
       </div>
       <div class="tw">
         <div id="b-leituras"></div>
+      </div>
+    </div>
+
+
+    <!-- PROPOSTAS -->
+    <div id="page-propostas" class="page">
+      <div class="ph" style="margin-bottom:20px">
+        <h2>📋 Propostas</h2>
+        <div style="font-size:13px;color:var(--txts)">Gere propostas profissionais para WhatsApp</div>
+      </div>
+
+      <div class="prop-layout">
+        <!-- FORMULÁRIO -->
+        <div class="prop-form">
+          <div class="card">
+            <h3>👤 Dados do Cliente</h3>
+            <div class="prop-fg">
+              <div class="prop-fgrp full">
+                <label>Nome do Cliente *</label>
+                <input type="text" id="pp-nome" placeholder="Ex: João Silva" oninput="atualizarPreview()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Cidade</label>
+                <input type="text" id="pp-cidade" placeholder="Teresina" oninput="atualizarPreview()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Consumo Mensal (kWh)</label>
+                <input type="number" id="pp-consumo" placeholder="400" oninput="atualizarPreview()">
+              </div>
+            </div>
+
+            <h3 style="margin-top:16px">⚡ Sistema Solar</h3>
+            <div class="prop-fg">
+              <div class="prop-fgrp">
+                <label>Qtd. Módulos *</label>
+                <input type="number" id="pp-modulos" placeholder="13" oninput="calcularProposta()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Potência Módulo (Wp)</label>
+                <input type="number" id="pp-wpmod" placeholder="610" oninput="calcularProposta()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Inversor</label>
+                <input type="text" id="pp-inv" placeholder="SOLPLANET" oninput="atualizarPreview()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Potência Inversor</label>
+                <input type="text" id="pp-pinv" placeholder="6 KW" oninput="atualizarPreview()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Geração Mensal (kWh)</label>
+                <input type="number" id="pp-geracao" placeholder="800" oninput="atualizarPreview()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Tarifa kWh (R$)</label>
+                <input type="number" id="pp-tarifa" placeholder="0.85" step="0.01" oninput="atualizarPreview()">
+              </div>
+            </div>
+
+            <h3 style="margin-top:16px">💰 Investimento</h3>
+            <div class="prop-fg">
+              <div class="prop-fgrp full">
+                <label>Valor Total (R$) *</label>
+                <input type="number" id="pp-valor" placeholder="15000" oninput="atualizarPreview()">
+              </div>
+              <div class="prop-fgrp">
+                <label>Parcelas (até)</label>
+                <select id="pp-parcelas" onchange="atualizarPreview()">
+                  <option value="6">6x</option>
+                  <option value="12">12x</option>
+                  <option value="18">18x</option>
+                  <option value="24">24x</option>
+                  <option value="36">36x</option>
+                  <option value="48">48x</option>
+                  <option value="60">60x</option>
+                </select>
+              </div>
+              <div class="prop-fgrp">
+                <label>Taxa de Juros (% a.m.)</label>
+                <input type="number" id="pp-juros" placeholder="1.49" step="0.01" oninput="atualizarPreview()">
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+              <button class="btn btn-y" onclick="gerarPNG()" style="flex:1;justify-content:center">
+                📥 Baixar PNG para WhatsApp
+              </button>
+              <button class="btn btn-g" onclick="limparProposta()">🗑 Limpar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div class="prop-preview-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--az);margin:0">Prévia da Proposta</h3>
+            <span style="font-size:11px;color:var(--txts)">480px × WhatsApp</span>
+          </div>
+          <div class="preview-scale-wrap">
+            <div id="prop-card">
+              <div class="pc-header">
+                <div class="logo-txt">☀ Solar Machado</div>
+                <div class="tagline">Energia Solar & Soluções Elétricas</div>
+              </div>
+              <div class="pc-saud" id="pc-saud">
+                Olá! Segue abaixo a proposta do seu sistema fotovoltaico personalizado.
+              </div>
+              <div class="pc-cards">
+                <div class="pc-info">
+                  <div class="ic">⚡</div>
+                  <div class="lbl">Sistema</div>
+                  <div class="val" id="pc-kwp">— kWp</div>
+                  <div class="sub" id="pc-modulos-sub">— módulos</div>
+                </div>
+                <div class="pc-info">
+                  <div class="ic">☀</div>
+                  <div class="lbl">Geração Mensal</div>
+                  <div class="val" id="pc-geracao">— kWh</div>
+                  <div class="sub" id="pc-geracao-sub">estimado</div>
+                </div>
+              </div>
+              <div class="pc-invest">
+                <div class="lbl">INVESTIMENTO TOTAL</div>
+                <div class="val" id="pc-valor">R$ —</div>
+                <div class="sub" id="pc-parcela-sub">ou em parcelas</div>
+              </div>
+              <div class="pc-fin" id="pc-fin">
+                <div class="fin-hdr">💳 OPÇÕES DE PAGAMENTO</div>
+                <div class="fin-row"><span class="fp">À Vista</span><span class="fv" id="pc-avista">R$ —</span></div>
+                <div id="pc-parcelas-rows"></div>
+              </div>
+              <div class="pc-economia" id="pc-economia" style="display:none">
+                <div class="lbl">ECONOMIA ESTIMADA</div>
+                <div class="val" id="pc-eco-val">R$ —/mês</div>
+                <div class="sub" id="pc-eco-sub">Retorno em — anos</div>
+              </div>
+              <div class="pc-footer">
+                <div class="contact">
+                  📞 (86) 9 9977-2559 &nbsp;|&nbsp; 📷 @solarmachado<br>
+                  🌐 solarmachado.com.br &nbsp;|&nbsp; 📍 Teresina, PI
+                </div>
+                <div class="cnpj">CNPJ 34.757.760/0001-60 • Ícaro Caio de Sousa Machado</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1471,12 +1622,12 @@ const _goOrigMapa = go;
 go = function(p) {
   _goOrigMapa(p);
   if (p === 'mapa') {
-    // Garantir que o div está visível antes de iniciar
     setTimeout(() => {
       iniciarLeafletMap();
       renderMapa();
     }, 50);
   }
+  if (p === 'propostas') atualizarPreview();
   if (p === 'projetos') { atualizarContadoresAbas(); }
 };
 
@@ -1636,6 +1787,133 @@ async function migrarEtapas() {
   }
   if (ok > 0) toast('✅ ' + ok + ' etapas migradas!', 'ok');
   else toast('Nenhuma etapa antiga encontrada.', '');
+}
+
+
+// ══════════════════════════════════════════
+// MÓDULO PROPOSTAS
+// ══════════════════════════════════════════
+function calcularProposta() {
+  const mods = parseInt(document.getElementById('pp-modulos')?.value) || 0;
+  const wp = parseInt(document.getElementById('pp-wpmod')?.value) || 610;
+  const kwp = (mods * wp / 1000).toFixed(2);
+  // Auto-calcular geração se vazio
+  const gerEl = document.getElementById('pp-geracao');
+  if (gerEl && !gerEl.value) {
+    gerEl.value = Math.round(parseFloat(kwp) * 120);
+  }
+  atualizarPreview();
+}
+
+function atualizarPreview() {
+  const nome = document.getElementById('pp-nome')?.value || '';
+  const cidade = document.getElementById('pp-cidade')?.value || '';
+  const mods = parseInt(document.getElementById('pp-modulos')?.value) || 0;
+  const wp = parseInt(document.getElementById('pp-wpmod')?.value) || 610;
+  const inv = document.getElementById('pp-inv')?.value || '';
+  const pinv = document.getElementById('pp-pinv')?.value || '';
+  const geracao = parseInt(document.getElementById('pp-geracao')?.value) || 0;
+  const valor = parseFloat(document.getElementById('pp-valor')?.value) || 0;
+  const parcMax = parseInt(document.getElementById('pp-parcelas')?.value) || 6;
+  const juros = parseFloat(document.getElementById('pp-juros')?.value) || 0;
+  const tarifa = parseFloat(document.getElementById('pp-tarifa')?.value) || 0;
+  const consumo = parseInt(document.getElementById('pp-consumo')?.value) || 0;
+  const kwp = (mods * wp / 1000).toFixed(2);
+
+  // Saudação
+  const saud = document.getElementById('pc-saud');
+  if (saud) {
+    const nomeTxt = nome ? `<strong>${nome}</strong>, ` : '';
+    const cidTxt = cidade ? ` em <strong>${cidade}</strong>` : '';
+    saud.innerHTML = `Olá, ${nomeTxt}preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico${cidTxt}. Confira os detalhes abaixo:`;
+  }
+
+  // Sistema
+  const kwpEl = document.getElementById('pc-kwp');
+  if (kwpEl) kwpEl.textContent = kwp + ' kWp';
+  const modSub = document.getElementById('pc-modulos-sub');
+  if (modSub) modSub.textContent = (mods || '—') + ' módulos × ' + (wp || '—') + 'Wp' + (inv ? ' · ' + inv + ' ' + pinv : '');
+
+  // Geração
+  const gerEl = document.getElementById('pc-geracao');
+  if (gerEl) gerEl.textContent = geracao ? geracao.toLocaleString('pt-BR') + ' kWh' : '— kWh';
+  const gerSub = document.getElementById('pc-geracao-sub');
+  if (gerSub && consumo) {
+    const cobertura = Math.min(100, Math.round(geracao / consumo * 100));
+    gerSub.textContent = 'Cobre ~' + cobertura + '% do consumo';
+  } else if (gerSub) gerSub.textContent = 'estimado/mês';
+
+  // Valor
+  const valEl = document.getElementById('pc-valor');
+  if (valEl) valEl.textContent = valor ? 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ —';
+
+  // Parcela menor destaque
+  const parSub = document.getElementById('pc-parcela-sub');
+  if (parSub && valor && juros > 0) {
+    const pmt = calcPMT(valor, juros/100, parcMax);
+    parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2});
+  } else if (parSub && valor) {
+    parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + (valor/parcMax).toLocaleString('pt-BR', {minimumFractionDigits:2});
+  }
+
+  // À vista
+  const aVistaEl = document.getElementById('pc-avista');
+  if (aVistaEl) aVistaEl.textContent = valor ? 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ —';
+
+  // Parcelas
+  const pRows = document.getElementById('pc-parcelas-rows');
+  if (pRows && valor) {
+    const opts = [6, 12, 18, 24, 36, 48, 60].filter(p => p <= parcMax);
+    pRows.innerHTML = opts.map(p => {
+      const pmt = juros > 0 ? calcPMT(valor, juros/100, p) : valor/p;
+      return '<div class="fin-row"><span class="fp">' + p + 'x</span><span class="fv">R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês</span></div>';
+    }).join('');
+  } else if (pRows) pRows.innerHTML = '';
+
+  // Economia
+  const ecoDiv = document.getElementById('pc-economia');
+  if (ecoDiv && tarifa > 0 && geracao > 0) {
+    ecoDiv.style.display = 'block';
+    const ecoMes = geracao * tarifa;
+    const retorno = valor > 0 ? (valor / (ecoMes * 12)).toFixed(1) : '—';
+    document.getElementById('pc-eco-val').textContent = 'R$ ' + ecoMes.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês';
+    document.getElementById('pc-eco-sub').textContent = 'Retorno estimado em ' + retorno + ' anos';
+  } else if (ecoDiv) ecoDiv.style.display = 'none';
+}
+
+function calcPMT(pv, taxa, n) {
+  if (taxa === 0) return pv / n;
+  return pv * taxa * Math.pow(1+taxa, n) / (Math.pow(1+taxa, n) - 1);
+}
+
+async function gerarPNG() {
+  const card = document.getElementById('prop-card');
+  if (!card) return;
+  const nome = document.getElementById('pp-nome')?.value || 'cliente';
+  toast('Gerando imagem...', '');
+  try {
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = 'Proposta_Solar_Machado_' + nome.replace(/\s+/g,'_') + '.png';
+    link.click();
+    toast('✅ Imagem baixada!', 'ok');
+  } catch(e) {
+    toast('Erro ao gerar imagem: ' + e.message, 'er');
+  }
+}
+
+function limparProposta() {
+  ['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  atualizarPreview();
 }
 
 </script>
