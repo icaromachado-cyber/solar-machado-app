@@ -732,6 +732,9 @@ tr:hover td{background:#faf9f5}
         <div class="fg">
           <div class="fgrp"><label>Data Início</label><input type="date" id="p-dini"></div>
           <div class="fgrp"><label>Data Ligação</label><input type="date" id="p-dlig"></div>
+          <div class="fgrp full"><label>Endereço Completo</label><input type="text" id="p-end" placeholder="Rua, número, bairro, cidade"></div>
+          <div class="fgrp"><label>Latitude</label><input type="text" id="p-lat" placeholder="-5.0920"></div>
+          <div class="fgrp"><label>Longitude</label><input type="text" id="p-lng" placeholder="-42.8019"></div>
           <div class="fgrp full"><label>Observações Internas</label><textarea id="p-obs"></textarea></div>
         </div>
       </div>
@@ -1130,6 +1133,7 @@ function openEditProj(id) {
   document.getElementById('p-kwp').value = p.kwp || '';
   document.getElementById('p-val').value = p.valor || '';
   document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
+  sf('p-est', p.estado);
   const sf=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||'';};
   // Técnico
   sf('p-inv',p.inversor);sf('p-pinv',p.potInv);sf('p-mont',p.montador);
@@ -1149,7 +1153,7 @@ function saveProjeto(){
     // Dados gerais
     cliente:g('p-cli'), nome:g('p-nome'), dataNascimento:g('p-nasc'),
     cpf:g('p-cpf'), tel:g('p-tel'), uc:g('p-uc'),
-    etapa:g('p-etapa'), possuiBeneficiario:g('p-ben'),
+    estado:g('p-est'), etapa:g('p-etapa'), possuiBeneficiario:g('p-ben'),
     end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'),
     // Técnico
     modulos:parseInt(g('p-mod'))||0, wpMod:parseInt(g('p-wpmod'))||0,
