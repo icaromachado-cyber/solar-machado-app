@@ -21,6 +21,30 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// ── STUBS DE LOGIN (carregados antes do HTML) ──
+function fazerLogin() {
+  const email = document.getElementById('login-email')?.value?.trim();
+  const senha = document.getElementById('login-senha')?.value;
+  const btn = document.getElementById('login-btn');
+  const erro = document.getElementById('login-erro');
+  if (!email || !senha) { if(erro){erro.textContent='⚠ Preencha email e senha.';erro.style.display='block';} return; }
+  if(btn){btn.textContent='Entrando…';btn.disabled=true;}
+  if(erro) erro.style.display='none';
+  firebase.auth().signInWithEmailAndPassword(email, senha)
+    .catch(e => {
+      if(btn){btn.textContent='Entrar no Sistema';btn.disabled=false;}
+      const msgs = {'auth/user-not-found':'Email não encontrado.','auth/wrong-password':'Senha incorreta.','auth/invalid-email':'Email inválido.','auth/too-many-requests':'Muitas tentativas. Tente mais tarde.','auth/invalid-credential':'Email ou senha incorretos.'};
+      const msg = msgs[e.code] || 'Erro: ' + e.message;
+      if(erro){erro.textContent='⚠ '+msg;erro.style.display='block';}
+    });
+}
+
+function toggleSenha() {
+  const inp = document.getElementById('login-senha');
+  if(inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
 // ─────────────────────────────────────────────────
 </script>
 <style>
@@ -230,17 +254,17 @@ tr:hover td{background:#faf9f5}
     <div style="display:flex;flex-direction:column;gap:14px">
       <div>
         <label style="font-size:11px;font-weight:600;color:#5a5b6e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Email</label>
-        <input type="email" id="login-email" placeholder="seu@email.com" style="width:100%;padding:11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2E3486'" onblur="this.style.borderColor='#e4e3dc'" onkeydown="if(event.key==='Enter')document.getElementById('login-senha').focus()">
+        <input type="email" id="login-email" placeholder="seu@email.com" style="width:100%;padding:11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onkeydown="if(event.key==='Enter'){document.getElementById('login-senha').focus()}">
       </div>
       <div>
         <label style="font-size:11px;font-weight:600;color:#5a5b6e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Senha</label>
         <div style="position:relative">
-          <input type="password" id="login-senha" placeholder="••••••••" style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onfocus="this.style.borderColor='#2E3486'" onblur="this.style.borderColor='#e4e3dc'" onkeydown="if(event.key==='Enter')fazerLogin()">
+          <input type="password" id="login-senha" placeholder="••••••••" style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onkeydown="if(event.key==='Enter'){fazerLogin()}">
           <button onclick="toggleSenha()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#888;padding:0">👁</button>
         </div>
       </div>
       <div id="login-erro" style="display:none;background:#fdf0ec;border:1px solid #f5b8a0;border-radius:8px;padding:10px 14px;font-size:13px;color:#D85A30"></div>
-      <button onclick="fazerLogin()" id="login-btn" style="background:#FDC300;color:#2E3486;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px">
+      <button id="login-btn" style="background:#FDC300;color:#2E3486;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px" onclick="fazerLogin()">
         Entrar no Sistema
       </button>
     </div>
@@ -1245,40 +1269,10 @@ let USUARIOS_CACHE = [];
 let HISTORICO_CACHE = [];
 
 // ── LOGIN / LOGOUT ──────────────────────
-function fazerLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const senha = document.getElementById('login-senha').value;
-  const btn = document.getElementById('login-btn');
-  const erro = document.getElementById('login-erro');
-  if (!email || !senha) { mostrarErroLogin('Preencha email e senha.'); return; }
-  btn.textContent = 'Entrando…';
-  btn.disabled = true;
-  erro.style.display = 'none';
-  auth.signInWithEmailAndPassword(email, senha)
-    .then(() => {})
-    .catch(e => {
-      btn.textContent = 'Entrar no Sistema';
-      btn.disabled = false;
-      const msgs = {
-        'auth/user-not-found': 'Email não encontrado.',
-        'auth/wrong-password': 'Senha incorreta.',
-        'auth/invalid-email': 'Email inválido.',
-        'auth/too-many-requests': 'Muitas tentativas. Tente mais tarde.',
-        'auth/invalid-credential': 'Email ou senha incorretos.'
-      };
-      mostrarErroLogin(msgs[e.code] || 'Erro ao entrar: ' + e.message);
-    });
-}
-
+// fazerLogin() e toggleSenha() definidos no script de config (acima)
 function mostrarErroLogin(msg) {
   const el = document.getElementById('login-erro');
-  el.textContent = '⚠ ' + msg;
-  el.style.display = 'block';
-}
-
-function toggleSenha() {
-  const inp = document.getElementById('login-senha');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+  if(el){el.textContent = '⚠ ' + msg; el.style.display = 'block';}
 }
 
 function fazerLogout() {
