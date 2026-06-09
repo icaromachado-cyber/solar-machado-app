@@ -1379,7 +1379,7 @@ async function carregarListaUsuarios() {
       return '<div style="background:var(--cz);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
         + '<div><div style="font-size:13px;font-weight:500">' + u.nome + (isMe?' <span style="font-size:10px;color:var(--az)">(você)</span>':'') + '</div>'
         + '<div style="font-size:11px;color:var(--txts);margin-top:2px">' + u.email + ' · <span style="font-weight:500;color:' + (u.perfil==='admin'?'#2E3486':'#5a5b6e') + '">' + u.perfil + '</span></div></div>'
-        + (!isMe ? '<button onclick="desativarUsuario(''+u.uid+'',''+u.nome+'')" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px">Remover</button>' : '')
+        + (!isMe ? '<button data-uid="'+u.uid+'" data-nome="'+u.nome.replace(/"/g,"&quot;")+'" onclick="desativarUsuarioBt(this)" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px">Remover</button>' : '')
         + '</div>';
     }).join('');
     // Atualizar filtro do histórico
@@ -1388,6 +1388,12 @@ async function carregarListaUsuarios() {
       sel.innerHTML = '<option value="">Todos os usuários</option>' + USUARIOS_CACHE.map(u => '<option value="'+u.uid+'">'+u.nome+'</option>').join('');
     }
   } catch(e) { lista.innerHTML = '<div style="font-size:13px;color:#D85A30;padding:16px">Erro ao carregar.</div>'; }
+}
+
+function desativarUsuarioBt(btn) {
+  const uid = btn.getAttribute('data-uid');
+  const nome = btn.getAttribute('data-nome');
+  desativarUsuario(uid, nome);
 }
 
 async function desativarUsuario(uid, nome) {
