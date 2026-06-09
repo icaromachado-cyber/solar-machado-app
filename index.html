@@ -364,6 +364,7 @@ tr:hover td{background:#faf9f5}
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" style="background:#2E3486;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarDatasNascimento()">📅 Migrar Datas de Nascimento</button>
           <button class="btn" style="background:#1D9E75;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarLocalizacoes()">📍 Migrar Localizações</button>
+          <button class="btn" style="background:#4a52c8;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarEtapas()">▶ Migrar Etapas</button>
           <button class="btn" style="background:#888;color:#fff;font-size:12px;padding:6px 14px" onclick="document.getElementById('mig-bar').style.display='none'">✕ Fechar</button>
         </div>
       </div>
@@ -388,12 +389,14 @@ tr:hover td{background:#faf9f5}
     <div id="page-projetos" class="page">
       <div class="etapa-tabs" id="etapa-tabs">
         <div class="etab on" onclick="setEtapaTab('')">Todos <span class="etab-cnt" id="ecnt-all"></span></div>
-        <div class="etab" onclick="setEtapaTab('Visita')">Visita <span class="etab-cnt" id="ecnt-Visita"></span></div>
-        <div class="etab" onclick="setEtabaTab('Proposta')">Proposta <span class="etab-cnt" id="ecnt-Proposta"></span></div>
-        <div class="etab" onclick="setEtapaTab('Aprovação')">Aprovação <span class="etab-cnt" id="ecnt-Aprovação"></span></div>
-        <div class="etab" onclick="setEtapaTab('Instalação')">Instalação <span class="etab-cnt" id="ecnt-Instalação"></span></div>
-        <div class="etab" onclick="setEtapaTab('Ligação')">Ligação <span class="etab-cnt" id="ecnt-Ligação"></span></div>
-        <div class="etab" onclick="setEtapaTab('Concluído')">Concluído <span class="etab-cnt" id="ecnt-Concluído"></span></div>
+        <div class="etab" onclick="setEtapaTab('Proposta')">📋 Proposta <span class="etab-cnt" id="ecnt-Proposta"></span></div>
+        <div class="etab" onclick="setEtapaTab('Aprovação')">✅ Aprovação <span class="etab-cnt" id="ecnt-Aprovação"></span></div>
+        <div class="etab" onclick="setEtapaTab('Visita Técnica')">🔍 Visita Técnica <span class="etab-cnt" id="ecnt-Visita Técnica"></span></div>
+        <div class="etab" onclick="setEtapaTab('Elaboração')">📐 Elaboração <span class="etab-cnt" id="ecnt-Elaboração"></span></div>
+        <div class="etab" onclick="setEtapaTab('Projeto Enviado')">📤 Projeto Enviado <span class="etab-cnt" id="ecnt-Projeto Enviado"></span></div>
+        <div class="etab" onclick="setEtapaTab('Instalação')">🔧 Instalação <span class="etab-cnt" id="ecnt-Instalação"></span></div>
+        <div class="etab" onclick="setEtapaTab('Vistoria')">🏛️ Vistoria <span class="etab-cnt" id="ecnt-Vistoria"></span></div>
+        <div class="etab" onclick="setEtapaTab('Concluído')">⭐ Concluído <span class="etab-cnt" id="ecnt-Concluído"></span></div>
       </div>
       <div class="fbar">
         <div class="fs">
@@ -661,7 +664,7 @@ function toggleMenu(force) {
 // FIREBASE & DATA
 // ══════════════════════════════════════════
 let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
-const ETAPAS = ["Visita","Proposta","Aprovação","Instalação","Ligação","Concluído"];
+const ETAPAS = ["Proposta","Aprovação","Visita Técnica","Elaboração","Projeto Enviado","Instalação","Vistoria","Concluído"];
 
 function setFbStatus(ok) {
   const el = document.getElementById('fb-status');
@@ -805,7 +808,7 @@ function renderPipeline() {
     const projs = PROJETOS.filter(p=>p.etapa===e);
     return `
       <div class="pipe-col" ondragover="allowDrop(event)" ondrop="drop(event, '${e}')">
-        <div class="pipe-hdr"><span class="pt">${e}</span><span class="pc">${projs.length}</span></div>
+        <div class="pipe-hdr"><span class="pt">${{'Proposta':'📋','Aprovação':'✅','Visita Técnica':'🔍','Elaboração':'📐','Projeto Enviado':'📤','Instalação':'🔧','Vistoria':'🏛️','Concluído':'⭐'}[e]||''} ${e}</span><span class="pc">${projs.length}</span></div>
         <div class="pipe-body">
           ${projs.map(p=>`
             <div class="pcard" draggable="true" ondragstart="drag(event, ${p.id})" onclick="openDet(${p.id})">
@@ -944,7 +947,7 @@ function openDet(id) {
       <div class="det-sec-ttl">📅 Datas</div>
       <div class="det-row"><span>Início</span><span>${fmt_data(p.dataInicio)}</span></div>
       <div class="det-row"><span>Ligação</span><span>${fmt_data(p.dataLigacao)}</span></div>
-      <div class="det-row"><span>Etapa atual</span><span><span class="bd ${p.etapa==='Concluído'?'bd-ok':p.etapa==='Instalação'||p.etapa==='Ligação'?'bd-am':'bd-az'}">${p.etapa}</span></span></div>
+      <div class="det-row"><span>Etapa atual</span><span><span class="bd ${p.etapa==='Concluído'?'bd-ok':['Instalação','Vistoria','Visita Técnica'].includes(p.etapa)?'bd-am':['Aprovação','Elaboração','Projeto Enviado'].includes(p.etapa)?'bd-az':'bd-cz'}">${p.etapa}</span></span></div>
     </div>
 
     ${p.obs ? `<div class="det-sec">
@@ -1126,8 +1129,10 @@ function renderProjetosCards(data) {
   }
 
   const etapaCor = {
-    'Concluído':'bd-ok','Instalação':'bd-am','Ligação':'bd-am',
-    'Aprovação':'bd-az','Proposta':'bd-cz','Visita':'bd-cz'
+    'Concluído':'bd-ok',
+    'Instalação':'bd-am','Vistoria':'bd-am','Visita Técnica':'bd-am',
+    'Aprovação':'bd-az','Elaboração':'bd-az','Projeto Enviado':'bd-az',
+    'Proposta':'bd-cz'
   };
 
   container.innerHTML = data.map(p => {
@@ -1205,8 +1210,8 @@ function setEtapaTab(etapa) {
 function setEtabaTab(e) { setEtapaTab(e); }
 
 function atualizarContadoresAbas() {
-  const etapas = ['', 'Visita', 'Proposta', 'Aprovação', 'Instalação', 'Ligação', 'Concluído'];
-  const ids = ['all', 'Visita', 'Proposta', 'Aprovação', 'Instalação', 'Ligação', 'Concluído'];
+  const etapas = ['', 'Proposta', 'Aprovação', 'Visita Técnica', 'Elaboração', 'Projeto Enviado', 'Instalação', 'Vistoria', 'Concluído'];
+  const ids = ['all', 'Proposta', 'Aprovação', 'Visita Técnica', 'Elaboração', 'Projeto Enviado', 'Instalação', 'Vistoria', 'Concluído'];
   etapas.forEach((e, i) => {
     const el = document.getElementById('ecnt-' + ids[i]);
     if (!el) return;
@@ -1609,6 +1614,29 @@ openDet = function(id) {
     // Já tratado no openDet principal via mapsUrl
   }, 10);
 };
+
+
+// Migrar etapas antigas para novo fluxo
+async function migrarEtapas() {
+  if (!db) { toast('Firebase não conectado.', 'er'); return; }
+  const mapa = {
+    'Visita': 'Proposta',
+    'Ligação': 'Vistoria',
+  };
+  let ok = 0;
+  for (const p of PROJETOS) {
+    if (mapa[p.etapa]) {
+      try {
+        await db.collection('projetos').doc(String(p.id)).set(
+          { etapa: mapa[p.etapa] }, { merge: true }
+        );
+        ok++;
+      } catch(e) {}
+    }
+  }
+  if (ok > 0) toast('✅ ' + ok + ' etapas migradas!', 'ok');
+  else toast('Nenhuma etapa antiga encontrada.', '');
+}
 
 </script>
 </body>
