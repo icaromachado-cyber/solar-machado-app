@@ -1133,7 +1133,12 @@ function openEditProj(id) {
   document.getElementById('p-kwp').value = p.kwp || '';
   document.getElementById('p-val').value = p.valor || '';
   document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
-  sf('p-est', p.estado);
+  function sf(i,v){
+    const el = document.getElementById(i);
+    if(el) el.value = v || '';
+}
+
+sf('p-est', p.estado);
   const sf=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||'';};
   // Técnico
   sf('p-inv',p.inversor);sf('p-pinv',p.potInv);sf('p-mont',p.montador);
