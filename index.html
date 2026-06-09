@@ -45,6 +45,14 @@ function toggleSenha() {
   if(inp) inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
+// Ativar Enter nos campos de login após DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+  const emailEl = document.getElementById('login-email');
+  const senhaEl = document.getElementById('login-senha');
+  if(emailEl) emailEl.addEventListener('keydown', function(e){ if(e.key==='Enter') { if(senhaEl) senhaEl.focus(); } });
+  if(senhaEl) senhaEl.addEventListener('keydown', function(e){ if(e.key==='Enter') fazerLogin(); });
+});
+
 // ─────────────────────────────────────────────────
 </script>
 <style>
@@ -254,12 +262,12 @@ tr:hover td{background:#faf9f5}
     <div style="display:flex;flex-direction:column;gap:14px">
       <div>
         <label style="font-size:11px;font-weight:600;color:#5a5b6e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Email</label>
-        <input type="email" id="login-email" placeholder="seu@email.com" style="width:100%;padding:11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onkeydown="if(event.key==='Enter'){document.getElementById('login-senha').focus()}">
+        <input type="email" id="login-email" placeholder="seu@email.com" style="width:100%;padding:11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none">
       </div>
       <div>
         <label style="font-size:11px;font-weight:600;color:#5a5b6e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Senha</label>
         <div style="position:relative">
-          <input type="password" id="login-senha" placeholder="••••••••" style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none" onkeydown="if(event.key==='Enter'){fazerLogin()}">
+          <input type="password" id="login-senha" placeholder="••••••••" style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e4e3dc;border-radius:10px;font-size:14px;box-sizing:border-box;outline:none">
           <button onclick="toggleSenha()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#888;padding:0">👁</button>
         </div>
       </div>
