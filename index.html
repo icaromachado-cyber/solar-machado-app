@@ -87,19 +87,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 .kpi .ks{font-size:11px;color:var(--txts);margin-top:4px}
 .ib{background:var(--azs);color:var(--az)}.ig{background:var(--ok2);color:#085041}.iy{background:#fff8e0;color:#633806}.ir{background:var(--er2);color:var(--er)}.iw{background:var(--warn2);color:var(--warn)}
 
-/* ── PAGE HEADER ── */
-.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.ph h2{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--az)}
-.ph-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-/* ── FILTROS ── */
-.fbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.fs{position:relative;flex:1;min-width:180px}
-.fs input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--txt)}
-.fs input:focus{outline:none;border-color:var(--az)}
-.fs .sic{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--cz3);font-size:14px;pointer-events:none}
-.fsel{padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--br);color:var(--txt);cursor:pointer}
-.fsel:focus{outline:none;border-color:var(--az)}
+/* ── PIPELINE ── */
+.pipeline-wrapper{overflow-x:auto;padding:10px 0 20px;width:100%;display:block;scrollbar-width:auto;}
+.pipeline-wrapper::-webkit-scrollbar{height:10px}
+.pipeline-wrapper::-webkit-scrollbar-thumb{background:var(--cz2);border-radius:10px}
+.pipeline{display:flex;gap:16px;width:max-content;min-width:100%;padding-right:40px}
+.pipe-col{flex:0 0 280px;background:#f7f6f1;border-radius:12px;border:1px solid #e4e3dc;display:flex;flex-direction:column}
+.pipe-hdr{padding:14px 16px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.4);border-radius:12px 12px 0 0}
+.pipe-hdr .pt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--az);text-transform:uppercase;letter-spacing:0.5px}
+.pipe-hdr .pc{font-size:11px;background:var(--az);color:#fff;border-radius:20px;padding:2px 8px;font-weight:600}
+.pipe-body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100vh - 250px);overflow-y:auto}
+.pcard{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:14px;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
+.pcard:hover{border-color:var(--az3);box-shadow:0 4px 12px rgba(46,52,134,0.1);transform:translateY(-2px)}
+.pcard .pcn{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px;color:var(--az)}
+.pcard .pcs{font-size:11.5px;color:var(--txts);display:flex;justify-content:space-between;align-items:center}
+.pcard .pckwp{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ok);margin-top:6px;display:block}
+.pcard-obs{font-size:11px;color:var(--txts);margin-top:7px;padding:6px 8px;border-radius:6px;background:#faf9f5;border:1px solid #ede8d5;line-height:1.4;font-style:italic}
 
 /* ── TABLE ── */
 .tw{background:var(--br);border-radius:12px;border:1px solid #e4e3dc;overflow-x:auto;width:100%}
@@ -113,47 +116,8 @@ tr:hover td{background:#faf9f5}
 .bi{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:1px solid var(--cz2);background:transparent;color:var(--txts);transition:all .15s;flex-shrink:0}
 .bi:hover{background:var(--cz)}
 .bi.e:hover{background:var(--azs);color:var(--az);border-color:#b5d4f4}
-.bi.d:hover{background:var(--er2);color:var(--er);border-color:#f5c4b3}
 .bi.v:hover{background:var(--ok2);color:#085041;border-color:#9FE1CB}
 .bi.ch:hover{background:var(--warn2);color:var(--warn);border-color:#fad9d0}
-
-/* ── PIPELINE / KANBAN ── */
-.pipeline-wrapper{overflow-x:auto;padding:10px 0 20px;width:100%;display:block;scrollbar-width:auto;}
-.pipeline-wrapper::-webkit-scrollbar{height:10px}
-.pipeline-wrapper::-webkit-scrollbar-thumb{background:var(--cz2);border-radius:10px}
-.pipeline{display:flex;gap:16px;width:max-content;min-width:100%;padding-right:40px}
-.pipe-col{flex:0 0 280px;background:#f7f6f1;border-radius:12px;border:1px solid #e4e3dc;display:flex;flex-direction:column}
-.pipe-hdr{padding:14px 16px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.4);border-radius:12px 12px 0 0}
-.pipe-hdr .pt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--az);text-transform:uppercase;letter-spacing:0.5px}
-.pipe-hdr .pc{font-size:11px;background:var(--az);color:#fff;border-radius:20px;padding:2px 8px;font-weight:600}
-.pipe-body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:calc(100vh - 250px);overflow-y:auto}
-.pcard{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:14px;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
-.pcard:hover{border-color:var(--az3);box-shadow:0 4px 12px rgba(46,52,134,0.1);transform:translateY(-2px)}
-.pcard-obs{font-size:11px;color:var(--txts);margin-top:7px;padding:6px 8px;border-radius:6px;background:#faf9f5;border:1px solid #ede8d5;line-height:1.4;font-style:italic}
-.pcard.dragging{opacity:0.5;border:2px dashed var(--az)}
-.pcard .pcn{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px;color:var(--az)}
-.pcard .pcs{font-size:11.5px;color:var(--txts);display:flex;justify-content:space-between;align-items:center}
-.pcard .pckwp{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ok);margin-top:6px;display:block}
-
-/* ── DETAIL PANEL ── */
-.det-panel{display:none;position:fixed;right:0;top:0;width:440px;height:100vh;background:var(--br);border-left:1px solid #e4e3dc;z-index:150;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08)}
-.det-panel.open{display:flex}
-.det-hdr{padding:18px 22px;border-bottom:1px solid #e4e3dc;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.det-hdr h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--az)}
-.det-body{padding:20px 22px;overflow-y:auto;flex:1}
-.det-sec{margin-bottom:20px}
-.det-sec-ttl{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--txts);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #f0efe8}
-.det-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f7f6f1;font-size:13px}
-.det-row:last-child{border-bottom:none}
-.det-lbl{color:var(--txts)}
-.det-val{font-weight:500;text-align:right;max-width:60%}
-
-/* ── HISTÓRICO DE CHAMADOS ── */
-.hist-item{padding:10px;border-radius:8px;background:#f9f9f7;border:1px solid #e4e3dc;margin-bottom:8px}
-.hist-hdr{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
-.hist-tipo{font-weight:600;color:var(--az)}
-.hist-data{color:var(--txts)}
-.hist-desc{font-size:12px;line-height:1.4}
 
 /* ── MODAL ── */
 .mo{display:none;position:fixed;inset:0;background:rgba(30,34,96,.45);z-index:200;align-items:center;justify-content:center}
@@ -175,22 +139,21 @@ tr:hover td{background:#faf9f5}
 .tabs{display:flex;gap:3px;background:#f0efe8;border-radius:9px;padding:3px;margin-bottom:18px}
 .tab{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--txts);transition:all .15s}
 .tab.on{background:var(--br);color:var(--az);box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.toast{position:fixed;bottom:22px;right:22px;background:var(--az);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:500;z-index:300;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.ok{background:var(--ok)}.toast.er{background:var(--er)}
-.empty{text-align:center;padding:48px 20px;color:var(--txts)}
-.empty .ei{font-size:40px;opacity:.2;margin-bottom:10px}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-thumb{background:var(--cz2);border-radius:3px}
 
-/* CHARTS ROW */
-.charts-row{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px}
-.chart-container{position:relative;height:180px;width:100%}
+/* ── PROPOSTAS ── */
+.prop-layout{display:grid;grid-template-columns:1fr 520px;gap:20px;align-items:start}
+.prop-fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prop-fgrp{display:flex;flex-direction:column;gap:4px}
+.prop-fgrp.full{grid-column:1/-1}
+.prop-fgrp label{font-size:11px;font-weight:600;color:var(--txts)}
+.prop-fgrp input, .prop-fgrp select{padding:8px 10px;border:1px solid var(--cz2);border-radius:6px;font-size:13px}
+.prop-preview-wrap{position:sticky;top:80px}
+.preview-scale-wrap{transform-origin:top left;width:520px}
 
 /* ── RESPONSIVIDADE ── */
-@media(max-width:960px){
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .charts-row{grid-template-columns:1fr}
+@media(max-width:1100px){
+  .prop-layout{grid-template-columns:1fr}
+  .prop-preview-wrap{position:static;margin-top:20px}
 }
 @media(max-width:768px){
   :root{ --sw:0px }
@@ -200,94 +163,17 @@ tr:hover td{background:#faf9f5}
   .main{ margin-left:0;width:100% }
   .menu-toggle{ display:block }
   .topbar{ padding:0 16px }
-  .tb-title{ font-size:14px }
-  .content{ padding:14px }
-  .kpi-grid{ grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px }
-  .kpi{ padding:13px 14px }
-  .kpi .kv{ font-size:20px }
-  .kpi .ki{ width:30px;height:30px;font-size:14px;margin-bottom:7px }
-
-  /* Tabela projetos → ocultar, mostrar cards */
-  #t-projetos{ display:none }
-  .proj-cards-mobile{ display:flex;flex-direction:column;gap:10px }
-
-  /* Charts menor altura */
-  .chart-wrap{ height:180px !important }
-  .charts-row .card{ padding:14px }
-
-  /* Painel detalhe fullscreen */
-  .det-panel{ width:100%;border-radius:0 }
-
-  /* Modal sobe do bottom */
-  .mo{ align-items:flex-end }
-  .mbox{ width:100%;border-radius:16px 16px 0 0;max-height:92vh }
-
-  /* Filtros empilhados */
-  .fbar{ flex-direction:column }
-  .fs{ min-width:unset }
-
-  /* Pipeline */
-  .pipeline{ padding-right:16px }
-  .pipe-col{ flex:0 0 200px }
-
-  /* Chamados tabela scroll */
-  .tw{ overflow-x:auto }
-  table{ min-width:600px }
-  #t-projetos{ min-width:unset }
-}
-@media(max-width:420px){
-  .kpi-grid{ grid-template-columns:1fr 1fr }
-  .kpi .kv{ font-size:18px }
-  .btn-y{ font-size:12px;padding:7px 11px }
+  .content{ padding:16px }
+  .kpi-grid{ grid-template-columns:repeat(2,1fr) }
+  .pipeline-wrapper{ cursor:grab }
+  .pipeline-wrapper:active{ cursor:grabbing }
+  .pipe-col{ flex:0 0 240px }
 }
 
-/* ── ABAS DE ETAPA ── */
-.etapa-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.etab{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--txts);background:#f0efe8;border:1px solid #e4e3dc;transition:all .15s;white-space:nowrap;user-select:none}
-.etab:hover{background:var(--cz);color:var(--txt)}
-.etab.on{background:var(--az);color:#fff;border-color:var(--az)}
-.etab-cnt{background:rgba(255,255,255,.22);border-radius:20px;padding:1px 7px;font-size:11px;font-weight:600}
-.etab:not(.on) .etab-cnt{background:rgba(0,0,0,.09);color:var(--txts)}
-
-/* ── WHATSAPP INLINE ── */
-.wpp-link{display:inline-flex;align-items:center;gap:4px;color:#1a8045;font-size:11.5px;font-weight:500;text-decoration:none;padding:2px 7px;border-radius:5px;background:#e8f8ef;border:1px solid #b2e0c4;transition:all .15s;vertical-align:middle}
-.wpp-link:hover{background:#c0e8d4}
-.wpp-link svg{flex-shrink:0}
-.td-cli-wrap{display:flex;flex-direction:column;gap:3px}
-.td-cli-name{font-size:13px;font-weight:500}
-
-/* ── MAPA ── */
-.mapa-card{background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
-.mapa-card-pin{width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.mapa-card-info{flex:1;min-width:0}
-.mapa-card-nome{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mapa-card-end{font-size:11.5px;color:var(--txts);margin-top:2px}
-.mapa-card-acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.btn-maps{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11.5px;font-weight:500;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none;transition:all .15s}
-.btn-maps:hover{background:#d0dcff}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--az);color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:500;z-index:300;transform:translateY(100px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:var(--ok)}.toast.er{background:var(--er)}
 </style>
-
-<style>
-/* Cards de projeto mobile */
-.proj-card-mob{
-  background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px
-}
-.pcm-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
-.pcm-nome{font-size:14px;font-weight:500;line-height:1.3}
-.pcm-sub{font-size:11px;color:var(--txts);margin-top:2px}
-.pcm-kwp{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--az);flex-shrink:0;margin-left:12px}
-.pcm-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
-.pcm-item{font-size:11.5px;color:var(--txts)}
-.pcm-item strong{display:block;font-size:12.5px;color:var(--txt);font-weight:500;margin-top:1px}
-.pcm-foot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #f0efe8}
-.bd{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
-.bd-ok{background:#e1f5ee;color:#085041}
-.bd-am{background:#faeeda;color:#854f0b}
-.bd-az{background:#eef0ff;color:#2E3486}
-.bd-cz{background:#f0efe8;color:#5a5b6e}
-.bd-er{background:#fdf0ec;color:#D85A30}
-</style>
-
 </head>
 <body>
 
@@ -318,14 +204,14 @@ tr:hover td{background:#faf9f5}
       <div class="ic">⚡</div><span>Leituras</span>
     </div>
     <div class="ni" onclick="go('mapa');toggleMenu(false)">
-      <div class="ic">🗺</div><span>Mapa de Clientes</span>
+      <div class="ic">🗺</div><span>Mapa</span>
     </div>
     <div class="nav-sec">Comercial</div>
     <div class="ni" onclick="go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
     </div>
   </nav>
-  <div class="sb-foot" ondblclick="migrarDatasNascimento()" oncontextmenu="migrarLocalizacoes();return false;" title="Duplo clique: migrar datas | Clique direito: migrar localizações">
+  <div class="sb-foot">
     <div id="fb-status" style="font-size:9.5px;margin-bottom:8px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
     <div class="usr">Admin Solar Machado</div>
     <div class="cnpj">00.000.000/0001-00</div>
@@ -351,34 +237,8 @@ tr:hover td{background:#faf9f5}
     <!-- DASHBOARD -->
     <div id="page-dash" class="page on">
       <div class="kpi-grid" id="dash-kpis"></div>
-      
-      <div class="charts-row">
-        <div class="card">
-          <div class="ph" style="margin-bottom:12px"><h2>Projetos por Mês</h2></div>
-          <div class="chart-container"><div class="chart-wrap" style="position:relative;height:200px"><canvas id="chart-mes"></canvas></div></div>
-        </div>
-        <div class="card">
-          <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
-          <div class="chart-container"><div class="chart-wrap" style="position:relative;height:200px"><canvas id="chart-status"></canvas></div></div>
-        </div>
-      </div>
-
-      <!-- Botões de Migração -->
-      <div id="mig-bar" style="background:#fff8e0;border:1px solid #fac775;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <div style="font-size:13px;color:#633806;font-weight:500">⚠ Migração de dados pendente — execute uma vez para importar dados da planilha</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" style="background:#2E3486;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarDatasNascimento()">📅 Migrar Datas de Nascimento</button>
-          <button class="btn" style="background:#1D9E75;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarLocalizacoes()">📍 Migrar Localizações</button>
-          <button class="btn" style="background:#4a52c8;color:#fff;font-size:12px;padding:6px 14px" onclick="migrarEtapas()">▶ Migrar Etapas</button>
-          <button class="btn" style="background:#888;color:#fff;font-size:12px;padding:6px 14px" onclick="document.getElementById('mig-bar').style.display='none'">✕ Fechar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ph">
-          <h2>Chamados Recentes</h2>
-          <button class="btn btn-g" onclick="go('chamados')">Ver Todos</button>
-        </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="ph"><h2>Chamados Recentes</h2></div>
         <div id="dash-chamados"></div>
       </div>
     </div>
@@ -392,67 +252,29 @@ tr:hover td{background:#faf9f5}
 
     <!-- PROJETOS -->
     <div id="page-projetos" class="page">
-      <div class="etapa-tabs" id="etapa-tabs">
-        <div class="etab on" onclick="setEtapaTab('')">Todos <span class="etab-cnt" id="ecnt-all"></span></div>
-        <div class="etab" onclick="setEtapaTab('Proposta')">📋 Proposta <span class="etab-cnt" id="ecnt-Proposta"></span></div>
-        <div class="etab" onclick="setEtapaTab('Aprovação')">✅ Aprovação <span class="etab-cnt" id="ecnt-Aprovação"></span></div>
-        <div class="etab" onclick="setEtapaTab('Visita Técnica')">🔍 Visita Técnica <span class="etab-cnt" id="ecnt-Visita Técnica"></span></div>
-        <div class="etab" onclick="setEtapaTab('Elaboração')">📐 Elaboração <span class="etab-cnt" id="ecnt-Elaboração"></span></div>
-        <div class="etab" onclick="setEtapaTab('Projeto Enviado')">📤 Projeto Enviado <span class="etab-cnt" id="ecnt-Projeto Enviado"></span></div>
-        <div class="etab" onclick="setEtapaTab('Instalação')">🔧 Instalação <span class="etab-cnt" id="ecnt-Instalação"></span></div>
-        <div class="etab" onclick="setEtapaTab('Vistoria')">🏛️ Vistoria <span class="etab-cnt" id="ecnt-Vistoria"></span></div>
-        <div class="etab" onclick="setEtapaTab('Concluído')">⭐ Concluído <span class="etab-cnt" id="ecnt-Concluído"></span></div>
-      </div>
-      <div class="fbar">
-        <div class="fs">
-          <span class="sic">🔍</span>
-          <input type="text" id="f-proj" placeholder="Buscar por cliente, CPF ou UC…" oninput="renderProjetos()">
-        </div>
+      <div class="fbar" style="display:flex;gap:10px;margin-bottom:16px">
+        <input type="text" id="f-proj" class="fsel" style="flex:1" placeholder="Buscar por cliente, CPF ou UC…" oninput="renderProjetos()">
       </div>
       <div class="tw">
-        <table id="t-projetos">
+        <table>
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Potência</th>
-              <th>Etapa</th>
-              <th>Ligação</th>
-              <th>Ações</th>
-            </tr>
+            <tr><th>ID</th><th>Cliente</th><th>Potência</th><th>Etapa</th><th>Ligação</th><th>Ações</th></tr>
           </thead>
           <tbody id="b-projetos"></tbody>
         </table>
-        <div class="proj-cards-mobile" id="proj-cards-mobile" style="display:none"></div>
       </div>
     </div>
 
     <!-- CHAMADOS -->
     <div id="page-chamados" class="page">
-      <div class="fbar">
-        <div class="fs">
-          <span class="sic">🔍</span>
-          <input type="text" id="f-cham" placeholder="Buscar chamado…" oninput="renderChamados()">
-        </div>
-        <select class="fsel" id="f-st-cham" onchange="renderChamados()">
-          <option value="">Todos os Status</option>
-          <option value="Aberto">Abertos</option>
-          <option value="Em Andamento">Em Andamento</option>
-          <option value="Resolvido">Resolvidos</option>
-        </select>
+      <div class="fbar" style="display:flex;gap:10px;margin-bottom:16px">
+        <input type="text" id="f-cham" class="fsel" style="flex:1" placeholder="Buscar chamado…" oninput="renderChamados()">
         <button class="btn btn-p" onclick="openModalChamado()">+ Novo Chamado</button>
       </div>
       <div class="tw">
         <table>
           <thead>
-            <tr>
-              <th>Data</th>
-              <th>Projeto / Cliente</th>
-              <th>Tipo</th>
-              <th>Prioridade</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
+            <tr><th>Data</th><th>Cliente</th><th>Tipo</th><th>Status</th><th>Ações</th></tr>
           </thead>
           <tbody id="b-chamados"></tbody>
         </table>
@@ -461,592 +283,122 @@ tr:hover td{background:#faf9f5}
 
     <!-- LEITURAS -->
     <div id="page-leituras" class="page">
-      <div class="ph">
-        <h2>Histórico de Leituras</h2>
-        <button class="btn btn-p" onclick="openModalLeitura()">+ Registrar Leitura</button>
-      </div>
-      <div class="tw">
-        <div id="b-leituras"></div>
-      </div>
+      <div class="ph"><h2>Histórico de Leituras</h2><button class="btn btn-p" onclick="openModalLeitura()">+ Registrar</button></div>
+      <div id="b-leituras"></div>
     </div>
 
+    <!-- MAPA -->
+    <div id="page-mapa" class="page">
+      <div class="ph"><h2>Mapa de Clientes</h2></div>
+      <div id="mapa-leaflet" style="width:100%;height:500px;border-radius:12px;border:1px solid #ccc"></div>
+    </div>
 
     <!-- PROPOSTAS -->
     <div id="page-propostas" class="page">
-      <div class="ph" style="margin-bottom:20px">
-        <h2>📋 Propostas</h2>
-        <div style="font-size:13px;color:var(--txts)">Gere propostas profissionais para WhatsApp</div>
-      </div>
-
       <div class="prop-layout">
-        <!-- FORMULÁRIO -->
         <div class="prop-form">
           <div class="card">
-            <h3>👤 Dados do Cliente</h3>
+            <h3>Dados da Proposta</h3>
             <div class="prop-fg">
-              <div class="prop-fgrp full">
-                <label>Nome do Cliente *</label>
-                <input type="text" id="pp-nome" placeholder="Ex: João Silva" oninput="atualizarPreview()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Cidade</label>
-                <input type="text" id="pp-cidade" placeholder="Teresina" oninput="atualizarPreview()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Consumo Mensal (kWh)</label>
-                <input type="number" id="pp-consumo" placeholder="400" oninput="atualizarPreview()">
-              </div>
+              <div class="prop-fgrp full"><label>Nome do Cliente</label><input type="text" id="pp-nome" oninput="atualizarPreview()"></div>
+              <div class="prop-fgrp"><label>Qtd Módulos</label><input type="number" id="pp-modulos" oninput="atualizarPreview()"></div>
+              <div class="prop-fgrp"><label>Potência Módulo (Wp)</label><input type="number" id="pp-wpmod" oninput="atualizarPreview()"></div>
+              <div class="prop-fgrp"><label>Inversor</label><input type="text" id="pp-inv" oninput="atualizarPreview()"></div>
+              <div class="prop-fgrp"><label>Valor Total (R$)</label><input type="number" id="pp-valor" oninput="atualizarPreview()"></div>
             </div>
-
-            <h3 style="margin-top:16px">⚡ Sistema Solar</h3>
-            <div class="prop-fg">
-              <div class="prop-fgrp">
-                <label>Qtd. Módulos *</label>
-                <input type="number" id="pp-modulos" placeholder="13" oninput="calcularProposta()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Potência Módulo (Wp)</label>
-                <input type="number" id="pp-wpmod" placeholder="610" oninput="calcularProposta()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Inversor</label>
-                <input type="text" id="pp-inv" placeholder="SOLPLANET" oninput="atualizarPreview()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Potência Inversor</label>
-                <input type="text" id="pp-pinv" placeholder="6 KW" oninput="atualizarPreview()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Geração Mensal (kWh)</label>
-                <input type="number" id="pp-geracao" placeholder="800" oninput="atualizarPreview()">
-              </div>
-              <div class="prop-fgrp">
-                <label>Tarifa kWh (R$)</label>
-                <input type="number" id="pp-tarifa" placeholder="0.85" step="0.01" oninput="atualizarPreview()">
-              </div>
-            </div>
-
-            <h3 style="margin-top:16px">💰 Investimento</h3>
-            <div class="prop-fg">
-              <div class="prop-fgrp full">
-                <label>Valor Total (R$) *</label>
-                <input type="number" id="pp-valor" placeholder="15000" oninput="atualizarPreview()">
-              </div>
-              <div class="prop-fgrp full">
-                <label>Modalidade de Pagamento</label>
-                <select id="pp-modalidade" onchange="atualizarModalidade()">
-                  <option value="avista">À Vista</option>
-                  <option value="cartao">Cartão de Crédito</option>
-                  <option value="financiado">Financiado</option>
-                </select>
-              </div>
-            </div>
-            <!-- Campos extras para parcelamento (ocultos por padrão) -->
-            <div id="pp-parcelas-wrap" style="display:none">
-              <div class="prop-fg" style="margin-top:10px">
-                <div class="prop-fgrp">
-                  <label>Parcelas (até)</label>
-                  <select id="pp-parcelas" onchange="atualizarPreview()">
-                    <option value="6">6x</option>
-                    <option value="12">12x</option>
-                    <option value="18">18x</option>
-                    <option value="24">24x</option>
-                    <option value="36">36x</option>
-                    <option value="48">48x</option>
-                    <option value="60">60x</option>
-                  </select>
-                </div>
-                <div class="prop-fgrp">
-                  <label>Taxa de Juros (% a.m.)</label>
-                  <input type="number" id="pp-juros" placeholder="1.49" step="0.01" oninput="atualizarPreview()">
-                </div>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
-              <button class="btn btn-y" onclick="gerarPNG()" style="flex:1;justify-content:center">
-                📥 Baixar PNG para WhatsApp
-              </button>
-              <button class="btn btn-g" onclick="limparProposta()">🗑 Limpar</button>
-            </div>
+            <button class="btn btn-y" style="margin-top:20px;width:100%" onclick="gerarPNG()">Baixar Imagem da Proposta</button>
           </div>
         </div>
-
-        <!-- PREVIEW -->
         <div class="prop-preview-wrap">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--az);margin:0">Prévia da Proposta</h3>
-            <span style="font-size:11px;color:var(--txts)">480px × WhatsApp</span>
+          <div id="prop-card" style="width:520px;background:#fff;padding:20px;border:1px solid #eee">
+            <div style="background:var(--az);color:#fff;padding:15px;text-align:center;font-weight:bold;font-size:20px">SOLAR MACHADO - PROPOSTA</div>
+            <div style="padding:20px">
+              <p><strong>Cliente:</strong> <span id="pc-nome">—</span></p>
+              <p><strong>Sistema:</strong> <span id="pc-kwp">—</span> kWp</p>
+              <p><strong>Equipamentos:</strong> <span id="pc-equip">—</span></p>
+              <h2 style="color:var(--ok);margin-top:20px">Investimento: <span id="pc-valor">R$ —</span></h2>
+            </div>
           </div>
-          <div class="preview-scale-wrap">
-            <div id="prop-card" style="width:520px;background:#fff;font-family:Arial,sans-serif;border-radius:4px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)">
-
-  <!-- CABEÇALHO AZUL -->
-  <div style="background:#2E3486;padding:18px 24px;display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <div style="font-size:22px;font-weight:900;color:#FDC300;letter-spacing:-0.5px;font-family:'Arial Black',Arial">☀ Solar Machado</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.6);letter-spacing:2px;text-transform:uppercase;margin-top:3px">Energia solar e soluções elétricas</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:.5px">PROPOSTA COMERCIAL</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.5);margin-top:2px">SISTEMA DE ENERGIA SOLAR</div>
-    </div>
-  </div>
-
-  <!-- FOTO SOLAR placeholder -->
-  <div style="background:#EDECE5;height:90px;display:flex;align-items:center;justify-content:center;border-bottom:3px solid #2E3486">
-    <div style="text-align:center;color:#888">
-      <div style="font-size:28px">☀ ☀ ☀</div>
-      <div style="font-size:10px;letter-spacing:1px;margin-top:4px">ENERGIA FOTOVOLTAICA</div>
-    </div>
-  </div>
-
-  <!-- TEXTO INTRO -->
-  <div style="padding:14px 20px 10px;font-size:11px;color:#333;line-height:1.6;border-bottom:1px solid #f0efe8">
-    É com grande satisfação que apresentamos sua proposta personalizada para geração de energia solar.
-    O sistema foi dimensionado de acordo com seu perfil de consumo para maximizar sua economia.
-  </div>
-
-  <!-- RESUMO: SISTEMA + GERAÇÃO -->
-  <div style="padding:12px 20px 8px">
-    <div style="font-size:11px;font-weight:700;color:#2E3486;letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase">Resumo da Proposta</div>
-    <div style="display:flex;gap:10px">
-      <!-- SISTEMA -->
-      <div style="flex:1;display:flex;align-items:center;gap:10px;background:#f7f6f1;border-radius:8px;padding:10px 12px">
-        <div style="width:36px;height:36px;background:#2E3486;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">☀</div>
-        <div>
-          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px">Sistema</div>
-          <div style="font-size:16px;font-weight:900;color:#2E3486;font-family:'Arial Black',Arial" id="pc-kwp">— kWp</div>
-          <div style="font-size:9.5px;color:#555;margin-top:1px" id="pc-modulos-sub">— módulos</div>
         </div>
       </div>
-      <!-- GERAÇÃO -->
-      <div style="flex:1;display:flex;align-items:center;gap:10px;background:#f7f6f1;border-radius:8px;padding:10px 12px">
-        <div style="width:36px;height:36px;background:#FDC300;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚡</div>
-        <div>
-          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px">Geração Mensal</div>
-          <div style="font-size:16px;font-weight:900;color:#2E3486;font-family:'Arial Black',Arial" id="pc-geracao">— kWh</div>
-          <div style="font-size:9.5px;color:#555;margin-top:1px" id="pc-geracao-sub">estimado/mês</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- GRÁFICO GERAÇÃO MENSAL (barras) -->
-  <div style="padding:10px 20px">
-    <div style="font-size:11px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Geração Mensal — Teresina (kWh)</div>
-    <div id="pc-grafico" style="display:flex;align-items:flex-end;gap:3px;height:60px;background:#f7f6f1;border-radius:6px;padding:8px 8px 4px">
-      <!-- barras geradas via JS -->
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:3px">
-      <span style="font-size:8px;color:#888">Jan</span><span style="font-size:8px;color:#888">Fev</span>
-      <span style="font-size:8px;color:#888">Mar</span><span style="font-size:8px;color:#888">Abr</span>
-      <span style="font-size:8px;color:#888">Mai</span><span style="font-size:8px;color:#888">Jun</span>
-      <span style="font-size:8px;color:#888">Jul</span><span style="font-size:8px;color:#888">Ago</span>
-      <span style="font-size:8px;color:#888">Set</span><span style="font-size:8px;color:#888">Out</span>
-      <span style="font-size:8px;color:#888">Nov</span><span style="font-size:8px;color:#888">Dez</span>
-    </div>
-  </div>
-
-  <!-- INVESTIMENTO BOX AMARELO -->
-  <div style="margin:8px 20px;background:#FDC300;border-radius:8px;padding:14px 16px;text-align:center">
-    <div style="font-size:9px;font-weight:700;color:rgba(46,52,134,.7);text-transform:uppercase;letter-spacing:1.5px">Investimento Total</div>
-    <div style="font-size:26px;font-weight:900;color:#2E3486;font-family:'Arial Black',Arial;line-height:1.1;margin-top:4px" id="pc-valor">R$ —</div>
-    <div style="font-size:10px;color:rgba(46,52,134,.65);margin-top:4px" id="pc-parcela-sub" style="display:none"></div>
-  </div>
-
-  <!-- COMPONENTES + FINANCIAMENTO (2 colunas) -->
-  <div style="display:flex;gap:0;padding:10px 20px;gap:12px">
-    <!-- COMPONENTES -->
-    <div style="flex:1">
-      <div style="font-size:10px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Componentes do Sistema</div>
-      <div style="font-size:10px;color:#333;line-height:2">
-        <div id="pc-comp-inversor">✓ Inversor —</div>
-        <div id="pc-comp-modulos">✓ — módulos —Wp</div>
-        <div>✓ String Box e proteção</div>
-        <div>✓ Estrutura de fixação</div>
-        <div>✓ Projeto e homologação</div>
-        <div>✓ Instalação e comissionamento</div>
-      </div>
-    </div>
-    <!-- FINANCIAMENTO -->
-    <div id="pc-fin" style="flex:1;display:none">
-      <div class="fin-hdr" style="background:#2E3486;color:#fff;font-size:10px;font-weight:700;text-align:center;padding:7px;border-radius:6px 6px 0 0;text-transform:uppercase;letter-spacing:.5px">Opções de Financiamento</div>
-      <div style="border:1px solid #e4e3dc;border-top:none;border-radius:0 0 6px 6px;overflow:hidden">
-        <div style="display:flex;justify-content:space-between;background:#EDECE5;padding:5px 10px;font-size:9px;font-weight:700;color:#333;text-transform:uppercase">
-          <span>Parcelas</span><span style="color:#2E3486">Valor</span>
-        </div>
-        <div id="pc-parcelas-rows"></div>
-        <div style="display:flex;justify-content:space-between;background:#fff;padding:6px 10px;font-size:10px">
-          <span style="color:#555">À Vista</span><span style="font-weight:700;color:#2E3486" id="pc-avista">R$ —</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ECONOMIA -->
-  <div id="pc-economia" style="display:none;margin:4px 20px 8px;background:#e8f8ef;border-radius:8px;padding:10px 16px;text-align:center;border:1px solid #9FE1CB">
-    <div style="font-size:9px;font-weight:700;color:#085041;text-transform:uppercase;letter-spacing:1px">Economia Estimada</div>
-    <div style="font-size:18px;font-weight:900;color:#1D9E75;font-family:'Arial Black',Arial" id="pc-eco-val">R$ —/mês</div>
-    <div style="font-size:10px;color:#0f6e56;margin-top:2px" id="pc-eco-sub">Retorno em — anos</div>
-  </div>
-
-  <!-- RODAPÉ AZUL -->
-  <div style="background:#2E3486;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <div style="font-size:9.5px;color:rgba(255,255,255,.75);line-height:1.8">
-      📞 (86) 99977-2559 &nbsp;|&nbsp; 📷 @solarmachado<br>
-      🌐 solarmachado.com.br &nbsp;|&nbsp; 📍 Teresina, PI
-    </div>
-    <div style="display:flex;gap:6px">
-      <div style="background:#2E3486;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 8px;text-align:center;font-size:8.5px;color:#fff">👤 +500<br>sistemas</div>
-      <div style="background:#2E3486;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:6px 8px;text-align:center;font-size:8.5px;color:#fff">👥 Equipe<br>certificada</div>
-      <div style="background:#FDC300;border-radius:5px;padding:6px 8px;text-align:center;font-size:8.5px;color:#2E3486;font-weight:700">🎧 Suporte<br>completo</div>
-    </div>
-  </div>
-
-  <!-- CNPJ -->
-  <div style="background:#1e2260;padding:6px 20px;text-align:center;font-size:8.5px;color:rgba(255,255,255,.4)">
-    CNPJ 34.757.760/0001-60 • Ícaro Caio de Sousa Machado • Solar Machado Engenharia
-  </div>
-
-</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAPA DE CLIENTES -->
-    <div id="page-mapa" class="page">
-      <div class="ph" style="margin-bottom:16px">
-        <h2>🗺 Mapa de Clientes</h2>
-        <div style="font-size:13px;color:var(--txts)" id="mapa-cnt"></div>
-      </div>
-      <div style="border-radius:12px;overflow:hidden;border:1px solid #e4e3dc;margin-bottom:16px;position:relative">
-        <div id="mapa-leaflet" style="width:100%;height:460px;border-radius:12px"></div>
-        <div id="mapa-infobar" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(46,52,134,.92);color:#fff;padding:8px 18px;border-radius:20px;font-size:12.5px;font-weight:500;z-index:999;white-space:nowrap;pointer-events:none;display:none"></div>
-        <div id="mapa-loading" style="position:absolute;inset:0;background:rgba(255,255,255,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:998;border-radius:12px">
-          <div style="font-size:32px;margin-bottom:10px">📍</div>
-          <div style="font-size:13px;color:#2E3486;font-weight:500" id="mapa-loading-txt">Localizando endereços…</div>
-          <div style="font-size:11px;color:#5a5b6e;margin-top:4px" id="mapa-loading-sub"></div>
-        </div>
-      </div>
-      <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--az);margin-bottom:12px">Clientes com localização cadastrada</div>
-      <div id="mapa-lista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px"></div>
     </div>
 
   </div>
 </main>
 
-<!-- DETAIL PANEL -->
-<div class="det-panel" id="det-panel">
-  <div class="det-hdr">
-    <h3 id="det-title">Detalhes do Projeto</h3>
-    <button class="mcls" onclick="closeDet()">✕</button>
-  </div>
-  <div class="det-body" id="det-content"></div>
-</div>
-
 <!-- MODAL PROJETO -->
 <div class="mo" id="mo-proj">
   <div class="mbox">
-    <div class="mhdr">
-      <h3 id="mpt">Novo Projeto</h3>
-      <button class="mcls" onclick="closeMo('mo-proj')">✕</button>
-    </div>
+    <div class="mhdr"><h3 id="mpt">Projeto</h3><button class="mcls" onclick="closeMo('mo-proj')">✕</button></div>
     <div class="mbdy">
       <div class="tabs">
-        <div class="tab on" onclick="setTab(0)">Dados Gerais</div>
+        <div class="tab on" onclick="setTab(0)">Dados</div>
         <div class="tab" onclick="setTab(1)">Técnico</div>
-        <div class="tab" onclick="setTab(2)">Proteção</div>
-        <div class="tab" onclick="setTab(3)">Datas</div>
+        <div class="tab" onclick="setTab(2)">Obs</div>
       </div>
-      
       <div id="tab-0" class="tcon on">
         <div class="fg">
-          <div class="fgrp full"><label>Nome Completo do Cliente *</label><input type="text" id="p-nome"></div>
-          <div class="fgrp"><label>Nome p/ Exibição *</label><input type="text" id="p-cli"></div>
-          <div class="fgrp"><label>Data de Nascimento</label><input type="date" id="p-nasc"></div>
-          <div class="fgrp"><label>CPF/CNPJ</label><input type="text" id="p-cpf"></div>
-          <div class="fgrp"><label>Telefone/WhatsApp</label><input type="tel" id="p-tel" placeholder="5586999999999"></div>
-          <div class="fgrp"><label>Unidade Consumidora (UC)</label><input type="text" id="p-uc"></div>
-          <div class="fgrp full"><label>Endereço / Localização</label><input type="text" id="p-end" placeholder="Rua, número, bairro, cidade"></div>
-          <div class="fgrp">
-            <label>Latitude</label>
-            <div style="display:flex;gap:6px;align-items:center">
-              <input type="text" id="p-lat" placeholder="-5.0920">
-              <button type="button" onclick="buscarLocalizacao()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;background:var(--azs);color:var(--az);cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0">📍 Buscar</button>
-            </div>
-          </div>
-          <div class="fgrp"><label>Longitude</label><input type="text" id="p-lng" placeholder="-42.8019"></div>
-          <div class="fgrp"><label>Estado</label><select id="p-est"><option value="PI">Piauí</option><option value="MA">Maranhão</option><option value="CE">Ceará</option></select></div>
-          <div class="fgrp"><label>Etapa Atual</label><select id="p-etapa"></select></div>
-          <div class="fgrp"><label>Possui Beneficiário?</label>
-            <select id="p-ben">
-              <option value="Não">Não</option>
-              <option value="Sim">Sim</option>
-            </select>
-          </div>
+          <div class="fgrp full"><label>Cliente</label><input type="text" id="p-cli"></div>
+          <div class="fgrp"><label>CPF</label><input type="text" id="p-cpf"></div>
+          <div class="fgrp"><label>Telefone</label><input type="text" id="p-tel"></div>
+          <div class="fgrp"><label>Etapa</label><select id="p-etapa"></select></div>
         </div>
       </div>
-
       <div id="tab-1" class="tcon" style="display:none">
         <div class="fg">
-          <div class="fgrp"><label>Qtd Módulos</label><input type="number" id="p-mod" oninput="calcKwp()"></div>
-          <div class="fgrp"><label>Wp por Módulo</label><input type="number" id="p-wpmod" oninput="calcKwp()"></div>
-          <div class="fgrp"><label>Potência Total (kWp)</label><input type="number" step="0.01" id="p-kwp" readonly style="background:#f7f6f1"></div>
-          <div class="fgrp"><label>Valor do Projeto (R$)</label><input type="number" id="p-val"></div>
-          <div class="fgrp"><label>Inversor</label><input type="text" id="p-inv"></div>
-          <div class="fgrp"><label>Potência Inversor</label><input type="text" id="p-pinv"></div>
-          <div class="fgrp full"><label>Montador Responsável</label><input type="text" id="p-mont"></div>
+          <div class="fgrp"><label>Módulos</label><input type="number" id="p-mod" oninput="calcKwp()"></div>
+          <div class="fgrp"><label>Wp Módulo</label><input type="number" id="p-wpmod" oninput="calcKwp()"></div>
+          <div class="fgrp"><label>kWp Total</label><input type="number" id="p-kwp" readonly></div>
+          <div class="fgrp"><label>Valor</label><input type="number" id="p-val"></div>
         </div>
       </div>
-
       <div id="tab-2" class="tcon" style="display:none">
-        <div class="fg">
-          <div class="fgrp full"><label style="color:var(--az);font-weight:700">Proteção do Medidor</label></div>
-          <div class="fgrp full"><label>Disjuntor do Medidor (A)</label><input type="text" id="p-prot-med"></div>
-          <div class="fgrp full" style="margin-top:10px"><label style="color:var(--az);font-weight:700">Proteção CA (Quadro)</label></div>
-          <div class="fgrp"><label>Disjuntor CA (A)</label><input type="text" id="p-prot-ca-disj"></div>
-          <div class="fgrp"><label>DPS CA</label><input type="text" id="p-prot-ca-dps"></div>
-        </div>
-      </div>
-
-      <div id="tab-3" class="tcon" style="display:none">
-        <div class="fg">
-          <div class="fgrp"><label>Data Início</label><input type="date" id="p-dini"></div>
-          <div class="fgrp"><label>Data Ligação</label><input type="date" id="p-dlig"></div>
-          <div class="fgrp full"><label>Observações Internas</label><textarea id="p-obs"></textarea></div>
-        </div>
+        <div class="fgrp full"><label>Observações Internas</label><textarea id="p-obs" style="height:120px"></textarea></div>
       </div>
     </div>
-    <div class="mftr">
-      <button class="btn btn-g" onclick="closeMo('mo-proj')">Cancelar</button>
-      <button class="btn btn-p" onclick="saveProjeto()">Salvar Projeto</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CHAMADO -->
-<div class="mo" id="mo-ch">
-  <div class="mbox">
-    <div class="mhdr">
-      <h3 id="mct">Novo Chamado</h3>
-      <button class="mcls" onclick="closeMo('mo-ch')">✕</button>
-    </div>
-    <div class="mbdy">
-      <div class="fg">
-        <div class="fgrp full"><label>Projeto / Cliente (Opcional)</label><select id="mc-proj"></select></div>
-        <div class="fgrp full"><label>Nome do Cliente (Para Chamados Avulsos)</label><input type="text" id="mc-avulso" placeholder="Preencha se não houver projeto vinculado"></div>
-        <div class="fgrp"><label>Tipo de Ocorrência</label>
-          <select id="mc-tipo">
-            <option>Manutenção Preventiva</option>
-            <option>Limpeza de Módulos</option>
-            <option>Problema no Inversor</option>
-            <option>Problema na Rede</option>
-            <option>Visita Técnica</option>
-            <option>Outros</option>
-          </select>
-        </div>
-        <div class="fgrp"><label>Prioridade</label>
-          <select id="mc-pri">
-            <option>Baixa</option>
-            <option selected>Normal</option>
-            <option>Alta</option>
-            <option>Urgente</option>
-          </select>
-        </div>
-        <div class="fgrp"><label>Data</label><input type="date" id="mc-data"></div>
-        <div class="fgrp"><label>Status</label>
-          <select id="mc-st">
-            <option>Aberto</option>
-            <option>Em Andamento</option>
-            <option>Resolvido</option>
-          </select>
-        </div>
-        <div class="fgrp full"><label>Descrição do Problema *</label><textarea id="mc-desc"></textarea></div>
-        <div class="fgrp full"><label>Resolução / Notas Técnicas</label><textarea id="mc-res"></textarea></div>
-      </div>
-    </div>
-    <div class="mftr">
-      <button class="btn btn-g" onclick="closeMo('mo-ch')">Cancelar</button>
-      <button class="btn btn-p" onclick="saveChamado()">Salvar Chamado</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL LEITURA -->
-<div class="mo" id="mo-leit">
-  <div class="mbox">
-    <div class="mhdr">
-      <h3>Registrar Leitura de Geração</h3>
-      <button class="mcls" onclick="closeMo('mo-leit')">✕</button>
-    </div>
-    <div class="mbdy">
-      <div class="fg">
-        <div class="fgrp full"><label>Projeto / Cliente *</label><select id="ml-proj"></select></div>
-        <div class="fgrp"><label>Mês de Referência</label><input type="month" id="ml-mes"></div>
-        <div class="fgrp"><label>kWh Gerado</label><input type="number" id="ml-kwh"></div>
-        <div class="fgrp full"><label>Observações</label><textarea id="ml-obs"></textarea></div>
-      </div>
-    </div>
-    <div class="mftr">
-      <button class="btn btn-g" onclick="closeMo('mo-leit')">Cancelar</button>
-      <button class="btn btn-p" onclick="saveLeitura()">Salvar</button>
-    </div>
+    <div class="mftr"><button class="btn btn-p" onclick="saveProjeto()">Salvar</button></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════
-// MOBILE MENU
-// ══════════════════════════════════════════
-function toggleMenu(force) {
-  const sb = document.getElementById('sidebar');
-  const overlay = document.getElementById('sb-overlay');
-  const isOpen = force !== undefined ? force : !sb.classList.contains('open');
-  if (isOpen) { sb.classList.add('open'); overlay.classList.add('open'); }
-  else { sb.classList.remove('open'); overlay.classList.remove('open'); }
-}
-
-// ══════════════════════════════════════════
-// FIREBASE & DATA
-// ══════════════════════════════════════════
 let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
 const ETAPAS = ["Proposta","Aprovação","Visita Técnica","Elaboração","Projeto Enviado","Instalação","Vistoria","Concluído"];
+let _leafletMap = null;
 
-function setFbStatus(ok) {
-  const el = document.getElementById('fb-status');
-  if (!el) return;
-  el.textContent = ok ? '🟢 Firebase conectado' : '🔴 Erro no Firebase';
-  el.style.color = ok ? 'rgba(29,158,117,.9)' : 'rgba(216,90,48,.9)';
+function toggleMenu(force) {
+  const sb = document.getElementById('sidebar');
+  const isOpen = force !== undefined ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', isOpen);
+  document.getElementById('sb-overlay').classList.toggle('open', isOpen);
+}
+
+function go(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
+  document.getElementById('page-' + p).classList.add('on');
+  document.getElementById('tb-title').textContent = p.toUpperCase();
+  
+  const navItems = document.querySelectorAll('.ni');
+  const map = {dash:0, pipeline:1, projetos:2, chamados:3, leituras:4, mapa:5, propostas:6};
+  if(map[p] !== undefined) navItems[map[p]].classList.add('on');
+
+  if(p==='dash') renderDash();
+  if(p==='pipeline') renderPipeline();
+  if(p==='projetos') renderProjetos();
+  if(p==='mapa') initMapa();
 }
 
 function initFirebaseListeners() {
   db.collection('projetos').onSnapshot(snap => {
     PROJETOS = snap.docs.map(d => d.data());
-    PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
     renderProjetos(); renderDash(); renderPipeline();
-    setFbStatus(true);
-  }, err => { setFbStatus(false); });
-
+    document.getElementById('fb-status').textContent = '🟢 Conectado';
+  });
   db.collection('chamados').onSnapshot(snap => {
     CHAMADOS = snap.docs.map(d => d.data());
-    CHAMADOS.sort((a, b) => (b.id || 0) - (a.id || 0));
-    renderChamados(); renderDash();
-  });
-
-  db.collection('leituras').onSnapshot(snap => {
-    LEITURAS = snap.docs.map(d => d.data());
-    renderLeituras();
-  });
-}
-
-function fbWrite(coll, id, data) {
-  return db.collection(coll).doc(String(id)).set(data).catch(err => { toast('Erro ao salvar: ' + err.message, 'er'); throw err; });
-}
-
-function fbDelete(coll, id) {
-  return db.collection(coll).doc(String(id)).delete().catch(err => { toast('Erro ao excluir: ' + err.message, 'er'); throw err; });
-}
-
-// ══════════════════════════════════════════
-// CÁLCULOS AUTOMÁTICOS
-// ══════════════════════════════════════════
-function calcKwp() {
-  const mod = parseInt(document.getElementById('p-mod').value) || 0;
-  const wp = parseInt(document.getElementById('p-wpmod').value) || 0;
-  const kwp = (mod * wp) / 1000;
-  document.getElementById('p-kwp').value = kwp.toFixed(2);
-}
-
-// ══════════════════════════════════════════
-// NAVEGAÇÃO
-// ══════════════════════════════════════════
-function go(p) {
-  document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
-  document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
-  document.getElementById('page-' + p).classList.add('on');
-  const map = {dash:0,pipeline:1,projetos:2,chamados:3,leituras:4};
-  document.querySelectorAll('.ni')[map[p]]?.classList.add('on');
-  document.getElementById('tb-title').textContent = p.toUpperCase();
-  if(p==='dash') renderDash();
-  if(p==='pipeline') renderPipeline();
-  if(p==='projetos') renderProjetos();
-  if(p==='chamados') renderChamados();
-  if(p==='leituras') renderLeituras();
-}
-
-// ══════════════════════════════════════════
-// RENDERIZAÇÃO
-// ══════════════════════════════════════════
-let chDM=null, chDS=null;
-function renderDash() {
-  const conc = PROJETOS.filter(p=>p.etapa==='Concluído').length;
-  const kwp = PROJETOS.reduce((s,p)=>s+(p.kwp||0),0);
-  const chAbertos = CHAMADOS.filter(c=>c.status!=='Resolvido').length;
-  
-  document.getElementById('dash-kpis').innerHTML = `
-    <div class="kpi"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${PROJETOS.length}</div></div>
-    <div class="kpi"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
-    <div class="kpi"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} kWp</div></div>
-    <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
-  `;
-
-  const rec = CHAMADOS.slice(0,5);
-  document.getElementById('dash-chamados').innerHTML = rec.map(c=>{
-    const p = PROJETOS.find(x=>x.id===c.projetoId);
-    return `<div class="chamado-row"><div class="ch-info"><div class="cn">${c.tipo} — ${p?.cliente || c.clienteAvulso || 'Avulso'}</div><div class="cs">${c.desc}</div><div class="cd">${fmt_data(c.data)} • ${c.status}</div></div></div>`;
-  }).join('') || '<div class="empty">Nenhum chamado.</div>';
-
-  renderCharts();
-}
-
-function renderCharts() {
-  const ctxM = document.getElementById('chart-mes');
-  const ctxS = document.getElementById('chart-status');
-  if(!ctxM || !ctxS) return;
-  if(chDM) chDM.destroy(); if(chDS) chDS.destroy();
-  const mob = window.innerWidth <= 768;
-
-  // Calcular projetos por mês real
-  const mmap = {};
-  PROJETOS.forEach(p => {
-    if (!p.dataInicio) return;
-    const m = p.dataInicio.slice(0,7);
-    mmap[m] = (mmap[m]||0)+1;
-  });
-  const mkeys = Object.keys(mmap).sort();
-  const mlabels = mkeys.map(k => {
-    const [y,mo] = k.split('-');
-    return ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+mo]+'/'+y.slice(2);
-  });
-
-  chDM = new Chart(ctxM, {
-    type:'bar',
-    data:{ labels:mlabels, datasets:[{label:'Projetos',data:mkeys.map(k=>mmap[k]),backgroundColor:'#2E3486',borderRadius:5,borderSkipped:false}] },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.y+' projeto'+(ctx.parsed.y!==1?'s':'')}}
-      },
-      scales:{
-        y:{beginAtZero:true,ticks:{stepSize:1,font:{size:mob?9:10}},grid:{color:'#f0efe8'}},
-        x:{ticks:{font:{size:mob?9:10},maxRotation:mob?40:0},grid:{display:false}}
-      }
-    }
-  });
-
-  const mob2 = window.innerWidth <= 768;
-  const stCounts = ETAPAS.map(e => PROJETOS.filter(p=>p.etapa===e).length);
-  chDS = new Chart(ctxS, {
-    type:'doughnut',
-    data:{ labels:ETAPAS, datasets:[{data:stCounts,backgroundColor:['#EDECE5','#d3d1c7','#b5d4f4','#4a52c8','#FDC300','#1D9E75'],borderWidth:0}] },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:mob2?10:11},padding:mob2?6:10,boxWidth:mob2?10:12}}}
-    }
+    renderChamados();
   });
 }
 
@@ -1054,1023 +406,129 @@ function renderPipeline() {
   const cont = document.getElementById('pipe-container');
   if(!cont) return;
   cont.innerHTML = ETAPAS.map(e => {
-    const projs = PROJETOS.filter(p=>p.etapa===e);
+    const projs = PROJETOS.filter(p => p.etapa === e);
     return `
-      <div class="pipe-col" ondragover="allowDrop(event)" ondrop="drop(event, '${e}')">
-        <div class="pipe-hdr"><span class="pt">${{'Proposta':'📋','Aprovação':'✅','Visita Técnica':'🔍','Elaboração':'📐','Projeto Enviado':'📤','Instalação':'🔧','Vistoria':'🏛️','Concluído':'⭐'}[e]||''} ${e}</span><span class="pc">${projs.length}</span></div>
+      <div class="pipe-col" ondragover="event.preventDefault()" ondrop="drop(event, '${e}')">
+        <div class="pipe-hdr"><span class="pt">${e}</span><span class="pc">${projs.length}</span></div>
         <div class="pipe-body">
-          ${projs.map(p=>`
-            <div class="pcard" draggable="true" ondragstart="drag(event, ${p.id})" onclick="openDet(${p.id})">
+          ${projs.map(p => `
+            <div class="pcard" draggable="true" ondragstart="event.dataTransfer.setData('pid', ${p.id})">
               <div class="pcn">${p.cliente}</div>
               <div class="pcs"><span>${p.kwp} kWp</span></div>
-              <span class="pckwp">R$ ${fmt(p.valor)}</span>
-              ${p.obs ? `<div class="pcard-obs"><span style="color:var(--am);font-style:normal">📝</span> ${p.obs.length > 65 ? p.obs.slice(0,65)+'…' : p.obs}</div>` : ''}
+              ${p.obs ? `<div class="pcard-obs">📝 ${p.obs.length > 50 ? p.obs.slice(0,50)+'...' : p.obs}</div>` : ''}
             </div>
           `).join('')}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
-function renderProjetos() {
-  atualizarContadoresAbas();
-  const q = (document.getElementById('f-proj')?.value || '').toLowerCase();
-  const filtered = PROJETOS.filter(p => {
-    const matchQ = !q || (p.cliente||'').toLowerCase().includes(q)
-      || (p.cpf||'').includes(q) || (p.uc||'').includes(q);
-    const matchE = !etapaTabAtual || p.etapa === etapaTabAtual;
-    return matchQ && matchE;
-  });
-
-  document.getElementById('b-projetos').innerHTML = filtered.map(p => {
-    const wppNum = (p.tel||'').replace(/\D/g,'');
-    const wppLink = wppNum
-      ? `<a href="https://wa.me/${wppNum}" target="_blank" class="wpp-link" onclick="event.stopPropagation()">
-          <svg width="13" height="13" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4zm-7.4 16.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5s2.5 3.7 2.5 6c0 4.7-3.8 8.5-8.4 8.5zm4.6-6.3c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.2-.7.7-1 1.5-1 2.4 0 .9.6 1.8 1.3 2.5 1.4 1.7 3.2 2.9 5.2 3.5 1.5.4 2.1.1 2.5-.2.4-.3 1-1.2 1.2-1.7.2-.5.2-.9.1-1z" fill="white"/></svg>
-          ${p.tel}
-        </a>`
-      : '';
-    return `<tr>
-      <td>#${p.id}</td>
-      <td>
-        <div class="td-cli-wrap">
-          <span class="td-cli-name">${p.cliente || '—'}</span>
-          ${wppLink}
-        </div>
-      </td>
-      <td>${p.kwp} kWp</td>
-      <td>${p.etapa}</td>
-      <td>${fmt_data(p.dataLigacao)}</td>
-      <td>
-        <div class="ab">
-          <button class="bi v" onclick="openDet(${p.id})" title="Visualizar">👁</button>
-          <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
-          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Chamado">🛠</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-
-  if (typeof renderProjetosCards === 'function') renderProjetosCards(filtered);
-}
-
-function renderChamados() {
-  const q = document.getElementById('f-cham').value.toLowerCase();
-  const filtered = CHAMADOS.filter(c => (c.tipo||'').toLowerCase().includes(q) || (c.desc||'').toLowerCase().includes(q));
-  document.getElementById('b-chamados').innerHTML = filtered.map(c => {
-    const p = PROJETOS.find(x=>x.id===c.projetoId);
-    return `<tr><td>${fmt_data(c.data)}</td><td>${p?.cliente || c.clienteAvulso || 'Avulso'}</td><td>${c.tipo}</td><td>${c.prioridade}</td><td>${c.status}</td><td><button class="bi e" onclick="editChamado(${c.id})">✎</button></td></tr>`;
-  }).join('');
-}
-
-function renderLeituras() {
-  const sorted = [...LEITURAS].sort((a,b)=>b.mes.localeCompare(a.mes));
-  document.getElementById('b-leituras').innerHTML = sorted.map(l => {
-    const p = PROJETOS.find(x=>x.id===l.projetoId);
-    return `<div class="card-sm" style="margin-bottom:10px"><b>${l.mes}</b>: ${l.kwh} kWh — ${p?.cliente || '—'}</div>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════════
-// DRAG AND DROP
-// ══════════════════════════════════════════
-function allowDrop(ev) { ev.preventDefault(); }
-function drag(ev, id) { ev.dataTransfer.setData("projectId", id); }
-function drop(ev, novaEtapa) {
-  ev.preventDefault();
-  const id = ev.dataTransfer.getData("projectId");
+function drop(ev, etapa) {
+  const id = ev.dataTransfer.getData('pid');
   const p = PROJETOS.find(x => x.id == id);
-  if (p && p.etapa !== novaEtapa) {
-    p.etapa = novaEtapa;
-    fbWrite('projetos', id, p).then(() => {
-      toast(`Projeto movido para ${novaEtapa}`, 'ok');
-      renderPipeline();
-    });
+  if(p) {
+    p.etapa = etapa;
+    db.collection('projetos').doc(String(id)).set(p, {merge:true}).then(() => toast('Movido!', 'ok'));
   }
 }
 
-// ══════════════════════════════════════════
-// DETALHES E HISTÓRICO
-// ══════════════════════════════════════════
-function openDet(id) {
-  const p = PROJETOS.find(x=>x.id===id); if(!p) return;
-  const hist = CHAMADOS.filter(c=>c.projetoId===id);
-  document.getElementById('det-title').textContent = p.cliente;
-
-  const wppNum = (p.tel||'').replace(/\D/g,'');
-  const wppHtml = wppNum
-    ? `<a href="https://wa.me/${wppNum}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:#1a8045;font-weight:500;text-decoration:none;padding:3px 9px;border-radius:6px;background:#e8f8ef;border:1px solid #b2e0c4;font-size:12px">
-        <svg width="13" height="13" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.5 6.5 18.9 5.4 16.1 5.4c-5.8 0-10.5 4.7-10.5 10.5 0 1.9.5 3.7 1.4 5.3L5.4 26.6l5.6-1.5c1.5.8 3.2 1.3 4.9 1.3h.1c5.8 0 10.5-4.7 10.5-10.5.1-2.8-1-5.4-3-7.4zm-7.4 16.1c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.7 3.8-8.5 8.5-8.5 2.3 0 4.4.9 6 2.5s2.5 3.7 2.5 6c0 4.7-3.8 8.5-8.4 8.5zm4.6-6.3c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.2-.7.7-1 1.5-1 2.4 0 .9.6 1.8 1.3 2.5 1.4 1.7 3.2 2.9 5.2 3.5 1.5.4 2.1.1 2.5-.2.4-.3 1-1.2 1.2-1.7.2-.5.2-.9.1-1z" fill="white"/></svg>
-        ${p.tel}
-      </a>`
-    : (p.tel || '—');
-
-  const mapsLink = p.mapsUrl || (p.lat && p.lng ? `https://www.google.com/maps?q=${p.lat},${p.lng}` : null);
-  const mapsHtml = mapsLink
-    ? `<a href="${mapsLink}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:var(--az);font-weight:500;text-decoration:none;padding:3px 9px;border-radius:6px;background:var(--azs);border:1px solid #b5d4f4;font-size:12px">📍 Ver no Maps</a>`
-    : '—';
-
-  document.getElementById('det-content').innerHTML = `
-    <div class="det-sec">
-      <div class="det-sec-ttl">👤 Dados do Cliente</div>
-      <div class="det-row"><span>Nome completo</span><span style="text-align:right;max-width:60%">${p.nome || '—'}</span></div>
-      <div class="det-row"><span>CPF / CNPJ</span><span><code style="font-size:12px;background:#f0efe8;padding:2px 7px;border-radius:5px">${p.cpf || '—'}</code></span></div>
-      <div class="det-row"><span>Nascimento</span><span>${fmt_data(p.dataNascimento)}</span></div>
-      <div class="det-row"><span>WhatsApp</span><span>${wppHtml}</span></div>
-      <div class="det-row"><span>UC (Unid. Consumidora)</span><span><code style="font-size:12px;background:#f0efe8;padding:2px 7px;border-radius:5px">${p.uc || '—'}</code></span></div>
-      <div class="det-row"><span>Localização</span><span>${mapsHtml}</span></div>
-      ${p.end && p.lat ? `<div class="det-row"><span>Endereço</span><span style="text-align:right;max-width:60%;font-size:12px">${p.end}</span></div>` : ''}
-    </div>
-
-    <div class="det-sec">
-      <div class="det-sec-ttl">⚡ Sistema Fotovoltaico</div>
-      <div class="det-row"><span>Potência</span><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--az)">${p.kwp} kWp</span></div>
-      <div class="det-row"><span>Módulos</span><span>${p.modulos || '—'} × ${p.wpMod || '—'} Wp</span></div>
-      <div class="det-row"><span>Inversor</span><span>${p.inversor || '—'} ${p.potInv || ''}</span></div>
-      <div class="det-row"><span>Montador</span><span>${p.montador || '—'}</span></div>
-      <div class="det-row"><span>Beneficiário</span><span>${p.possuiBeneficiario || 'Não'}</span></div>
-    </div>
-
-    <div class="det-sec">
-      <div class="det-sec-ttl">📅 Datas</div>
-      <div class="det-row"><span>Início</span><span>${fmt_data(p.dataInicio)}</span></div>
-      <div class="det-row"><span>Ligação</span><span>${fmt_data(p.dataLigacao)}</span></div>
-      <div class="det-row"><span>Etapa atual</span><span><span class="bd ${p.etapa==='Concluído'?'bd-ok':['Instalação','Vistoria','Visita Técnica'].includes(p.etapa)?'bd-am':['Aprovação','Elaboração','Projeto Enviado'].includes(p.etapa)?'bd-az':'bd-cz'}">${p.etapa}</span></span></div>
-    </div>
-
-    ${p.obs ? `<div class="det-sec">
-      <div class="det-sec-ttl">📝 Observações Internas</div>
-      <div style="font-size:13px;line-height:1.6;color:var(--txt);background:#faf9f5;border-radius:8px;padding:12px 14px;border-left:3px solid var(--am)">${p.obs}</div>
-    </div>` : ''}
-
-    <div class="det-sec">
-      <div class="det-sec-ttl">🛠 Histórico de Chamados</div>
-      ${hist.length ? hist.map(c=>`
-        <div class="hist-item">
-          <div class="hist-hdr">
-            <span class="hist-tipo">${c.tipo}</span>
-            <span class="hist-data">${fmt_data(c.data)}</span>
-          </div>
-          <div class="hist-desc">${c.desc}</div>
-          ${c.res ? `<div style="font-size:11.5px;color:var(--txts);margin-top:3px">↳ ${c.res}</div>` : ''}
-        </div>`).join('') : '<div style="font-size:13px;color:var(--txts);padding:8px 0">Sem chamados registrados.</div>'}
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-      <button class="btn btn-p" onclick="openEditProj(${p.id})">✎ Editar</button>
-      <button class="btn btn-y" onclick="openModalChamado(${p.id})">🛠 Chamado</button>
-    </div>
-  `;
-  document.getElementById('det-panel').classList.add('open');
-}
-function closeDet(){document.getElementById('det-panel').classList.remove('open');}
-
-// ══════════════════════════════════════════
-// MODAIS
-// ══════════════════════════════════════════
-let editProjId = null; let editChId = null;
-
-function openNovo() {
-  const p = document.querySelector('.page.on').id;
-  if(p==='page-chamados') openModalChamado();
-  else if(p==='page-leituras') openModalLeitura();
-  else openModalProj();
-}
-
-function openModalProj() {
-  editProjId = null; document.getElementById('mpt').textContent = 'Novo Projeto';
-  document.getElementById('mo-proj').classList.add('open');
-  document.querySelectorAll('#mo-proj input, #mo-proj select, #mo-proj textarea').forEach(i=>i.value='');
-  document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option>${e}</option>`).join('');
-  setTab(0);
+function renderProjetos() {
+  const q = document.getElementById('f-proj').value.toLowerCase();
+  const filtered = PROJETOS.filter(p => (p.cliente||'').toLowerCase().includes(q));
+  document.getElementById('b-projetos').innerHTML = filtered.map(p => `
+    <tr>
+      <td>#${p.id}</td><td>${p.cliente}</td><td>${p.kwp}</td><td>${p.etapa}</td><td>—</td>
+      <td>
+        <div class="ab">
+          <button class="bi e" onclick="openEditProj(${p.id})">✎</button>
+          <button class="bi ch" onclick="openModalChamado(${p.id})">🛠</button>
+        </div>
+      </td>
+    </tr>`).join('');
 }
 
 function openEditProj(id) {
-  const p = PROJETOS.find(x=>x.id===id); if(!p) return;
-  editProjId = id; document.getElementById('mpt').textContent = 'Editar Projeto #' + id;
-  document.getElementById('p-nome').value = p.nome || '';
+  const p = PROJETOS.find(x => x.id == id); if(!p) return;
+  editProjId = id;
   document.getElementById('p-cli').value = p.cliente || '';
-  document.getElementById('p-nasc').value = p.dataNascimento || '';
   document.getElementById('p-cpf').value = p.cpf || '';
   document.getElementById('p-tel').value = p.tel || '';
-  document.getElementById('p-uc').value = p.uc || '';
-  document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
   document.getElementById('p-mod').value = p.modulos || '';
   document.getElementById('p-wpmod').value = p.wpMod || '';
   document.getElementById('p-kwp').value = p.kwp || '';
   document.getElementById('p-val').value = p.valor || '';
-  document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
-  document.getElementById('p-dini').value = p.dataInicio || '';
-  document.getElementById('p-dlig').value = p.dataLigacao || '';
   document.getElementById('p-obs').value = p.obs || '';
-  closeDet(); document.getElementById('mo-proj').classList.add('open'); setTab(0);
+  document.getElementById('p-etapa').innerHTML = ETAPAS.map(e => `<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
+  document.getElementById('mo-proj').classList.add('open');
 }
 
 function saveProjeto() {
-  const id = editProjId || (PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1);
+  const id = editProjId || Date.now();
   const obj = {
-    id,
-    cliente: document.getElementById('p-cli').value,
-    nome: document.getElementById('p-nome').value,
-    dataNascimento: document.getElementById('p-nasc').value,
-    cpf: document.getElementById('p-cpf').value,
-    tel: document.getElementById('p-tel').value,
-    uc: document.getElementById('p-uc').value,
-    etapa: document.getElementById('p-etapa').value,
-    possuiBeneficiario: document.getElementById('p-ben').value,
-    modulos: parseInt(document.getElementById('p-mod').value)||0,
-    wpMod: parseInt(document.getElementById('p-wpmod').value)||0,
-    kwp: parseFloat(document.getElementById('p-kwp').value)||0,
-    valor: parseFloat(document.getElementById('p-val').value)||0,
-    dataInicio: document.getElementById('p-dini').value || '',
-    dataLigacao: document.getElementById('p-dlig').value || '',
-    obs: document.getElementById('p-obs').value.trim() || ''
+    id, cliente: document.getElementById('p-cli').value,
+    cpf: document.getElementById('p-cpf').value, tel: document.getElementById('p-tel').value,
+    etapa: document.getElementById('p-etapa').value, modulos: document.getElementById('p-mod').value,
+    wpMod: document.getElementById('p-wpmod').value, kwp: document.getElementById('p-kwp').value,
+    valor: document.getElementById('p-val').value, obs: document.getElementById('p-obs').value
   };
-  fbWrite('projetos', id, obj).then(() => { toast('Salvo!', 'ok'); closeMo('mo-proj'); });
-}
-
-function openModalChamado(projetoId) {
-  editChId=null;
-  const sel=document.getElementById('mc-proj');
-  sel.innerHTML='<option value="">Nenhum (Chamado Avulso)</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
-  document.getElementById('mc-avulso').value='';
-  document.getElementById('mc-desc').value='';
-  document.getElementById('mc-data').value=new Date().toISOString().slice(0,10);
-  document.getElementById('mo-ch').classList.add('open');
-}
-
-function editChamado(id) {
-  const c = CHAMADOS.find(x=>x.id===id); if(!c) return;
-  editChId = id; document.getElementById('mct').textContent = 'Editar Chamado #' + id;
-  const sel = document.getElementById('mc-proj');
-  sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>' + PROJETOS.map(p => `<option value="${p.id}" ${c.projetoId==p.id?'selected':''}>${p.cliente}</option>`).join('');
-  document.getElementById('mc-avulso').value = c.clienteAvulso || '';
-  document.getElementById('mc-tipo').value = c.tipo;
-  document.getElementById('mc-pri').value = c.prioridade;
-  document.getElementById('mc-data').value = c.data;
-  document.getElementById('mc-st').value = c.status;
-  document.getElementById('mc-desc').value = c.desc;
-  document.getElementById('mc-res').value = c.res || '';
-  document.getElementById('mo-ch').classList.add('open');
-}
-
-function saveChamado() {
-  const id = editChId || (CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
-  const obj = {
-    id, projetoId: parseInt(document.getElementById('mc-proj').value) || null,
-    clienteAvulso: document.getElementById('mc-avulso').value,
-    tipo: document.getElementById('mc-tipo').value, prioridade: document.getElementById('mc-pri').value,
-    status: document.getElementById('mc-st').value, desc: document.getElementById('mc-desc').value,
-    data: document.getElementById('mc-data').value, res: document.getElementById('mc-res').value
-  };
-  fbWrite('chamados', id, obj).then(() => { toast('Chamado Salvo!', 'ok'); closeMo('mo-ch'); });
-}
-
-function openModalLeitura() {
-  const sel=document.getElementById('ml-proj');
-  sel.innerHTML=PROJETOS.map(p=>`<option value="${p.id}">${p.cliente}</option>`).join('');
-  document.getElementById('ml-mes').value=new Date().toISOString().slice(0,7);
-  document.getElementById('ml-kwh').value='';
-  document.getElementById('mo-leit').classList.add('open');
-}
-
-function saveLeitura() {
-  const id = LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
-  const obj = { id, projetoId: parseInt(document.getElementById('ml-proj').value), mes: document.getElementById('ml-mes').value, kwh: parseFloat(document.getElementById('ml-kwh').value) };
-  fbWrite('leituras', id, obj).then(() => { toast('Leitura Salva!', 'ok'); closeMo('mo-leit'); });
-}
-
-function setTab(i) {
-  document.querySelectorAll('.tab').forEach((t,idx)=>t.classList.toggle('on', idx===i));
-  document.querySelectorAll('.tcon').forEach((c,idx)=>c.style.display = idx===i?'block':'none');
-}
-function closeMo(id){document.getElementById(id).classList.remove('open');}
-function fmt_data(d){if(!d)return'—'; return new Date(d+'T12:00').toLocaleDateString('pt-BR');}
-function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});}
-function toast(msg,type){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>{t.className='toast';},2800);}
-
-window.addEventListener('load', () => { setTimeout(initFirebaseListeners, 500); });
-
-// ══════════════════════════════════════════
-// MOBILE — Cards de projetos + charts responsivos
-// ══════════════════════════════════════════
-
-function isMobile() { return window.innerWidth <= 768; }
-
-function renderProjetosCards(data) {
-  const container = document.getElementById('proj-cards-mobile');
-  const tabela = document.getElementById('t-projetos');
-  if (!container) return;
-
-  if (isMobile()) {
-    tabela.style.display = 'none';
-    container.style.display = 'flex';
-  } else {
-    tabela.style.display = '';
-    container.style.display = 'none';
-    return;
-  }
-
-  if (!data || !data.length) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:#5a5b6e;font-size:13px">Nenhum projeto encontrado.</div>';
-    return;
-  }
-
-  const etapaCor = {
-    'Concluído':'bd-ok',
-    'Instalação':'bd-am','Vistoria':'bd-am','Visita Técnica':'bd-am',
-    'Aprovação':'bd-az','Elaboração':'bd-az','Projeto Enviado':'bd-az',
-    'Proposta':'bd-cz'
-  };
-
-  container.innerHTML = data.map(p => {
-    const cls = etapaCor[p.etapa] || 'bd-cz';
-    const dl = p.dataLigacao ? fmt_data(p.dataLigacao) : '—';
-    const di = p.dataInicio ? fmt_data(p.dataInicio) : '—';
-    return `<div class="proj-card-mob">
-      <div class="pcm-top">
-        <div>
-          <div class="pcm-nome">${p.cliente || '—'}</div>
-          <div class="pcm-sub">#${p.id} · ${p.estado || 'PI'} · ${p.montador || '—'}</div>
-        </div>
-        <div class="pcm-kwp">${(+p.kwp||0).toFixed(1)}<span style="font-size:11px;font-weight:400"> kWp</span></div>
-      </div>
-      <div class="pcm-meta">
-        <div class="pcm-item">Inversor<strong>${p.inversor || '—'} ${p.potInv || ''}</strong></div>
-        <div class="pcm-item">Módulos<strong>${p.modulos || '—'}x ${p.wpMod || '—'}Wp</strong></div>
-        <div class="pcm-item">Início<strong>${di}</strong></div>
-        <div class="pcm-item">Ligação<strong>${dl}</strong></div>
-      </div>
-      <div class="pcm-foot">
-        <span class="bd ${cls}">${p.etapa}</span>
-        <div class="ab">
-          <button class="bi v" onclick="openDet(${p.id})" title="Ver">👁</button>
-          <button class="bi e" onclick="openEditProj(${p.id})" title="Editar">✎</button>
-          <button class="bi ch" onclick="openModalChamado(${p.id})" title="Chamado">🛠</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-
-
-// Ajustar charts para mobile (aspectRatio)
-function getChartAspectRatio(tipo) {
-  if (!isMobile()) return tipo === 'doughnut' ? 1.6 : 2;
-  return tipo === 'doughnut' ? 1.2 : 1.6;
-}
-
-// Remontar charts ao girar tela
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    renderCharts();
-    renderProjetosCards(PROJETOS);
-  }, 250);
-});
-
-// Inicializar cards na primeira carga
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => renderProjetosCards(PROJETOS), 800);
-});
-
-
-
-// ══════════════════════════════════════════
-
-// ══════════════════════════════════════════
-// ABAS DE ETAPA — Projetos
-// ══════════════════════════════════════════
-let etapaTabAtual = '';
-
-function setEtapaTab(etapa) {
-  etapaTabAtual = etapa;
-  document.querySelectorAll('.etab').forEach(el => el.classList.remove('on'));
-  const etapas = ['', 'Visita', 'Proposta', 'Aprovação', 'Instalação', 'Ligação', 'Concluído'];
-  const idx = etapas.indexOf(etapa);
-  document.querySelectorAll('.etab')[idx]?.classList.add('on');
-  renderProjetos();
-}
-
-// Corrigir typo na aba Proposta
-function setEtabaTab(e) { setEtapaTab(e); }
-
-function atualizarContadoresAbas() {
-  const etapas = ['', 'Proposta', 'Aprovação', 'Visita Técnica', 'Elaboração', 'Projeto Enviado', 'Instalação', 'Vistoria', 'Concluído'];
-  const ids = ['all', 'Proposta', 'Aprovação', 'Visita Técnica', 'Elaboração', 'Projeto Enviado', 'Instalação', 'Vistoria', 'Concluído'];
-  etapas.forEach((e, i) => {
-    const el = document.getElementById('ecnt-' + ids[i]);
-    if (!el) return;
-    const cnt = e === '' ? PROJETOS.length : PROJETOS.filter(p => p.etapa === e).length;
-    el.textContent = cnt;
+  db.collection('projetos').doc(String(id)).set(obj).then(() => {
+    toast('Salvo!', 'ok'); closeMo('mo-proj');
   });
 }
 
-// Patch renderProjetos para filtrar por aba
-
-
-// ══════════════════════════════════════════
-// LOCALIZAÇÃO — Buscar coordenadas pelo endereço
-// ══════════════════════════════════════════
-function buscarLocalizacao() {
-  const end = document.getElementById('p-end')?.value;
-  if (!end) { toast('Digite um endereço primeiro.', 'er'); return; }
-  const url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(end + ', Teresina, Piauí, Brasil');
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data && data.length > 0) {
-        document.getElementById('p-lat').value = parseFloat(data[0].lat).toFixed(6);
-        document.getElementById('p-lng').value = parseFloat(data[0].lon).toFixed(6);
-        toast('Localização encontrada!', 'ok');
-      } else {
-        toast('Endereço não encontrado. Tente ser mais específico.', 'er');
-      }
-    })
-    .catch(() => toast('Erro ao buscar localização.', 'er'));
-}
-
-// ══════════════════════════════════════════
-// SALVAR localização no saveProjeto
-// já incluído — apenas garantir nos campos extras
-// ══════════════════════════════════════════
-
-// ══════════════════════════════════════════
-// MAPA DE CLIENTES
-// ══════════════════════════════════════════
-// ── MAPA LEAFLET ─────────────────────────────
-let _leafletMap = null;
-let _mapaMarkers = [];
-let _geocodeCache = {};
-
-function iniciarLeafletMap() {
-  if (_leafletMap) return;
-  if (typeof L === 'undefined') { setTimeout(iniciarLeafletMap, 400); return; }
-  const el = document.getElementById('mapa-leaflet');
-  if (!el) { setTimeout(iniciarLeafletMap, 400); return; }
-  _leafletMap = L.map('mapa-leaflet', { zoomControl: true }).setView([-5.0892, -42.8019], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap', maxZoom: 19
-  }).addTo(_leafletMap);
-  // Forçar renderização correta do tamanho
-  setTimeout(() => _leafletMap.invalidateSize(), 100);
-}
-
-function criarPinSolar(kwp) {
-  const k = parseFloat(kwp) || 0;
-  const size = k >= 20 ? 36 : k >= 10 ? 30 : 26;
-  const cor = k >= 20 ? '#FDC300' : k >= 10 ? '#2E3486' : '#4a52c8';
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + (size+8) + '" viewBox="0 0 28 36">'
-    + '<path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="' + cor + '" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>'
-    + '<circle cx="14" cy="14" r="5" fill="rgba(255,255,255,.9)"/></svg>';
-  return L.divIcon({ html: svg, className: '', iconSize: [size, size+8], iconAnchor: [size/2, size+8], popupAnchor: [0, -(size+8)] });
-}
-
-const COORDS_FIXAS = {
-  1: [-5.0934, -42.7967],
-  2: [-4.8736, -42.1388],
-  3: [-4.9761, -44.7834],
-  4: [-5.1627, -42.7867],
-  5: [-5.12, -42.805],
-  6: [-5.065, -42.82],
-  7: [-5.095, -42.875],
-  8: [-5.085, -42.81],
-  9: [-7.2333, -43.0333],
-  10: [-5.11, -42.8],
-  11: [-5.078, -42.81],
-  12: [-5.078, -42.81],
-  13: [-5.117, -42.787],
-  14: [-5.135, -42.79],
-  15: [-5.115, -42.795],
-  16: [-5.145, -42.783],
-  17: [-5.07, -42.805],
-  18: [-5.09, -42.805],
-  19: [-5.095, -42.8],
-  20: [-5.105, -42.83],
-  21: [-5.135, -42.79],
-  22: [-5.136, -42.789],
-  23: [-5.134, -42.791],
-  24: [-5.08, -42.802],
-  25: [-5.06, -42.78],
-  26: [-5.1, -42.81],
-  27: [-5.11, -42.805],
-  28: [-5.137, -42.788],
-  29: [-5.085, -42.802],
-  31: [-5.065, -42.815],
-  33: [-5.1172, -42.7587],
-  34: [-5.1167, -42.4678],
-  35: [-5.55, -42.68],
-  36: [-5.07, -42.83],
-};
-
-async function geocodificarEndereco(end, idx, pid) {
-  // 1. Usar coordenadas fixas pré-calculadas se disponível
-  if (pid && COORDS_FIXAS[pid]) {
-    return { lat: COORDS_FIXAS[pid][0], lng: COORDS_FIXAS[pid][1] };
-  }
-  if (!end) return null;
-  const chave = end.trim().toLowerCase();
-  if (_geocodeCache[chave] !== undefined) return _geocodeCache[chave];
-  // 2. Tentar Nominatim com query simplificada
-  const queries = [
-    end,
-    end.replace(/\d+/g, '').trim(),  // sem números
-    end.split(',').slice(-2).join(',').trim(),  // só bairro+cidade
-  ];
-  if (idx > 0) await new Promise(r => setTimeout(r, 800));
-  for (const q of queries) {
-    try {
-      const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q + ', Piaui, Brasil') + '&format=json&limit=1&countrycodes=br';
-      const r = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
-      const data = await r.json();
-      if (data && data[0]) {
-        const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-        _geocodeCache[chave] = result;
-        return result;
-      }
-    } catch(e) {}
-    await new Promise(r => setTimeout(r, 500));
-  }
-  _geocodeCache[chave] = null;
-  return null;
-}
-
-async function renderMapa() {
-  iniciarLeafletMap();
-  const comLoc = PROJETOS.filter(p => p.end || p.mapsUrl || (p.lat && p.lng));
-  const semLoc = PROJETOS.filter(p => !p.end && !p.mapsUrl && !p.lat);
-  const cntEl = document.getElementById('mapa-cnt');
-  if (cntEl) cntEl.textContent = comLoc.length + ' cliente(s) com localização · ' + semLoc.length + ' sem localização';
-  const lista = document.getElementById('mapa-lista');
-  if (lista) {
-    lista.innerHTML = comLoc.length ? comLoc.map(p => {
-      const wppNum = (p.tel || '').replace(/[^0-9]/g, '');
-      const mapsLink = p.mapsUrl || (p.lat && p.lng ? 'https://www.google.com/maps?q=' + p.lat + ',' + p.lng : p.end ? 'https://www.google.com/maps/search/' + encodeURIComponent(p.end) : null);
-      const wppUrl = wppNum ? 'https://wa.me/' + wppNum : null;
-      const kwp = parseFloat(p.kwp) || 0;
-      return '<div class="mapa-card"><div class="mapa-card-pin">📍</div><div class="mapa-card-info">'
-        + '<div class="mapa-card-nome">' + (p.cliente || '—') + '</div>'
-        + '<div class="mapa-card-end">' + (p.end || '—') + '</div>'
-        + '<div style="font-size:11px;color:var(--txts);margin-top:2px">' + kwp.toFixed(2) + ' kWp · ' + (p.etapa || '') + '</div>'
-        + '<div class="mapa-card-acts">'
-        + (mapsLink ? '<a href="' + mapsLink + '" target="_blank" class="btn-maps">🗺 Ver no Maps</a>' : '')
-        + (wppUrl ? '<a href="' + wppUrl + '" target="_blank" class="btn-wpp">💬 WhatsApp</a>' : '')
-        + '</div></div></div>';
-    }).join('') : '<div style="font-size:13px;color:var(--txts);padding:20px 0">Execute a migração no Dashboard primeiro.</div>';
-  }
-  if (!_leafletMap) { setTimeout(renderMapa, 500); return; }
-  _mapaMarkers.forEach(m => _leafletMap.removeLayer(m));
-  _mapaMarkers = [];
-  const comEnd = PROJETOS.filter(p => p.end);
-  if (!comEnd.length) { document.getElementById('mapa-loading').style.display = 'none'; return; }
-  const loading = document.getElementById('mapa-loading');
-  const loadingTxt = document.getElementById('mapa-loading-txt');
-  const loadingSub = document.getElementById('mapa-loading-sub');
-  const infobar = document.getElementById('mapa-infobar');
-  // Com coords fixas, o loading é muito rápido
-  loading.style.display = 'none';
-  infobar.style.display = 'none';
-  let ok = 0, fail = 0;
-  const bounds = [];
-  const jitter = () => (Math.random() - 0.5) * 0.003;
-  for (let i = 0; i < comEnd.length; i++) {
-    const p = comEnd[i];
-    loadingTxt.textContent = 'Localizando ' + (p.cliente || '#' + p.id) + '…';
-    loadingSub.textContent = (i + 1) + ' / ' + comEnd.length;
-    const coord = await geocodificarEndereco(p.end, i, p.id || parseInt(p.id));
-    if (coord) {
-      const lat = coord.lat + jitter();
-      const lng = coord.lng + jitter();
-      const kwp = parseFloat(p.kwp) || 0;
-      const wppNum = (p.tel || '').replace(/[^0-9]/g, '');
-      const mapsLink = p.mapsUrl || 'https://www.google.com/maps/search/' + encodeURIComponent(p.end);
-      const popup = '<div style="font-size:13px;min-width:180px">'
-        + '<strong>' + (p.cliente || '—') + '</strong><br>'
-        + '<span style="font-size:11px;color:#888">' + (p.end || '') + '</span><br>'
-        + '<span style="font-size:13px;color:#2E3486;font-weight:700">' + kwp.toFixed(2) + ' kWp</span>'
-        + ' · <span style="font-size:11px">' + (p.etapa || '') + '</span><br><br>'
-        + '<a href="' + mapsLink + '" target="_blank" style="color:#2E3486;font-size:12px">🗺 Ver no Maps</a>'
-        + (wppNum ? ' &nbsp; <a href="https://wa.me/' + wppNum + '" target="_blank" style="color:#1D9E75;font-size:12px">💬 WhatsApp</a>' : '')
-        + '</div>';
-      const marker = L.marker([lat, lng], { icon: criarPinSolar(kwp) })
-        .bindPopup(popup, { maxWidth: 260 }).addTo(_leafletMap);
-      _mapaMarkers.push(marker);
-      bounds.push([lat, lng]);
-      ok++;
-    } else { fail++; }
-  }
-  loading.style.display = 'none';
-  infobar.style.display = 'block';
-  infobar.textContent = '✅ ' + ok + ' no mapa' + (fail ? ' · ' + fail + ' não localizados' : '');
-  if (bounds.length > 1) _leafletMap.fitBounds(bounds, { padding: [40, 40] });
-  else if (bounds.length === 1) _leafletMap.setView(bounds[0], 14);
-  setTimeout(() => _leafletMap && _leafletMap.invalidateSize(), 300);
-}
-
-// ══════════════════════════════════════════
-// CARREGAR end/lat/lng no openEditProj
-// ══════════════════════════════════════════
-const _openEditOrigLoc = openEditProj;
-openEditProj = function(id) {
-  _openEditOrigLoc(id);
-  const p = PROJETOS.find(x => x.id === id);
-  if (!p) return;
-  setTimeout(() => {
-    const ef = document.getElementById('p-end');
-    const lf = document.getElementById('p-lat');
-    const lgf = document.getElementById('p-lng');
-    if (ef) ef.value = p.end || '';
-    if (lf) lf.value = p.lat || '';
-    if (lgf) lgf.value = p.lng || '';
-  }, 50);
-};
-
-// ══════════════════════════════════════════
-// INCLUIR end/lat/lng no saveProjeto
-// ══════════════════════════════════════════
-const _saveOrigLoc = saveProjeto;
-saveProjeto = function() {
-  // Injetar nos campos extras antes de salvar
-  const origFbWrite = fbWrite;
-  window._locPatch = {
-    end: document.getElementById('p-end')?.value || '',
-    lat: document.getElementById('p-lat')?.value || '',
-    lng: document.getElementById('p-lng')?.value || '',
-  };
-  _saveOrigLoc();
-};
-
-// Patch no fbWrite para injetar localização
-const _fbWriteOrig = fbWrite;
-fbWrite = function(col, id, obj) {
-  if (col === 'projetos' && window._locPatch) {
-    obj.end = window._locPatch.end;
-    obj.lat = window._locPatch.lat;
-    obj.lng = window._locPatch.lng;
-    window._locPatch = null;
-  }
-  return _fbWriteOrig(col, id, obj);
-};
-
-// Integrar renderMapa no go()
-const _goOrigMapa = go;
-go = function(p) {
-  _goOrigMapa(p);
-  if (p === 'mapa') {
-    setTimeout(() => {
-      iniciarLeafletMap();
-      renderMapa();
-    }, 50);
-  }
-  if (p === 'propostas') atualizarPreview();
-  if (p === 'projetos') { atualizarContadoresAbas(); }
-};
-
-
-// ══════════════════════════════════════════
-// MIGRAÇÃO — Datas de Nascimento da planilha
-// ══════════════════════════════════════════
-const DATAS_NASC = {
-  1:  "1958-09-07",  // Marcelo-Eugenio
-  2:  "1982-05-22",  // Raimunda Fabiana
-  3:  "1973-10-29",  // Dailton Castro
-  4:  "1985-05-25",  // Rennee Anderson
-  5:  "1987-11-05",  // Raquel Marques
-  6:  "1963-09-25",  // Roberta/BETO
-  7:  "1974-06-17",  // Paulo Victor
-  8:  "1986-10-19",  // Andresa
-  9:  "2003-11-30",  // Ernanes
-  10: "1973-04-25",  // Djames
-  11: "1947-07-09",  // Fabiano
-  12: "1962-07-25",  // Edilene
-  13: "1972-12-26",  // José Alberto
-  14: "1974-12-13",  // Sebastião
-  15: "1978-02-09",  // Jorge Aldo
-  16: "1996-08-06",  // Jefferson
-  17: "1970-02-24",  // Maria do Socorro
-  18: "1966-04-15",  // Ediliano
-  19: "1934-12-09",  // Maria de Fatima
-  20: "1987-07-07",  // Ediane
-  21: "1958-12-01",  // Dona Regina
-  22: "1966-05-26",  // Maltide
-  23: "1969-02-07",  // Roberto
-  24: "1964-11-22",  // Wanescla
-  25: "1995-01-14",  // Gabriel Alexandrino
-  26: "1989-07-17",  // Maria do Socorro 2
-  27: "1997-09-25",  // Wallison
-  28: "1995-02-20",  // Irvayne
-  29: "1952-01-01",  // Jamille
-  30: "1995-09-17",  // James Frutaria
-  31: "1992-12-06",  // Osmir
-  32: "1956-11-18",  // Mirian
-  33: "1980-03-01",  // Franscisaura
-  34: "1958-01-26",  // João Batista
-  35: "2002-04-13",  // Jardel
-};
-
-async function migrarDatasNascimento() {
-  if (!db) { toast('Firebase não conectado.', 'er'); return; }
-  let ok = 0, err = 0;
-  const ids = Object.keys(DATAS_NASC);
-  toast('Migrando datas de nascimento...', '');
-  for (const id of ids) {
-    try {
-      await db.collection('projetos').doc(String(id)).set(
-        { dataNascimento: DATAS_NASC[id] }, { merge: true }
-      );
-      ok++;
-    } catch(e) {
-      console.error('Erro id', id, e);
-      err++;
-    }
-  }
-  toast('✅ ' + ok + ' datas atualizadas' + (err ? ', ' + err + ' erros' : '') + '!', 'ok');
-}
-
-
-// ══════════════════════════════════════════
-// MIGRAÇÃO — Endereços e Localizações
-// ══════════════════════════════════════════
-const LOCALIZACOES = {
-  1:  {end:"R. Taumaturgo Azevedo, 2000, Centro Sul - Teresina PI", mapsUrl:"https://maps.app.goo.gl/bbCjHqjXL3h8RcyL8", lat:"", lng:""},
-  2:  {end:"FA São Pedro, 67, Zona Rural - Campo Maior PI", mapsUrl:"", lat:"-4.874055", lng:"-42.138847"},
-  3:  {end:"R. Areal, 12, QD 14, Portal das Flores - Bacabal MA", mapsUrl:"https://maps.app.goo.gl/kX8CDNHm8x8LYLsSA", lat:"", lng:""},
-  4:  {end:"CD Manoel Evangelista I, QD 25 Casa 10, Novo Horizonte - Teresina PI", mapsUrl:"", lat:"-5.162702", lng:"-42.786701"},
-  5:  {end:"CJ Herbert de Sousa, Q08 C05, Angelim - Teresina PI", mapsUrl:"", lat:"-5.162702", lng:"-42.786701"},
-  6:  {end:"R. Napoleão Azevedo, 5801, Parque Poti - Teresina PI", mapsUrl:"https://maps.app.goo.gl/mqQ5MpVJBqfUtjnk7", lat:"", lng:""},
-  7:  {end:"Av. Ind. Gil Martins, 3100, Tabuleta - Teresina PI", mapsUrl:"https://maps.app.goo.gl/iWLPu9sfSzgxwthJA", lat:"", lng:""},
-  8:  {end:"Av. Miguel Rosa, 5069, Nossa Sra das Graças - Teresina PI", mapsUrl:"https://maps.app.goo.gl/8GtkWcLjpxes6n8w8", lat:"", lng:""},
-  9:  {end:"R. João Alves Delmondes, S/N, Bairro Santa Cruz - Landri Sales PI", mapsUrl:"https://maps.app.goo.gl/jvJzZMVD9zHP8HbNA", lat:"", lng:""},
-  10: {end:"R. Canastra, 2651, Colorado - Teresina PI", mapsUrl:"https://maps.app.goo.gl/nFqPBunPuRunt5qb9", lat:"", lng:""},
-  11: {end:"Av. Miguel Rosa, 2125, Teresina PI", mapsUrl:"https://maps.app.goo.gl/75XkRfgXVpfbiKch8", lat:"", lng:""},
-  12: {end:"Av. Miguel Rosa, 2131, Teresina PI", mapsUrl:"https://maps.app.goo.gl/75XkRfgXVpfbiKch8", lat:"", lng:""},
-  13: {end:"R. Maestro Pedro Alcântara, 4453, Extrema - Teresina PI", mapsUrl:"https://maps.app.goo.gl/g3U7EJVv14W27EYb6", lat:"", lng:""},
-  14: {end:"CJ Dirceu Arcoverde II, QD 248 Casa 01, Teresina PI", mapsUrl:"https://maps.app.goo.gl/a4t6M5PysMhg5jx77", lat:"", lng:""},
-  15: {end:"R. Medelim, 4701, Novo Horizonte - Teresina PI", mapsUrl:"https://maps.app.goo.gl/1eqV4vFPSiPFAk6b6", lat:"", lng:""},
-  16: {end:"Vl. Dandara dos Cocais, QD 07 Casa 01, Teresina PI", mapsUrl:"https://maps.app.goo.gl/mRtM1PucnYBcy2QPA", lat:"", lng:""},
-  17: {end:"R. Enfermeira Mundoca, 129, Cabral - Teresina PI", mapsUrl:"https://maps.app.goo.gl/5e9Bts1eLJGgzxKC7", lat:"", lng:""},
-  18: {end:"R. Dr. Ocílio Lago, 1136, Ininga - Teresina PI", mapsUrl:"https://maps.app.goo.gl/VbRdXWKKru98ZyEN6", lat:"", lng:""},
-  19: {end:"Av. Sen. Área Leão, 1305, Jóquei - Teresina PI", mapsUrl:"https://maps.app.goo.gl/zE92ZtaazMBykjrZ7", lat:"", lng:""},
-  20: {end:"R. J, 2073, Parque Alvorada - Timon MA", mapsUrl:"https://maps.app.goo.gl/vedLpCyTMBL8ETCb9", lat:"", lng:""},
-  21: {end:"CJ Dirceu Arcoverde II, QD 248 Casa 13, Teresina PI", mapsUrl:"https://maps.app.goo.gl/y2PKNu2UomSssMCU7", lat:"", lng:""},
-  22: {end:"CJ Dirceu Arcoverde II, QD 295 Casa 04, Teresina PI", mapsUrl:"https://maps.app.goo.gl/vGEDLzHk11Smkoyr8", lat:"", lng:""},
-  23: {end:"CJ Dirceu Arcoverde I, Quadra 129, Teresina PI", mapsUrl:"https://maps.app.goo.gl/vGEDLzHk11Smkoyr8", lat:"", lng:""},
-  24: {end:"Av. Mal. Castelo Branco, 1271, Sala 02 - Teresina PI", mapsUrl:"https://maps.app.goo.gl/5c5akZXEFo7xYyWB7", lat:"", lng:""},
-  25: {end:"Rua Francisca de Melo Lobo, 355, Cond. Vila Vitória Casa 103, Saci - Teresina PI", mapsUrl:"https://maps.app.goo.gl/HrFQ4tgguGChhYXf6", lat:"", lng:""},
-  26: {end:"R. Corozal, 3971, Teresina PI", mapsUrl:"https://maps.app.goo.gl/7qsRm4fPA6FXX64r8", lat:"", lng:""},
-  27: {end:"R. Cedral, 4849, Novo Horizonte - Teresina PI", mapsUrl:"https://maps.app.goo.gl/Gig1zKWRm8Jz2LFu6", lat:"", lng:""},
-  28: {end:"CJ Dirceu Arcoverde II, QD 309 Casa 02, Teresina PI", mapsUrl:"https://maps.app.goo.gl/9xhTQcQoiGJSS1f1A", lat:"", lng:""},
-  29: {end:"Rua Motorista Gregório, 2824, Planalto Ininga - Teresina PI, CEP 64050-030", mapsUrl:"https://maps.app.goo.gl/kMzohaCdxjaZXS2p7", lat:"", lng:""},
-  31: {end:"CJ São Raimundo, 80, QD 01 Casa 48, Cristo Rei - Teresina PI", mapsUrl:"https://maps.app.goo.gl/C6mqUWBo8TMRp7EQ6", lat:"", lng:""},
-  33: {end:"Rua Desembargador João Gabriel Batista, 4100, Extrema - Teresina PI", mapsUrl:"https://maps.app.goo.gl/fTys3etMaweJjm5JA", lat:"-5.117200", lng:"-42.758701"},
-  34: {end:"RD 343, S/N, Sítio Água Boa - Altos PI, CEP 64290-000", mapsUrl:"https://maps.app.goo.gl/gZZ3ppVGdHZpdPnJ6", lat:"", lng:""},
-  35: {end:"Rua Antônio da Clara, 63, Centro - Lagoinha do Piauí PI", mapsUrl:"https://maps.app.goo.gl/31vkTNv3En94DAuz8", lat:"", lng:""},
-  36: {end:"R. Pernambuco, 1718, Pirajá - Teresina PI, CEP 64003-500", mapsUrl:"https://maps.app.goo.gl/y76S9nwPRHwy4gFr7", lat:"", lng:""},
-};
-
-async function migrarLocalizacoes() {
-  if (!db) { toast('Firebase não conectado.', 'er'); return; }
-  const ids = Object.keys(LOCALIZACOES);
-  toast('Migrando localizações...', '');
-  let ok = 0, err = 0;
-  for (const id of ids) {
-    const loc = LOCALIZACOES[id];
-    try {
-      const upd = { end: loc.end, mapsUrl: loc.mapsUrl };
-      if (loc.lat) upd.lat = loc.lat;
-      if (loc.lng) upd.lng = loc.lng;
-      await db.collection('projetos').doc(String(id)).set(upd, { merge: true });
-      ok++;
-    } catch(e) {
-      console.warn('Erro id', id, e);
-      err++;
-    }
-  }
-  toast('✅ ' + ok + ' localizações salvas' + (err ? ', ' + err + ' erros' : '') + '!', 'ok');
-}
-
-// Atualizar openDet para usar mapsUrl quando disponível
-const _openDetOrigLoc = openDet;
-openDet = function(id) {
-  _openDetOrigLoc(id);
-  // Injetar link do Maps correto após renderização
-  setTimeout(() => {
-    const p = PROJETOS.find(x => x.id === id || x.id === String(id));
-    if (!p) return;
-    // Já tratado no openDet principal via mapsUrl
-  }, 10);
-};
-
-
-// Migrar etapas antigas para novo fluxo
-async function migrarEtapas() {
-  if (!db) { toast('Firebase não conectado.', 'er'); return; }
-  const mapa = {
-    'Visita': 'Proposta',
-    'Ligação': 'Vistoria',
-  };
-  let ok = 0;
-  for (const p of PROJETOS) {
-    if (mapa[p.etapa]) {
-      try {
-        await db.collection('projetos').doc(String(p.id)).set(
-          { etapa: mapa[p.etapa] }, { merge: true }
-        );
-        ok++;
-      } catch(e) {}
-    }
-  }
-  if (ok > 0) toast('✅ ' + ok + ' etapas migradas!', 'ok');
-  else toast('Nenhuma etapa antiga encontrada.', '');
-}
-
-
-// ══════════════════════════════════════════
-// MÓDULO PROPOSTAS
-// ══════════════════════════════════════════
-function calcularProposta() {
-  const mods = parseInt(document.getElementById('pp-modulos')?.value) || 0;
-  const wp = parseInt(document.getElementById('pp-wpmod')?.value) || 610;
-  const kwp = (mods * wp / 1000).toFixed(2);
-  // Auto-calcular geração se vazio
-  const gerEl = document.getElementById('pp-geracao');
-  if (gerEl && !gerEl.value) {
-    gerEl.value = Math.round(parseFloat(kwp) * 120);
-  }
-  atualizarPreview();
+function initMapa() {
+  if(_leafletMap) return;
+  _leafletMap = L.map('mapa-leaflet').setView([-5.09, -42.80], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(_leafletMap);
 }
 
 function atualizarPreview() {
-  const nome = document.getElementById('pp-nome')?.value || '';
-  const cidade = document.getElementById('pp-cidade')?.value || '';
-  const mods = parseInt(document.getElementById('pp-modulos')?.value) || 0;
-  const wp = parseInt(document.getElementById('pp-wpmod')?.value) || 610;
-  const inv = document.getElementById('pp-inv')?.value || '';
-  const pinv = document.getElementById('pp-pinv')?.value || '';
-  const geracao = parseInt(document.getElementById('pp-geracao')?.value) || 0;
-  const valor = parseFloat(document.getElementById('pp-valor')?.value) || 0;
-  const parcMax = parseInt(document.getElementById('pp-parcelas')?.value) || 6;
-  const juros = parseFloat(document.getElementById('pp-juros')?.value) || 0;
-  const tarifa = parseFloat(document.getElementById('pp-tarifa')?.value) || 0;
-  const consumo = parseInt(document.getElementById('pp-consumo')?.value) || 0;
+  const nome = document.getElementById('pp-nome').value || '—';
+  const mods = parseInt(document.getElementById('pp-modulos').value) || 0;
+  const wp = parseInt(document.getElementById('pp-wpmod').value) || 0;
   const kwp = (mods * wp / 1000).toFixed(2);
-
-  // Saudação
-  const saud = document.getElementById('pc-saud');
-  if (saud) {
-    const nomeTxt = nome ? `<strong>${nome}</strong>, ` : '';
-    const cidTxt = cidade ? ` em <strong>${cidade}</strong>` : '';
-    saud.innerHTML = `Olá, ${nomeTxt}preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico${cidTxt}. Confira os detalhes abaixo:`;
-  }
-
-  // Sistema
-  const kwpEl = document.getElementById('pc-kwp');
-  if (kwpEl) kwpEl.textContent = kwp + ' kWp';
-  const modSub = document.getElementById('pc-modulos-sub');
-  if (modSub) modSub.textContent = (mods || '—') + ' módulos × ' + (wp || '—') + 'Wp' + (inv ? ' · ' + inv + ' ' + pinv : '');
-
-  // Geração
-  const gerEl = document.getElementById('pc-geracao');
-  if (gerEl) gerEl.textContent = geracao ? geracao.toLocaleString('pt-BR') + ' kWh' : '— kWh';
-  const gerSub = document.getElementById('pc-geracao-sub');
-  if (gerSub && consumo) {
-    const cobertura = Math.min(100, Math.round(geracao / consumo * 100));
-    gerSub.textContent = 'Cobre ~' + cobertura + '% do consumo';
-  } else if (gerSub) gerSub.textContent = 'estimado/mês';
-
-  // Valor
-  const valEl = document.getElementById('pc-valor');
-  if (valEl) valEl.textContent = valor ? 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ —';
-
-  // Parcela menor destaque
-  const parSub = document.getElementById('pc-parcela-sub');
-  if (parSub && valor && juros > 0) {
-    const pmt = calcPMT(valor, juros/100, parcMax);
-    parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2});
-  } else if (parSub && valor) {
-    parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + (valor/parcMax).toLocaleString('pt-BR', {minimumFractionDigits:2});
-  }
-
-  const modalidade = document.getElementById('pp-modalidade')?.value || 'avista';
-  const finSection = document.getElementById('pc-fin');
-  const aVistaEl = document.getElementById('pc-avista');
-  const pRows = document.getElementById('pc-parcelas-rows');
-  const parSub = document.getElementById('pc-parcela-sub');
-
-  if (modalidade === 'avista') {
-    // Só valor à vista, sem tabela de parcelas
-    if (finSection) finSection.style.display = 'none';
-    if (parSub) parSub.style.display = 'none';
-  } else {
-    // Cartão ou Financiado — mostrar tabela
-    if (finSection) finSection.style.display = 'block';
-    if (parSub) parSub.style.display = 'block';
-
-    // Título da seção
-    const finHdr = finSection?.querySelector('.fin-hdr');
-    if (finHdr) finHdr.textContent = modalidade === 'cartao' ? '💳 Parcelamento no Cartão' : '🏦 Opções de Financiamento';
-
-    // À vista
-    if (aVistaEl) aVistaEl.textContent = valor ? 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits:2}) : 'R$ —';
-
-    // Parcelas
-    if (pRows && valor) {
-      const opts = [2, 3, 4, 5, 6, 12, 18, 24, 36, 48, 60].filter(p => p <= parcMax);
-      pRows.innerHTML = opts.map((p, i) => {
-        const pmt = juros > 0 ? calcPMT(valor, juros/100, p) : valor/p;
-        const bg = i % 2 === 0 ? '#EDECE5' : '#fff';
-        return '<div style="display:flex;justify-content:space-between;background:' + bg + ';padding:6px 10px;font-size:10px">'
-          + '<span style="color:#555">' + p + 'x</span>'
-          + '<span style="font-weight:700;color:#2E3486">R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês</span></div>';
-      }).join('');
-    } else if (pRows) pRows.innerHTML = '';
-
-    // Parcela destaque no box amarelo
-    if (parSub && valor && parcMax) {
-      const pmt = juros > 0 ? calcPMT(valor, juros/100, parcMax) : valor/parcMax;
-      parSub.textContent = 'ou ' + parcMax + 'x de R$ ' + pmt.toLocaleString('pt-BR', {minimumFractionDigits:2});
-    }
-  }
-
-  // Economia
-  const ecoDiv = document.getElementById('pc-economia');
-  if (ecoDiv && tarifa > 0 && geracao > 0) {
-    ecoDiv.style.display = 'block';
-    const ecoMes = geracao * tarifa;
-    const retorno = valor > 0 ? (valor / (ecoMes * 12)).toFixed(1) : '—';
-    document.getElementById('pc-eco-val').textContent = 'R$ ' + ecoMes.toLocaleString('pt-BR', {minimumFractionDigits:2}) + '/mês';
-    document.getElementById('pc-eco-sub').textContent = 'Retorno estimado em ' + retorno + ' anos';
-  } else if (ecoDiv) ecoDiv.style.display = 'none';
-}
-
-  // Gráfico de barras mensal
-  const irr = [4.9, 5.14, 5.25, 5.19, 5.3, 5.54, 5.74, 6.24, 6.51, 6.25, 5.89, 5.53];
-  const kwpNum = parseFloat(kwp) || 0;
-  const grafico = document.getElementById('pc-grafico');
-  if (grafico && kwpNum > 0 && geracao > 0) {
-    const geracoes = irr.map(i => Math.round(kwpNum * i * 30 * 0.75));
-    const maxG = Math.max(...geracoes);
-    grafico.innerHTML = geracoes.map((g, idx) => {
-      const h = Math.round((g / maxG) * 44);
-      const destaque = idx === 7 || idx === 8; // Ago/Set maior irradiação
-      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px">'
-        + '<div style="font-size:7px;color:#2E3486;font-weight:600">' + g + '</div>'
-        + '<div style="width:100%;background:' + (destaque?'#FDC300':'#2E3486') + ';border-radius:2px 2px 0 0;height:' + h + 'px"></div>'
-        + '</div>';
-    }).join('');
-  }
-
-  // Componentes
-  const compInv = document.getElementById('pc-comp-inversor');
-  if (compInv) compInv.textContent = '✓ Inversor ' + (inv ? inv + ' ' + pinv : '—');
-  const compMod = document.getElementById('pc-comp-modulos');
-  if (compMod) compMod.textContent = '✓ ' + (mods||'—') + ' módulos ' + (wp||'—') + 'Wp';
-
-function atualizarModalidade() {
-  const mod = document.getElementById('pp-modalidade')?.value || 'avista';
-  const wrap = document.getElementById('pp-parcelas-wrap');
-  if (wrap) wrap.style.display = (mod === 'avista') ? 'none' : 'block';
-  atualizarPreview();
-}
-
-function calcPMT(pv, taxa, n) {
-  if (taxa === 0) return pv / n;
-  return pv * taxa * Math.pow(1+taxa, n) / (Math.pow(1+taxa, n) - 1);
+  const valor = parseFloat(document.getElementById('pp-valor').value) || 0;
+  
+  document.getElementById('pc-nome').textContent = nome;
+  document.getElementById('pc-kwp').textContent = kwp;
+  document.getElementById('pc-equip').textContent = `${mods} módulos de ${wp}Wp + Inversor ${document.getElementById('pp-inv').value}`;
+  document.getElementById('pc-valor').textContent = 'R$ ' + valor.toLocaleString('pt-BR');
 }
 
 async function gerarPNG() {
   const card = document.getElementById('prop-card');
-  if (!card) return;
-  const nome = document.getElementById('pp-nome')?.value || 'cliente';
-  toast('Gerando imagem...', '');
-  try {
-    const canvas = await html2canvas(card, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = 'Proposta_Solar_Machado_' + nome.replace(/\s+/g,'_') + '.png';
-    link.click();
-    toast('✅ Imagem baixada!', 'ok');
-  } catch(e) {
-    toast('Erro ao gerar imagem: ' + e.message, 'er');
-  }
+  const canvas = await html2canvas(card);
+  const link = document.createElement('a');
+  link.download = 'proposta.png';
+  link.href = canvas.toDataURL();
+  link.click();
 }
 
-function limparProposta() {
-  ['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  atualizarPreview();
+function calcKwp() {
+  const m = document.getElementById('p-mod').value;
+  const w = document.getElementById('p-wpmod').value;
+  document.getElementById('p-kwp').value = (m * w / 1000).toFixed(2);
 }
 
+function renderDash() {
+  document.getElementById('dash-kpis').innerHTML = `<div class="kpi">Total: ${PROJETOS.length}</div>`;
+}
+function renderChamados() {}
+function openModalChamado(pid) { toast('Abrindo chamado para projeto '+pid); }
+function openModalLeitura() {}
+function openNovo() { document.getElementById('mo-proj').classList.add('open'); editProjId=null; }
+function setTab(i) {
+  document.querySelectorAll('.tab').forEach((t,idx)=>t.classList.toggle('on', idx===i));
+  document.querySelectorAll('.tcon').forEach((c,idx)=>c.style.display = idx===i?'block':'none');
+}
+function closeMo(id) { document.getElementById(id).classList.remove('open'); }
+function toast(m, t) {
+  const el = document.getElementById('toast');
+  el.textContent = m; el.className = 'toast show ' + t;
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+window.onload = initFirebaseListeners;
 </script>
 </body>
 </html>
