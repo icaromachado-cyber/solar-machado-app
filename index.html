@@ -336,6 +336,31 @@ tr:hover td{background:#faf9f5}
   </div>
 </div>
 
+
+<!-- MODAL NOTIFICAÇÃO CHAMADOS -->
+<div id="mo-notif-chamados" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:flex-start;justify-content:center;padding-top:60px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;animation:slideDown .25s ease">
+    <div style="background:#2E3486;padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px">🔔</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#fff" id="notif-titulo">Chamados em aberto</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6)" id="notif-sub"></div>
+        </div>
+      </div>
+      <button onclick="fecharNotifChamados()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600">Ver depois</button>
+    </div>
+    <div id="notif-lista" style="max-height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="padding:12px 16px;border-top:1px solid #f0efe8;display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="fecharNotifChamados()" style="background:#EDECE5;border:none;color:#5a5b6e;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500">Fechar</button>
+      <button onclick="go('chamados');fecharNotifChamados()" style="background:#2E3486;border:none;color:#fff;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:600">Ver todos os chamados →</button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
 <div class="sb-overlay" id="sb-overlay" onclick="toggleMenu()"></div>
 
 <!-- SIDEBAR -->
@@ -407,13 +432,16 @@ tr:hover td{background:#faf9f5}
       <div class="kpi-grid" id="dash-kpis"></div>
       
       <div class="charts-row">
-        <div class="card">
-          <div class="ph" style="margin-bottom:12px"><h2>Geração Total (kWh)</h2></div>
-          <div class="chart-container"><canvas id="chart-mes"></canvas></div>
+        <div class="card" style="flex:1.2">
+          <div class="ph" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+            <h2>🔔 Chamados por Responsável</h2>
+            <button onclick="go('chamados')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">Ver Kanban →</button>
+          </div>
+          <div id="dash-chamados-equipe" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px"></div>
         </div>
-        <div class="card">
+        <div class="card" style="min-height:320px">
           <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
-          <div class="chart-container"><canvas id="chart-status"></canvas></div>
+          <div class="chart-container" style="height:260px"><canvas id="chart-status"></canvas></div>
         </div>
       </div>
 
@@ -909,11 +937,11 @@ function toggleMenu(force) {
 // FIREBASE & DATA
 // ══════════════════════════════════════════
 const EQUIPE_SOLAR = [
-  {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧"},
-  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧"},
-  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼"},
-  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊"},
-  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊"}
+  {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧", email:"icarocaio18@gmail.com"},
+  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧", email:"projetos@solarmachado.com.br"},
+  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼", email:"comercial@solarmachado.com.br"},
+  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊", email:"brendavirna@hotmail.com"},
+  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊", email:"shelydamachado@solarmachado.com.br"}
 ];
 let _usuariosCache = [...EQUIPE_SOLAR];
 let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
@@ -1037,16 +1065,37 @@ function renderDash() {
     + '</div>';
 
   renderCharts();
+  renderDashChamadosEquipe();
 }
 
 function renderCharts() {
-  const ctxM = document.getElementById('chart-mes');
   const ctxS = document.getElementById('chart-status');
-  if(!ctxM || !ctxS) return;
-  if(chDM) chDM.destroy(); if(chDS) chDS.destroy();
-  chDM = new Chart(ctxM, { type:'line', data:{ labels:["Jan","Fev","Mar","Abr","Mai","Jun"], datasets:[{label:'kWh',data:[2800,3100,4200,3800,5200,4800],borderColor:'#2E3486',fill:true,tension:.4}] }, options:{responsive:true,maintainAspectRatio:false} });
-  const stCounts = ETAPAS.map(e => PROJETOS.filter(p=>p.etapa===e).length);
-  chDS = new Chart(ctxS, { type:'doughnut', data:{ labels:ETAPAS, datasets:[{data:stCounts,backgroundColor:['#94a3b8','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#f97316','#06b6d4','#22c55e'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10,boxWidth:14,usePointStyle:true,pointStyle:'rectRounded'}}},cutout:'62%'}});
+  if (!ctxS) return;
+  if (chDS) chDS.destroy();
+  const stCounts = ETAPAS.map(e => PROJETOS.filter(p => p.etapa === e).length);
+  chDS = new Chart(ctxS, {
+    type: 'doughnut',
+    data: {
+      labels: ETAPAS,
+      datasets: [{
+        data: stCounts,
+        backgroundColor: ['#94a3b8','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#f97316','#06b6d4','#22c55e'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: {size:11}, padding: 10, boxWidth: 14, usePointStyle: true, pointStyle: 'rectRounded' }
+        }
+      },
+      cutout: '62%'
+    }
+  });
 }
 
 function renderPipeline() {
@@ -1234,7 +1283,6 @@ function openModalChamado(projetoId) {
   const sel = document.getElementById('mc-proj');
   sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>'
     + PROJETOS.map(p => `<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
-  // Resetar todos os campos
   ['mc-avulso','mc-desc','mc-res'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
@@ -1242,7 +1290,6 @@ function openModalChamado(projetoId) {
   document.getElementById('mc-pri').value = 'Normal';
   document.getElementById('mc-st').value = 'Aberto';
   document.getElementById('mc-tipo').value = 'Manutenção Preventiva';
-  // Resetar responsável
   const rsp = document.getElementById('mc-responsavel');
   if(rsp) rsp.value = '';
   const card = document.getElementById('mc-resp-card');
@@ -1253,8 +1300,8 @@ function openModalChamado(projetoId) {
 
 
 function saveChamado(){
-  const id=editChId||(CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const g=i=>document.getElementById(i)?.value||'';
+  const id=editChId||(CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const respNome=g('mc-responsavel');
   const respUser=(window._usuariosCache||EQUIPE_SOLAR).find(x=>x.nome===respNome);
   const obj={id,projetoId:parseInt(g('mc-proj'))||null,clienteAvulso:g('mc-avulso'),tipo:g('mc-tipo'),prioridade:g('mc-pri'),status:g('mc-st'),desc:g('mc-desc'),data:g('mc-data'),res:g('mc-res'),responsavel:respNome,responsavelEmail:respUser?.email||'',responsavelCompetencia:respUser?.competencia||''};
@@ -1318,164 +1365,122 @@ auth.onAuthStateChanged(async user=>{
   if(user){
     usuarioAtual=user;
     document.getElementById('login-screen').style.display='none';
-    try{
-      const perfil=await db.collection('usuarios').doc(user.uid).get();
-      const nome=perfil.exists?(perfil.data().nome||user.email):user.email;
-      const isAdmin=perfil.exists?perfil.data().perfil==='admin':false;
-      document.getElementById('usr-nome').textContent=nome;
-      document.getElementById('usr-email-display').textContent=user.email;
-      if(isAdmin){
-        document.getElementById('btn-usuarios').style.display='block';
-        const btnTab=document.getElementById('btn-editar-tabela');
-        if(btnTab)btnTab.style.display='block';
+    let nomeUsuario = user.email;
+    let isAdmin = false;
+    try {
+      const perfil = await db.collection('usuarios').doc(user.uid).get();
+      const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
+
+      if (perfil.exists && !perfil.data().desativado) {
+        nomeUsuario = perfil.data().nome || eq?.nome || user.email;
+        isAdmin = perfil.data().perfil === 'admin';
+      } else if (!perfil.exists) {
+        // Primeiro login — criar perfil automaticamente
+        nomeUsuario = eq?.nome || user.email;
+        isAdmin = user.email === 'icarocaio18@gmail.com';
+        await db.collection('usuarios').doc(user.uid).set({
+          uid: user.uid,
+          nome: nomeUsuario,
+          email: user.email,
+          competencia: eq?.competencia || '',
+          emoji: eq?.emoji || '👤',
+          perfil: isAdmin ? 'admin' : 'usuario',
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
       }
-    }catch(e){document.getElementById('usr-nome').textContent=user.email;}
+
+      window._nomeUsuarioLogado = nomeUsuario;
+      document.getElementById('usr-nome').textContent = nomeUsuario;
+      document.getElementById('usr-email-display').textContent = user.email;
+
+      if (isAdmin) {
+        document.getElementById('btn-usuarios').style.display = 'block';
+        const btnTab = document.getElementById('btn-editar-tabela');
+        if (btnTab) btnTab.style.display = 'block';
+      }
+    } catch(e) {
+      const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
+      nomeUsuario = eq?.nome || user.email;
+      window._nomeUsuarioLogado = nomeUsuario;
+      document.getElementById('usr-nome').textContent = nomeUsuario;
+      document.getElementById('usr-email-display').textContent = user.email;
+    }
     initFirebaseListeners();
-  } else {
-    usuarioAtual=null;
-    document.getElementById('login-screen').style.display='flex';
-    const btn=document.getElementById('login-btn');if(btn){btn.textContent='Entrar no Sistema';btn.disabled=false;}
+    setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 2500);
   }
 });
 
-// ══ USUÁRIOS ══
-async function abrirUsuarios(){document.getElementById('mo-usuarios').style.display='flex';carregarListaUsuarios();}
-async function carregarListaUsuarios(){
-  const lista=document.getElementById('lista-usuarios');if(!lista)return;
-  lista.innerHTML='<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Carregando…</div>';
+// ══ EQUIPE SOLAR MACHADO ══
+const EQUIPE_SOLAR = [
+  {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧", email:"icarocaio18@gmail.com"},
+  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧", email:"projetos@solarmachado.com.br"},
+  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼", email:"comercial@solarmachado.com.br"},
+  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊", email:"brendavirna@hotmail.com"},
+  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊", email:"shelydamachado@solarmachado.com.br"}
+];
+let _usuariosCache = [...EQUIPE_SOLAR];
 
-  // Sempre mostrar equipe fixa no topo
-  let fbUsers=[];
-  try{
-    const snap=await db.collection('usuarios').get();
-    fbUsers=snap.docs.map(d=>d.data());
-  }catch(e){}
+// ══ TABELA DE PREÇOS ══
+const TABELA_SOLAR = [
+  {kwh:450, wpMod:710, nMod:5,  potInv:3,   kwp:3.6,  total:11410, baixarAte:10410},
+  {kwh:500, wpMod:615, nMod:7,  potInv:3,   kwp:4.3,  total:12000, baixarAte:11000},
+  {kwh:600, wpMod:625, nMod:8,  potInv:4,   kwp:5.0,  total:13500, baixarAte:12500},
+  {kwh:700, wpMod:710, nMod:8,  potInv:5,   kwp:5.7,  total:14500, baixarAte:13500},
+  {kwh:800, wpMod:615, nMod:11, potInv:6,   kwp:6.8,  total:15000, baixarAte:14000},
+  {kwh:900, wpMod:615, nMod:12, potInv:6,   kwp:7.4,  total:16500, baixarAte:15500},
+  {kwh:1000,wpMod:620, nMod:13, potInv:6,   kwp:8.1,  total:19000, baixarAte:18000},
+  {kwh:1200,wpMod:620, nMod:16, potInv:7.5, kwp:9.9,  total:21500, baixarAte:20500},
+  {kwh:1300,wpMod:615, nMod:17, potInv:7.5, kwp:10.5, total:24000, baixarAte:23000},
+  {kwh:1500,wpMod:710, nMod:17, potInv:9.1, kwp:12.1, total:25000, baixarAte:24000},
+  {kwh:1800,wpMod:615, nMod:23, potInv:9.1, kwp:14.1, total:27000, baixarAte:26000},
+  {kwh:2000,wpMod:710, nMod:23, potInv:9.1, kwp:16.3, total:30500, baixarAte:29500},
+  {kwh:2200,wpMod:615, nMod:28, potInv:15,  kwp:17.2, total:33500, baixarAte:32500},
+  {kwh:2500,wpMod:615, nMod:32, potInv:15,  kwp:19.7, total:36500, baixarAte:35500},
+  {kwh:3000,wpMod:615, nMod:39, potInv:20,  kwp:24.0, total:49000, baixarAte:48000},
+  {kwh:3500,wpMod:615, nMod:45, potInv:20,  kwp:27.7, total:56500, baixarAte:55500}
+];
 
-  // Mesclar: Firebase + equipe fixa não cadastrada
-  const nomesFb=new Set(fbUsers.map(u=>u.nome));
-  const equipeExtra=EQUIPE_SOLAR.filter(e=>!nomesFb.has(e.nome)).map(e=>({
-    nome:e.nome, competencia:e.competencia, emoji:e.emoji, perfil:'usuario', email:'—', uid:'_'+e.nome, _fixo:true
-  }));
-  const todos=[...fbUsers,...equipeExtra];
-
-  if(!todos.length){lista.innerHTML='<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Nenhum usuário.</div>';return;}
-
-  lista.innerHTML=todos.map(u=>{
-    const isMe=u.uid===usuarioAtual?.uid;
-    const eq=EQUIPE_SOLAR.find(e=>e.nome===u.nome);
-    const comp=u.competencia||eq?.competencia||'';
-    const emoji=u.emoji||eq?.emoji||'👤';
-    return '<div style="background:var(--cz);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px">'
-      +'<div style="width:36px;height:36px;border-radius:50%;background:'+(u._fixo?'#EDECE5':'#2E3486')+';color:'+(u._fixo?'#5a5b6e':'#fff')+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+emoji+'</div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:600">'+(u.nome||'—')+(isMe?' <span style="font-size:10px;color:var(--az);font-weight:400">(você)</span>':'')+'</div>'
-      +'<div style="font-size:11px;color:var(--txts);margin-top:2px">'+(u._fixo?'<span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:3px;font-size:10px">Equipe fixa</span>':'<span style="background:#e8f8ef;color:#1D9E75;padding:1px 5px;border-radius:3px;font-size:10px">'+u.perfil+'</span>')+' '+(comp?'<span style="background:#eef0ff;color:#2E3486;padding:1px 5px;border-radius:3px;font-size:10px">'+comp+'</span>':'')+'</div>'
-      +(u._fixo?'':'<div style="font-size:10.5px;color:#aaa;margin-top:2px">'+u.email+'</div>')
-      +'</div>'
-      +(!isMe&&!u._fixo?'<button data-uid="'+u.uid+'" data-nome="'+u.nome.replace(/"/g,"&quot;")+'" onclick="desativarUsuarioBt(this)" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;flex-shrink:0">Remover</button>':'')
-      +'</div>';
-  }).join('');
-}
-async function criarUsuario(){
-  const nome=document.getElementById('nu-nome').value.trim();
-  const email=document.getElementById('nu-email').value.trim();
-  const senha=document.getElementById('nu-senha').value;
-  const perfil=document.getElementById('nu-perfil').value;
-  if(!nome||!email||!senha){toast('Preencha todos os campos.','er');return;}
-  if(senha.length<6){toast('Senha mínimo 6 caracteres.','er');return;}
-  try{
-    const secondApp=firebase.initializeApp(firebase.apps[0].options,'secondary_'+Date.now());
-    const cred=await secondApp.auth().createUserWithEmailAndPassword(email,senha);
-    const uid=cred.user.uid;
-    await secondApp.auth().signOut();await secondApp.delete();
-    const competencia=document.getElementById('nu-competencia')?.value||'';
-    await db.collection('usuarios').doc(uid).set({uid,nome,email,perfil,competencia,criadoPor:usuarioAtual.uid,criadoEm:firebase.firestore.FieldValue.serverTimestamp()});
-    toast('✅ Usuário '+nome+' criado!','ok');
-    document.getElementById('nu-nome').value='';document.getElementById('nu-email').value='';document.getElementById('nu-senha').value='';
-    carregarListaUsuarios();
-  }catch(e){const msgs={'auth/email-already-in-use':'Email já cadastrado.'};toast('Erro: '+(msgs[e.code]||e.message),'er');}
-}
-function desativarUsuarioBt(btn){const uid=btn.getAttribute('data-uid');const nome=btn.getAttribute('data-nome');if(confirm('Remover acesso de '+nome+'?'))db.collection('usuarios').doc(uid).update({desativado:true}).then(()=>{toast('Acesso removido.','ok');carregarListaUsuarios();});}
-
-// ══ MAPA ══
-let _leafletMap=null,_mapaMarkers=[];
-const COORDS_FIXAS={1:[-5.0934,-42.7967],2:[-4.874055,-42.138847],3:[-4.9761,-44.7834],4:[-5.162702,-42.786701],5:[-5.162702,-42.786701],6:[-5.0650,-42.8200],7:[-5.0950,-42.8750],8:[-5.0850,-42.8100],9:[-7.2333,-43.0333],10:[-5.1100,-42.8000],11:[-5.0780,-42.8100],12:[-5.0785,-42.8105],13:[-5.1170,-42.7870],14:[-5.1350,-42.7900],15:[-5.1150,-42.7950],16:[-5.1450,-42.7830],17:[-5.0700,-42.8050],18:[-5.0900,-42.8050],19:[-5.0950,-42.8000],20:[-5.1050,-42.8300],21:[-5.1355,-42.7905],22:[-5.1360,-42.7890],23:[-5.1340,-42.7910],24:[-5.0800,-42.8020],25:[-5.0600,-42.7800],26:[-5.1000,-42.8100],27:[-5.1100,-42.8050],28:[-5.1370,-42.7880],29:[-5.0850,-42.8020],31:[-5.0650,-42.8150],33:[-5.1172,-42.7587],34:[-5.1167,-42.4678],35:[-5.5500,-42.6800],36:[-5.0700,-42.8300]};
-function iniciarLeafletMap(){if(_leafletMap)return;if(typeof L==='undefined'){setTimeout(iniciarLeafletMap,400);return;}const el=document.getElementById('mapa-leaflet');if(!el){setTimeout(iniciarLeafletMap,400);return;}_leafletMap=L.map('mapa-leaflet').setView([-5.0892,-42.8019],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(_leafletMap);setTimeout(()=>_leafletMap.invalidateSize(),200);}
-function criarPinSolar(kwp){const k=parseFloat(kwp)||0;const size=k>=20?36:k>=10?30:26;const cor=k>=20?'#FDC300':k>=10?'#2E3486':'#4a52c8';const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+(size+8)+'" viewBox="0 0 28 36"><path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="'+cor+'" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/><circle cx="14" cy="14" r="5" fill="rgba(255,255,255,.9)"/></svg>';return L.divIcon({html:svg,className:'',iconSize:[size,size+8],iconAnchor:[size/2,size+8],popupAnchor:[0,-(size+8)]});}
-async function renderMapa(){iniciarLeafletMap();const comLoc=PROJETOS.filter(p=>p.end||p.mapsUrl||(p.lat&&p.lng)||COORDS_FIXAS[p.id]);const cntEl=document.getElementById('mapa-cnt');if(cntEl)cntEl.textContent=comLoc.length+' cliente(s) com localização';const lista=document.getElementById('mapa-lista');if(lista){lista.innerHTML=comLoc.map(p=>{const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink=p.mapsUrl||(p.lat&&p.lng?'https://www.google.com/maps?q='+p.lat+','+p.lng:p.end?'https://www.google.com/maps/search/'+encodeURIComponent(p.end):null);const wppUrl=wppNum?'https://wa.me/'+wppNum:null;const kwp=parseFloat(p.kwp)||0;return '<div style="background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:12px 14px;display:flex;align-items:flex-start;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📍</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+(p.cliente||'—')+'</div><div style="font-size:11.5px;color:var(--txts);margin-top:2px">'+(p.end||'—')+'</div><div style="font-size:11px;color:var(--txts);margin-top:2px">'+kwp.toFixed(2)+' kWp · '+(p.etapa||'')+'</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+(mapsLink?'<a href="'+mapsLink+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">🗺 Maps</a>':'')+(wppUrl?'<a href="'+wppUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:#e8f8ef;color:#1a8045;border:1px solid #b2e0c4;text-decoration:none">💬 WhatsApp</a>':'')+'</div></div></div>';}).join('')||'<div style="font-size:13px;color:var(--txts);padding:20px 0">Execute a migração no Dashboard.</div>';}
-if(!_leafletMap){setTimeout(renderMapa,500);return;}_mapaMarkers.forEach(m=>_leafletMap.removeLayer(m));_mapaMarkers=[];const bounds=[];const jitter=()=>(Math.random()-0.5)*0.003;PROJETOS.forEach(p=>{const coord=COORDS_FIXAS[p.id]||(p.lat&&p.lng?[+p.lat,+p.lng]:null);if(!coord)return;const lat=coord[0]+jitter(),lng=coord[1]+jitter();const kwp=parseFloat(p.kwp)||0;const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink='https://www.google.com/maps?q='+lat+','+lng;const popup='<div style="font-size:13px;min-width:160px"><strong>'+(p.cliente||'—')+'</strong><br><span style="font-size:11px;color:#888">'+(p.end||'')+'</span><br><span style="font-size:13px;color:#2E3486;font-weight:700">'+kwp.toFixed(2)+' kWp</span><br><br><a href="'+mapsLink+'" target="_blank" style="color:#2E3486;font-size:12px">🗺 Maps</a>'+(wppNum?' &nbsp;<a href="https://wa.me/'+wppNum+'" target="_blank" style="color:#1D9E75;font-size:12px">💬 WhatsApp</a>':'')+'</div>';const marker=L.marker([lat,lng],{icon:criarPinSolar(kwp)}).bindPopup(popup,{maxWidth:240}).addTo(_leafletMap);_mapaMarkers.push(marker);bounds.push([lat,lng]);});if(bounds.length>1)_leafletMap.fitBounds(bounds,{padding:[40,40]});setTimeout(()=>_leafletMap&&_leafletMap.invalidateSize(),300);}
-
-// ══ CHAMADOS KANBAN COM DRAG AND DROP ══
-let _chDragging = false;
-let _chDragId = null;
-
-function renderChamados(){
+// ══ KANBAN CHAMADOS ══
+let _chDragging = false, _chDragId = null;
+renderChamados = function() {
   const board = document.getElementById('ch-board');
   if (!board) return;
-
   const fProj = document.getElementById('f-ch-proj');
   if (fProj && fProj.options.length <= 1)
-    PROJETOS.forEach(p => {
-      const o = document.createElement('option');
-      o.value = p.id; o.textContent = '#' + p.id + ' ' + p.cliente;
-      fProj.appendChild(o);
-    });
-  const filtroProj = fProj ? parseInt(fProj.value) || null : null;
-
-  const COLS = [
-    {id:'Aberto',      label:'Aberto',       cor:'#2E3486', bg:'#eef0ff'},
-    {id:'Em Andamento',label:'Em Andamento', cor:'#f59e0b', bg:'#fff8e0'},
-    {id:'Resolvido',   label:'Resolvido',    cor:'#1D9E75', bg:'#e8f8ef'},
-  ];
+    PROJETOS.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = '#' + p.id + ' ' + p.cliente; fProj.appendChild(o); });
+  const filtroProj = fProj ? parseInt(fProj.value)||null : null;
+  const COLS = [{id:'Aberto',label:'Aberto',cor:'#2E3486',bg:'#eef0ff'},{id:'Em Andamento',label:'Em Andamento',cor:'#f59e0b',bg:'#fff8e0'},{id:'Resolvido',label:'Resolvido',cor:'#1D9E75',bg:'#e8f8ef'}];
   const PRIO = {'Urgente':0,'Alta':1,'Normal':2,'':3};
   const PCOR = {'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
-
   board.innerHTML = COLS.map(col => {
     let chs = CHAMADOS.filter(c => c.status === col.id || (!c.status && col.id === 'Aberto'));
     if (filtroProj) chs = chs.filter(c => c.projetoId === filtroProj);
-    chs.sort((a,b) => (PRIO[a.prioridade||''] ?? 3) - (PRIO[b.prioridade||''] ?? 3));
-
+    chs.sort((a,b) => (PRIO[a.prioridade||'']??3) - (PRIO[b.prioridade||'']??3));
     const cards = chs.map(c => {
       const proj = PROJETOS.find(p => p.id === c.projetoId);
-      const cor  = PCOR[c.prioridade || 'Normal'] || '#3b82f6';
-      const pc   = (c.prioridade || 'Normal').toLowerCase();
-      const respNome = c.responsavel || '';
-      const eq = (window._usuariosCache||EQUIPE_SOLAR).find(u=>u.nome===respNome);
-      const respEmoji = eq?.emoji || '👤';
-      return `<div class="ch-card"
-        draggable="true"
-        data-chid="${c.id}"
-        style="border-left:4px solid ${cor}"
-        >
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px">
-          <div class="ch-card-ttl">${c.tipo || 'Chamado'}</div>
-          <span class="ch-drag-handle" title="Arrastar">⠿</span>
+      const cor = PCOR[c.prioridade||'Normal']||'#3b82f6';
+      const pc = (c.prioridade||'Normal').toLowerCase();
+      const eq = (window._usuariosCache||EQUIPE_SOLAR).find(u => u.nome === c.responsavel);
+      return `<div class="ch-card" draggable="true" data-chid="${c.id}" style="border-left:4px solid ${cor}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+          <div class="ch-card-ttl">${c.tipo||'Chamado'}</div>
+          <span class="ch-drag-handle">⠿</span>
         </div>
-        <div style="font-size:11px;color:var(--txts);margin-bottom:5px">📁 ${proj ? '#'+proj.id+' '+proj.cliente : (c.clienteAvulso||'—')}</div>
-        <div style="font-size:12px;color:#444;margin-bottom:7px;line-height:1.4">${(c.desc||'').slice(0,80)}${c.desc&&c.desc.length>80?'…':''}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:7px">
+        <div style="font-size:11px;color:var(--txts);margin-bottom:5px">📁 ${proj?'#'+proj.id+' '+proj.cliente:(c.clienteAvulso||'—')}</div>
+        <div style="font-size:12px;color:#333;margin-bottom:6px;line-height:1.4">${(c.desc||'').slice(0,80)}${c.desc&&c.desc.length>80?'…':''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
           <span style="padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;background:${pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff'};color:${cor}">${c.prioridade||'Normal'}</span>
           <span style="font-size:10.5px;color:var(--txts)">🕐 ${fmt_data(c.data)}</span>
         </div>
-        <div style="padding-top:7px;border-top:1px solid #f0efe8;display:flex;align-items:center;justify-content:space-between;gap:6px">
-          ${respNome
-            ? `<div style="display:flex;align-items:center;gap:6px">
-                <div style="width:24px;height:24px;border-radius:50%;background:#2E3486;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${respEmoji}</div>
-                <div>
-                  <div style="font-size:11.5px;font-weight:600;color:#2E3486;line-height:1.2">${respNome}</div>
-                  <div style="font-size:10px;color:#888">${eq?.competencia||''}</div>
-                </div>
-               </div>`
-            : `<div style="display:flex;align-items:center;gap:5px;color:#D85A30">
-                <span style="font-size:12px">⚠</span>
-                <span style="font-size:11px;font-weight:500">Sem responsável</span>
-               </div>`
+        <div style="padding-top:6px;border-top:1px solid #f0efe8;display:flex;align-items:center;justify-content:space-between">
+          ${c.responsavel
+            ? `<div style="display:flex;align-items:center;gap:5px"><div style="width:22px;height:22px;border-radius:50%;background:#2E3486;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px">${eq?.emoji||'👤'}</div><div style="font-size:11px;font-weight:600;color:#2E3486">${c.responsavel}</div></div>`
+            : '<span style="font-size:11px;color:#D85A30;font-weight:500">⚠ Sem responsável</span>'
           }
           <span style="font-size:10px;color:#bbb;font-style:italic">clique p/ editar</span>
         </div>
       </div>`;
-    }).join('');
-
+    }).join('') || '<div style="font-size:12px;color:var(--txts);padding:20px;text-align:center;border:2px dashed #ddd;border-radius:8px;min-height:60px;display:flex;align-items:center;justify-content:center;color:#aaa">Solte aqui</div>';
     return `<div class="ch-col" data-status="${col.id}">
       <div class="ch-col-hdr" style="background:${col.bg};display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:8px">
@@ -1490,79 +1495,141 @@ function renderChamados(){
         ondrop="chDrop(event,'${col.id}')">${cards}</div>
     </div>`;
   }).join('');
-
-  // Adicionar event listeners após renderizar (evita conflito onclick/drag)
   board.querySelectorAll('.ch-card').forEach(card => {
     const id = parseInt(card.dataset.chid);
-
-    card.addEventListener('dragstart', e => {
-      _chDragging = true;
-      _chDragId = id;
-      e.dataTransfer.setData('text/plain', String(id));
-      e.dataTransfer.effectAllowed = 'move';
-      card.classList.add('ch-dragging');
-    });
-
-    card.addEventListener('dragend', e => {
-      card.classList.remove('ch-dragging');
-      board.querySelectorAll('.ch-col-body').forEach(b => b.classList.remove('ch-drop-active'));
-      setTimeout(() => { _chDragging = false; }, 50);
-    });
-
-    card.addEventListener('click', e => {
-      if (_chDragging) return;
-      abrirDetChamado(id);
-    });
+    card.addEventListener('dragstart', e => { _chDragging=true; _chDragId=id; e.dataTransfer.setData('text/plain',String(id)); e.dataTransfer.effectAllowed='move'; card.classList.add('ch-dragging'); });
+    card.addEventListener('dragend', e => { card.classList.remove('ch-dragging'); board.querySelectorAll('.ch-col-body').forEach(b=>b.classList.remove('ch-drop-active')); setTimeout(()=>{_chDragging=false;},50); });
+    card.addEventListener('click', e => { if(_chDragging)return; abrirEditarChamado(id); });
   });
+};
+function chDragOver(ev){ev.preventDefault();ev.currentTarget.classList.add('ch-drop-active');}
+function chDragLeave(ev){if(!ev.currentTarget.contains(ev.relatedTarget))ev.currentTarget.classList.remove('ch-drop-active');}
+async function chDrop(ev,novoStatus){ev.preventDefault();ev.currentTarget.classList.remove('ch-drop-active');const id=parseInt(ev.dataTransfer.getData('text/plain')||_chDragId);if(!id)return;const ch=CHAMADOS.find(x=>x.id===id);if(!ch)return;const ant=ch.status||'Aberto';if(ant===novoStatus)return;ch.status=novoStatus;renderChamados();renderDash();try{await db.collection('chamados').doc(String(id)).set({status:novoStatus},{merge:true});toast('✅ Movido para '+novoStatus,'ok');}catch(e){ch.status=ant;renderChamados();toast('Erro: '+e.message,'er');}}
+
+// ══ EDITAR CHAMADO ══
+function abrirDetChamado(id){abrirEditarChamado(id);}
+function editChamado(id){abrirEditarChamado(id);}
+function abrirEditarChamado(id){
+  const c=CHAMADOS.find(x=>x.id===id);if(!c)return;
+  editChId=id;
+  const titulo=document.getElementById('mct');
+  if(titulo)titulo.textContent='Editar Chamado #'+id;
+  const selProj=document.getElementById('mc-proj');
+  if(selProj)selProj.innerHTML='<option value="">Nenhum (Avulso)</option>'+PROJETOS.map(p=>'<option value="'+p.id+'"'+(p.id==c.projetoId?' selected':'')+'>'+p.cliente+'</option>').join('');
+  const set=(elId,val)=>{const el=document.getElementById(elId);if(el)el.value=val||'';};
+  set('mc-avulso',c.clienteAvulso);set('mc-tipo',c.tipo||'Manutenção Preventiva');
+  set('mc-pri',c.prioridade||'Normal');set('mc-st',c.status||'Aberto');
+  set('mc-desc',c.desc);set('mc-data',c.data);set('mc-res',c.res);
+  const rspSel=document.getElementById('mc-responsavel');
+  if(rspSel){
+    const lista=window._usuariosCache||EQUIPE_SOLAR;
+    rspSel.innerHTML='<option value="">Selecionar responsável</option>'+lista.map(u=>'<option value="'+u.nome+'"'+(u.nome===c.responsavel?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
+    if(c.responsavel)setTimeout(mostrarCardResponsavel,0);
+    else {const card=document.getElementById('mc-resp-card');if(card)card.style.display='none';}
+  }
+  document.getElementById('mo-ch').classList.add('open');
 }
 
-function chDragOver(ev) {
-  ev.preventDefault();
-  ev.dataTransfer.dropEffect = 'move';
-  ev.currentTarget.classList.add('ch-drop-active');
-}
-
-function chDragLeave(ev) {
-  if (!ev.currentTarget.contains(ev.relatedTarget))
-    ev.currentTarget.classList.remove('ch-drop-active');
-}
-
-async function chDrop(ev, novoStatus) {
-  ev.preventDefault();
-  ev.currentTarget.classList.remove('ch-drop-active');
-  const id = parseInt(ev.dataTransfer.getData('text/plain') || _chDragId);
-  if (!id) return;
-  const ch = CHAMADOS.find(x => x.id === id);
-  if (!ch) return;
-  const statusAtual = ch.status || 'Aberto';
-  if (statusAtual === novoStatus) return;
-  ch.status = novoStatus;
-  renderChamados();
-  renderDash();
-  try {
-    await db.collection('chamados').doc(String(id)).set({status: novoStatus}, {merge: true});
-    toast('✅ Movido para ' + novoStatus, 'ok');
-  } catch(e) {
-    ch.status = statusAtual; // reverter
-    renderChamados();
-    toast('Erro: ' + e.message, 'er');
+// ══ RESPONSÁVEIS ══
+function popularResponsaveis(valorInicial){
+  const sel=document.getElementById('mc-responsavel');if(!sel)return;
+  const cur=valorInicial!==undefined?valorInicial:sel.value;
+  function renderOpts(lista){
+    sel.innerHTML='<option value="">Selecionar responsável</option>'+lista.map(u=>'<option value="'+u.nome+'"'+(u.nome===cur?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
+    if(cur)setTimeout(mostrarCardResponsavel,0);
+  }
+  renderOpts(window._usuariosCache||EQUIPE_SOLAR);
+  if(typeof db!=='undefined'){
+    db.collection('usuarios').get().then(snap=>{
+      const fbUsers=snap.docs.map(d=>d.data()).filter(u=>!u.desativado);
+      if(fbUsers.length){
+        const nomes=new Set(fbUsers.map(u=>u.nome));
+        const extras=EQUIPE_SOLAR.filter(e=>!nomes.has(e.nome));
+        window._usuariosCache=[...fbUsers.map(u=>{const eq=EQUIPE_SOLAR.find(e=>e.nome===u.nome);return{...u,competencia:u.competencia||eq?.competencia||'',emoji:eq?.emoji||'👤'};}),...extras];
+        renderOpts(window._usuariosCache);
+      }
+    }).catch(()=>{});
   }
 }
+function mostrarCardResponsavel(){
+  const sel=document.getElementById('mc-responsavel');
+  const card=document.getElementById('mc-resp-card');
+  const nome=sel?.value;
+  if(!nome||!card){if(card)card.style.display='none';return;}
+  const u=(window._usuariosCache||EQUIPE_SOLAR).find(x=>x.nome===nome);
+  if(!u){card.style.display='none';return;}
+  card.style.display='block';
+  const avatar=document.getElementById('mc-resp-avatar');
+  const nomeEl=document.getElementById('mc-resp-nome');
+  const compEl=document.getElementById('mc-resp-competencia');
+  const emailEl=document.getElementById('mc-resp-email');
+  if(avatar)avatar.textContent=u.emoji||(u.nome[0]||'?').toUpperCase();
+  if(nomeEl)nomeEl.textContent=u.nome;
+  if(compEl)compEl.innerHTML='<span style="background:#eef0ff;color:#2E3486;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">'+(u.competencia||'Sem área')+'</span>';
+  if(emailEl)emailEl.textContent=u.email||'';
+}
 
-function abrirDetChamado(id){ abrirEditarChamado(id); }
-
-// popularResponsaveis e openModalChamado definidos abaixo
+// ══ TABELA PREÇOS ══
+async function carregarTabelaFirestore(){
+  try{const doc=await db.collection('config').doc('tabela_precos').get();if(doc.exists&&doc.data().itens?.length)window.TABELA_SOLAR=[...doc.data().itens];}catch(e){}
+}
+function buscarTabelaPreview(){
+  const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
+  const sel=document.getElementById('pp-tab-sugestao');
+  const info=document.getElementById('pp-tab-info');
+  if(!sel)return;
+  if(consumo<100){sel.innerHTML='<option value="">— Digite o consumo —</option>';if(info)info.style.display='none';return;}
+  const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
+  if(!comp.length){sel.innerHTML='<option value="">Consumo acima da tabela</option>';if(info)info.style.display='none';return;}
+  sel.innerHTML=comp.map((k,i)=>'<option value="'+i+'"'+(i===0?' selected':'')+'>'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
+  mostrarInfoKit(comp[0]);if(info)info.style.display='block';
+}
+function selecionarKitTabela(){
+  const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
+  const idx=parseInt(document.getElementById('pp-tab-sugestao')?.value);
+  const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
+  if(!isNaN(idx)&&comp[idx])mostrarInfoKit(comp[idx]);
+}
+function mostrarInfoKit(k){
+  const info=document.getElementById('pp-tab-info');if(!info)return;
+  info.style.display='block';
+  info.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">'
+    +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Módulos</div><div style="font-size:13px;font-weight:700;color:#2E3486">'+k.nMod+'x '+k.wpMod+'Wp</div></div>'
+    +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">kWp</div><div style="font-size:13px;font-weight:700;color:#2E3486">'+k.kwp+'</div></div>'
+    +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Inversor</div><div style="font-size:13px;font-weight:700;color:#2E3486">'+k.potInv+' kW</div></div>'
+    +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Valor</div><div style="font-size:13px;font-weight:700;color:#1D9E75">R$ '+k.total.toLocaleString('pt-BR')+'</div></div>'
+    +'</div><div style="font-size:10.5px;color:#5a5b6e;margin-top:5px">💰 Baixar até: <strong>R$ '+k.baixarAte.toLocaleString('pt-BR')+'</strong> · Geração: <strong>'+k.kwh+' kWh/mês</strong></div>';
+}
+function aplicarKitTabela(){
+  const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
+  const idx=parseInt(document.getElementById('pp-tab-sugestao')?.value);
+  const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
+  if(isNaN(idx)||!comp[idx]){toast('Selecione um kit.','er');return;}
+  const k=comp[idx];
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  set('pp-modulos',k.nMod);set('pp-wpmod',k.wpMod);set('pp-inv','SOLPLANET');set('pp-pinv',k.potInv);set('pp-valor',k.total);set('pp-consumo',consumo||k.kwh);
+  calcularProposta();
+  toast('✅ Kit aplicado! '+k.nMod+'x '+k.wpMod+'Wp · R$ '+k.total.toLocaleString('pt-BR'),'ok');
+}
 
 // ══ PROPOSTAS ══
 function calcPMT(pv,taxa,n){if(!taxa)return pv/n;return pv*taxa*Math.pow(1+taxa,n)/(Math.pow(1+taxa,n)-1);}
-function atualizarModalidade(){const mod=document.getElementById('pp-modalidade')?.value||'avista';const wrap=document.getElementById('pp-parcelas-wrap');if(wrap)wrap.style.display=mod==='avista'?'none':'block';atualizarPreview();}
+function atualizarModalidade(){
+  const mod=document.getElementById('pp-modalidade')?.value||'avista';
+  const wrap=document.getElementById('pp-parcelas-wrap');
+  const wC=document.getElementById('pp-wrap-cartao');
+  const wF=document.getElementById('pp-wrap-financiado');
+  if(wrap)wrap.style.display=mod==='avista'?'none':'block';
+  if(wC)wC.style.display=mod==='cartao'?'flex':'none';
+  if(wF)wF.style.display=mod==='financiado'?'flex':'none';
+  atualizarPreview();
+}
 function calcularProposta(){
   const mods=parseInt(document.getElementById('pp-modulos')?.value)||0;
   const wp=parseInt(document.getElementById('pp-wpmod')?.value)||610;
   const kwp=parseFloat((mods*wp/1000).toFixed(2));
-  // Atualizar geração automaticamente sempre (irr média Teresina 5.62, PR 0.75)
   const gerEl=document.getElementById('pp-geracao');
-  if(gerEl&&kwp>0) gerEl.value=Math.round(kwp*5.39*30*0.75);
+  if(gerEl&&kwp>0)gerEl.value=Math.round(kwp*5.39*30*0.75);
   atualizarPreview();
 }
 function atualizarPreview(){
@@ -1573,578 +1640,195 @@ function atualizarPreview(){
   const parcMax=parseInt(document.getElementById('pp-parcelas')?.value)||18;
   const tarifa=parseFloat(document.getElementById('pp-tarifa')?.value)||0;const consumo=parseInt(document.getElementById('pp-consumo')?.value)||0;
   const modalidade=document.getElementById('pp-modalidade')?.value||'avista';const kwp=(mods*wp/1000).toFixed(2);
-  const saud=document.getElementById('pc-saud');if(saud){const n=nome?'<strong>'+nome+'</strong>, ':'';const ct=cidade?' em <strong>'+cidade+'</strong>':'';saud.innerHTML='Olá, '+n+'preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico'+ct+'. Confira:';}
+  const saud=document.getElementById('pc-saud');
+  if(saud){const n=nome?'<strong>'+nome+'</strong>, ':'';const ct=cidade?' em <strong>'+cidade+'</strong>':'';saud.innerHTML='Olá, '+n+'preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico'+ct+'. Confira:';}
   const kwpEl=document.getElementById('pc-kwp');if(kwpEl)kwpEl.textContent=kwp+' kWp';
   const modSub=document.getElementById('pc-modulos-sub');if(modSub)modSub.textContent=(mods||'—')+'x '+(wp||'—')+'Wp'+(inv?' · '+inv+' '+pinv:'');
   const gerEl2=document.getElementById('pc-geracao');if(gerEl2)gerEl2.textContent=geracao?geracao.toLocaleString('pt-BR')+' kWh':'— kWh';
   const gerSub=document.getElementById('pc-geracao-sub');if(gerSub&&consumo)gerSub.textContent='Cobre ~'+Math.min(100,Math.round(geracao/consumo*100))+'% do consumo';else if(gerSub)gerSub.textContent='estimado/mês';
-  const irr=[4.7, 4.93, 5.04, 4.98, 5.08, 5.31, 5.51, 5.98, 6.24, 5.99, 5.65, 5.3]; // irradiação com perdas Teresina
+  const irr=[4.7,4.93,5.04,4.98,5.08,5.31,5.51,5.98,6.24,5.99,5.65,5.3];
   const grafico=document.getElementById('pc-grafico');
-  if(grafico&&parseFloat(kwp)>0){const gens=irr.map(i=>Math.round(parseFloat(kwp)*i*30*0.75));const maxG=Math.max(...gens);grafico.innerHTML=gens.map((g,i)=>{const h=Math.round((g/maxG)*36);const cor=i===7||i===8?'#FDC300':'#2E3486';return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px"><div style="font-size:6.5px;color:#2E3486;font-weight:600">'+g+'</div><div style="width:100%;background:'+cor+';border-radius:2px 2px 0 0;height:'+h+'px"></div></div>';}).join('');}
+  if(grafico&&parseFloat(kwp)>0){const gens=irr.map(i=>Math.round(parseFloat(kwp)*i*30));const maxG=Math.max(...gens);grafico.innerHTML=gens.map((g,i)=>{const h=Math.round((g/maxG)*36);const cor=i===7||i===8?'#FDC300':'#2E3486';return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px"><div style="font-size:6.5px;color:#2E3486;font-weight:600">'+g+'</div><div style="width:100%;background:'+cor+';border-radius:2px 2px 0 0;height:'+h+'px"></div></div>';}).join('');}
   const ci=document.getElementById('pc-comp-inversor');if(ci)ci.textContent='✓ Inversor '+(inv?inv+' '+pinv:'—');
   const cm=document.getElementById('pc-comp-modulos');if(cm)cm.textContent='✓ '+(mods||'—')+' módulos '+(wp||'—')+'Wp';
   const valEl=document.getElementById('pc-valor');if(valEl)valEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
   const finDiv=document.getElementById('pc-fin');const parSub=document.getElementById('pc-parcela-sub');const aVistaEl=document.getElementById('pc-avista');
-  if(modalidade==='avista'){
-    if(finDiv)finDiv.style.display='none';
-    if(parSub)parSub.textContent='';
-  } else {
+  if(modalidade==='avista'){if(finDiv)finDiv.style.display='none';if(parSub)parSub.textContent='';}
+  else{
     if(finDiv)finDiv.style.display='block';
-    const finHdr=finDiv?.querySelector('.fin-hdr');
-    if(finHdr)finHdr.textContent=modalidade==='cartao'?'💳 Cartão de Crédito':'🏦 Financiamento';
+    const finHdr=finDiv?.querySelector('.fin-hdr');if(finHdr)finHdr.textContent=modalidade==='cartao'?'💳 Cartão de Crédito':'🏦 Financiamento';
     if(aVistaEl)aVistaEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
     const pRows=document.getElementById('pc-parcelas-rows');
-
     if(modalidade==='cartao'){
-      // Cartão: taxas fixas por faixa
-      const parcMax2=parseInt(document.getElementById('pp-parcelas')?.value)||18;
-      function taxaCartao(n){if(n===1)return 1.70;if(n<=6)return 2.10;if(n<=12)return 2.20;return 3.20;}
-      const opts=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].filter(p=>p<=parcMax2);
-      if(pRows)pRows.innerHTML=opts.map((p,i)=>{
-        const taxa=taxaCartao(p)/100;
-        const tot=valor*(1+taxa);
-        const pmt=tot/p;
-        const bg=i%2===0?'#EDECE5':'#fff';
-        const tl=p===1?'(+1,70%)':p<=6?'(+2,10%)':p<=12?'(+2,20%)':'(+3,20%)';
-        return '<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+p+'x <span style="color:#aaa;font-size:8px">'+tl+'</span></span><span style="font-weight:700;color:#2E3486">R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';
-      }).join('')+'<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';
-      if(parSub&&valor){const taxa=taxaCartao(parcMax2)/100;const tot=valor*(1+taxa);const pmt=tot/parcMax2;parSub.textContent='ou '+parcMax2+'x de R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2});}
-
+      function taxaC(n){if(n===1)return 1.70;if(n<=6)return 2.10;if(n<=12)return 2.20;return 3.20;}
+      const opts=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].filter(p=>p<=parcMax);
+      if(pRows)pRows.innerHTML=opts.map((p,i)=>{const taxa=taxaC(p)/100;const tot=valor*(1+taxa);const pmt=tot/p;const bg=i%2===0?'#EDECE5':'#fff';const tl=p===1?'(+1,70%)':p<=6?'(+2,10%)':p<=12?'(+2,20%)':'(+3,20%)';return '<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+p+'x <span style="color:#aaa;font-size:8px">'+tl+'</span></span><span style="font-weight:700;color:#2E3486">R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';}).join('')+'<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';
+      if(parSub&&valor){const taxa=taxaC(parcMax)/100;const tot=valor*(1+taxa);const pmt=tot/parcMax;parSub.textContent='ou '+parcMax+'x de R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2});}
     } else if(modalidade==='financiado'){
       const entrada=parseFloat(document.getElementById('pp-fin-entrada')?.value)||0;
       const carencia=document.getElementById('pp-fin-carencia')?.value||'';
       const opcoes=[];
-      for(let i=1;i<=4;i++){
-        const n=parseInt(document.getElementById('pp-fin-n'+i)?.value)||0;
-        const v=parseFloat(document.getElementById('pp-fin-v'+i)?.value)||0;
-        const ck=document.getElementById('pp-fin-c'+i)?.checked;
-        if(n>0&&v>0&&ck) opcoes.push({n,v});
-      }
-      if(pRows){
-        let html='';
-        if(entrada>0) html+='<div style="display:flex;justify-content:space-between;background:#e8f8ef;padding:4px 8px;font-size:9.5px;border-bottom:1px solid #f0efe8"><span style="color:#1D9E75;font-weight:600">Entrada</span><span style="font-weight:700;color:#1D9E75">R$ '+entrada.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
-        // Header
-        html+='<div style="display:flex;justify-content:space-between;background:#EDECE5;padding:3px 8px;font-size:8px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px"><span>Prazo</span><span>Parcela/mês</span></div>';
-        if(opcoes.length){
-          opcoes.forEach((op,i)=>{
-            const bg=i%2===0?'#fff':'#f7f6f1';
-            html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px">'
-              +'<span style="color:#555">'+op.n+'x</span>'
-              +'<span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span>'
-              +'</div>';
-          });
-        } else {
-          html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de prazo</div>';
-        }
-        if(carencia) html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center;font-weight:500">⏳ Carência de '+carencia+' dias para início das parcelas</div>';
-        pRows.innerHTML=html;
-      }
-      if(parSub&&opcoes.length){
-        const op=opcoes[opcoes.length-1];
-        parSub.textContent=op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+(carencia?' · '+carencia+'d carência':'');
-      }
+      for(let i=1;i<=4;i++){const n=parseInt(document.getElementById('pp-fin-n'+i)?.value)||0;const v=parseFloat(document.getElementById('pp-fin-v'+i)?.value)||0;const ck=document.getElementById('pp-fin-c'+i)?.checked;if(n>0&&v>0&&ck)opcoes.push({n,v});}
+      if(pRows){let html='';if(entrada>0)html+='<div style="display:flex;justify-content:space-between;background:#e8f8ef;padding:4px 8px;font-size:9.5px"><span style="color:#1D9E75;font-weight:600">Entrada</span><span style="font-weight:700;color:#1D9E75">R$ '+entrada.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';html+='<div style="display:flex;justify-content:space-between;background:#EDECE5;padding:3px 8px;font-size:8px;font-weight:700;text-transform:uppercase"><span>Prazo</span><span>Parcela/mês</span></div>';if(opcoes.length)opcoes.forEach((op,i)=>{const bg=i%2===0?'#fff':'#f7f6f1';html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+op.n+'x</span><span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';});else html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de prazo</div>';if(carencia)html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center;font-weight:500">⏳ Carência de '+carencia+' dias</div>';pRows.innerHTML=html;}
+      if(parSub&&opcoes.length){const op=opcoes[opcoes.length-1];parSub.textContent=op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+(carencia?' · '+carencia+'d carência':'');}
     }
   }
-  const ecoDiv=document.getElementById('pc-economia');if(ecoDiv&&tarifa>0&&geracao>0){ecoDiv.style.display='block';const ecoMes=geracao*tarifa;const ret=valor>0?(valor/(ecoMes*12)).toFixed(1):'—';document.getElementById('pc-eco-val').textContent='R$ '+ecoMes.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês';document.getElementById('pc-eco-sub').textContent='Retorno estimado em '+ret+' anos';}else if(ecoDiv)ecoDiv.style.display='none';
+  const ecoDiv=document.getElementById('pc-economia');
+  if(ecoDiv&&tarifa>0&&geracao>0){ecoDiv.style.display='block';const ecoMes=geracao*tarifa;const ret=valor>0?(valor/(ecoMes*12)).toFixed(1):'—';document.getElementById('pc-eco-val').textContent='R$ '+ecoMes.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês';document.getElementById('pc-eco-sub').textContent='Retorno estimado em '+ret+' anos';}
+  else if(ecoDiv)ecoDiv.style.display='none';
 }
 async function gerarPNG(){const card=document.getElementById('prop-card');if(!card)return;const nome=document.getElementById('pp-nome')?.value||'cliente';toast('Gerando imagem...','');try{const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});const link=document.createElement('a');link.href=canvas.toDataURL('image/png');link.download='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';link.click();toast('✅ Imagem baixada!','ok');}catch(e){toast('Erro: '+e.message,'er');}}
-function limparProposta(){['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});atualizarPreview();}
+function limparProposta(){['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
+
+// ══ MAPA ══
+let _leafletMap=null,_mapaMarkers=[];
+const COORDS_FIXAS={1:[-5.0934,-42.7967],2:[-4.874055,-42.138847],3:[-4.9761,-44.7834],4:[-5.162702,-42.786701],5:[-5.162702,-42.786701],6:[-5.0650,-42.8200],7:[-5.0950,-42.8750],8:[-5.0850,-42.8100],9:[-7.2333,-43.0333],10:[-5.1100,-42.8000],11:[-5.0780,-42.8100],12:[-5.0785,-42.8105],13:[-5.1170,-42.7870],14:[-5.1350,-42.7900],15:[-5.1150,-42.7950],16:[-5.1450,-42.7830],17:[-5.0700,-42.8050],18:[-5.0900,-42.8050],19:[-5.0950,-42.8000],20:[-5.1050,-42.8300],21:[-5.1355,-42.7905],22:[-5.1360,-42.7890],23:[-5.1340,-42.7910],24:[-5.0800,-42.8020],25:[-5.0600,-42.7800],26:[-5.1000,-42.8100],27:[-5.1100,-42.8050],28:[-5.1370,-42.7880],29:[-5.0850,-42.8020],31:[-5.0650,-42.8150],33:[-5.1172,-42.7587],34:[-5.1167,-42.4678],35:[-5.5500,-42.6800],36:[-5.0700,-42.8300]};
+function iniciarLeafletMap(){if(_leafletMap)return;if(typeof L==='undefined'){setTimeout(iniciarLeafletMap,400);return;}const el=document.getElementById('mapa-leaflet');if(!el){setTimeout(iniciarLeafletMap,400);return;}_leafletMap=L.map('mapa-leaflet').setView([-5.0892,-42.8019],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(_leafletMap);setTimeout(()=>_leafletMap.invalidateSize(),200);}
+function criarPinSolar(kwp){const k=parseFloat(kwp)||0;const size=k>=20?36:k>=10?30:26;const cor=k>=20?'#FDC300':k>=10?'#2E3486':'#4a52c8';const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+(size+8)+'" viewBox="0 0 28 36"><path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="'+cor+'" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/><circle cx="14" cy="14" r="5" fill="rgba(255,255,255,.9)"/></svg>';return L.divIcon({html:svg,className:'',iconSize:[size,size+8],iconAnchor:[size/2,size+8],popupAnchor:[0,-(size+8)]});}
+async function renderMapa(){iniciarLeafletMap();const comLoc=PROJETOS.filter(p=>p.end||p.mapsUrl||(p.lat&&p.lng)||COORDS_FIXAS[p.id]);const cntEl=document.getElementById('mapa-cnt');if(cntEl)cntEl.textContent=comLoc.length+' cliente(s) com localização';const lista=document.getElementById('mapa-lista');if(lista){lista.innerHTML=comLoc.map(p=>{const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink=p.mapsUrl||(p.lat&&p.lng?'https://www.google.com/maps?q='+p.lat+','+p.lng:p.end?'https://www.google.com/maps/search/'+encodeURIComponent(p.end):null);const wppUrl=wppNum?'https://wa.me/'+wppNum:null;const kwp=parseFloat(p.kwp)||0;return '<div style="background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:12px 14px;display:flex;align-items:flex-start;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📍</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+(p.cliente||'—')+'</div><div style="font-size:11.5px;color:var(--txts);margin-top:2px">'+(p.end||'—')+'</div><div style="font-size:11px;color:var(--txts);margin-top:2px">'+kwp.toFixed(2)+' kWp · '+(p.etapa||'')+'</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+(mapsLink?'<a href="'+mapsLink+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">🗺 Maps</a>':'')+(wppUrl?'<a href="'+wppUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:#e8f8ef;color:#1a8045;border:1px solid #b2e0c4;text-decoration:none">💬 WhatsApp</a>':'')+'</div></div></div>';}
+  ).join('')||'<div style="font-size:13px;color:var(--txts);padding:20px 0">Execute a migração no Dashboard.</div>';}
+  if(!_leafletMap){setTimeout(renderMapa,500);return;}_mapaMarkers.forEach(m=>_leafletMap.removeLayer(m));_mapaMarkers=[];const bounds=[];const jitter=()=>(Math.random()-0.5)*0.003;
+  PROJETOS.forEach(p=>{const coord=COORDS_FIXAS[p.id]||(p.lat&&p.lng?[+p.lat,+p.lng]:null);if(!coord)return;const lat=coord[0]+jitter(),lng=coord[1]+jitter();const kwp=parseFloat(p.kwp)||0;const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink='https://www.google.com/maps?q='+lat+','+lng;const popup='<div style="font-size:13px;min-width:160px"><strong>'+(p.cliente||'—')+'</strong><br><span style="font-size:11px;color:#888">'+(p.end||'')+'</span><br><span style="font-size:13px;color:#2E3486;font-weight:700">'+kwp.toFixed(2)+' kWp</span><br><br><a href="'+mapsLink+'" target="_blank" style="color:#2E3486;font-size:12px">🗺 Maps</a>'+(wppNum?' &nbsp;<a href="https://wa.me/'+wppNum+'" target="_blank" style="color:#1D9E75;font-size:12px">💬 WhatsApp</a>':'')+'</div>';const marker=L.marker([lat,lng],{icon:criarPinSolar(kwp)}).bindPopup(popup,{maxWidth:240}).addTo(_leafletMap);_mapaMarkers.push(marker);bounds.push([lat,lng]);});
+  if(bounds.length>1)_leafletMap.fitBounds(bounds,{padding:[40,40]});setTimeout(()=>_leafletMap&&_leafletMap.invalidateSize(),300);}
+
+// ══ USUÁRIOS ══
+async function abrirUsuarios(){document.getElementById('mo-usuarios').style.display='flex';carregarListaUsuarios();}
+async function carregarListaUsuarios(){
+  const lista=document.getElementById('lista-usuarios');if(!lista)return;
+  lista.innerHTML='<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Carregando…</div>';
+  let fbUsers=[];try{const snap=await db.collection('usuarios').get();fbUsers=snap.docs.map(d=>d.data());}catch(e){}
+  const nomesFb=new Set(fbUsers.map(u=>u.nome));
+  const extras=EQUIPE_SOLAR.filter(e=>!nomesFb.has(e.nome)).map(e=>{return{nome:e.nome,competencia:e.competencia,emoji:e.emoji,perfil:'usuario',email:'—',uid:'_'+e.nome,_fixo:true};});
+  const todos=[...fbUsers,...extras];
+  if(!todos.length){lista.innerHTML='<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Nenhum usuário.</div>';return;}
+  lista.innerHTML=todos.map(u=>{
+    const isMe=u.uid===usuarioAtual?.uid;
+    const eq=EQUIPE_SOLAR.find(e=>e.nome===u.nome);
+    const comp=u.competencia||eq?.competencia||'';const emoji=u.emoji||eq?.emoji||'👤';
+    return '<div style="background:var(--cz);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px">'
+      +'<div style="width:36px;height:36px;border-radius:50%;background:'+(u._fixo?'#EDECE5':'#2E3486')+';color:'+(u._fixo?'#5a5b6e':'#fff')+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+emoji+'</div>'
+      +'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+u.nome+(isMe?' <span style="font-size:10px;color:var(--az)">(você)</span>':'')+'</div>'
+      +'<div style="font-size:11px;color:var(--txts);margin-top:2px">'+(u._fixo?'<span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:3px;font-size:10px">Equipe fixa</span>':'<span style="background:#e8f8ef;color:#1D9E75;padding:1px 5px;border-radius:3px;font-size:10px">'+u.perfil+'</span>')+' '+(comp?'<span style="background:#eef0ff;color:#2E3486;padding:1px 5px;border-radius:3px;font-size:10px">'+comp+'</span>':'')+'</div>'
+      +(u._fixo?'':'<div style="font-size:10.5px;color:#aaa;margin-top:2px">'+u.email+'</div>')
+      +'</div>'
+      +(!isMe&&!u._fixo?'<button data-uid="'+u.uid+'" data-nome="'+u.nome.replace(/"/g,"&quot;")+'" onclick="desativarUsuarioBt(this)" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px">Remover</button>':'')
+      +'</div>';
+  }).join('');
+}
+async function criarUsuario(){
+  const nome=document.getElementById('nu-nome').value.trim();const email=document.getElementById('nu-email').value.trim();const senha=document.getElementById('nu-senha').value;const perfil=document.getElementById('nu-perfil').value;
+  if(!nome||!email||!senha){toast('Preencha todos os campos.','er');return;}
+  if(senha.length<6){toast('Senha mínimo 6 caracteres.','er');return;}
+  try{
+    const secondApp=firebase.initializeApp(firebase.apps[0].options,'secondary_'+Date.now());
+    const cred=await secondApp.auth().createUserWithEmailAndPassword(email,senha);
+    const uid=cred.user.uid;await secondApp.auth().signOut();await secondApp.delete();
+    const competencia=document.getElementById('nu-competencia')?.value||'';
+    await db.collection('usuarios').doc(uid).set({uid,nome,email,perfil,competencia,criadoPor:usuarioAtual.uid,criadoEm:firebase.firestore.FieldValue.serverTimestamp()});
+    toast('✅ Usuário '+nome+' criado!','ok');
+    document.getElementById('nu-nome').value='';document.getElementById('nu-email').value='';document.getElementById('nu-senha').value='';
+    carregarListaUsuarios();
+  }catch(e){const msgs={'auth/email-already-in-use':'Email já cadastrado.'};toast('Erro: '+(msgs[e.code]||e.message),'er');}
+}
+function desativarUsuarioBt(btn){const uid=btn.getAttribute('data-uid');const nome=btn.getAttribute('data-nome');if(confirm('Remover acesso de '+nome+'?'))db.collection('usuarios').doc(uid).update({desativado:true}).then(()=>{toast('Acesso removido.','ok');carregarListaUsuarios();});}
+
+// ══ DASHBOARD CHAMADOS POR RESPONSÁVEL ══
+function renderDashChamadosEquipe(){
+  const cont=document.getElementById('dash-chamados-equipe');if(!cont)return;
+  const nomeLogado=window._nomeUsuarioLogado||document.getElementById('usr-nome')?.textContent||'';
+  const isAdmin=document.getElementById('btn-usuarios')?.style.display!=='none';
+  const PRIO_COR={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
+  const STATUS_BG={'Aberto':'#eef0ff','Em Andamento':'#fff8e0','Resolvido':'#e8f8ef'};
+  const STATUS_COR={'Aberto':'#2E3486','Em Andamento':'#f59e0b','Resolvido':'#1D9E75'};
+  const PRIO_ORD={'Urgente':0,'Alta':1,'Normal':2};
+  let chamadosAtivos=isAdmin?CHAMADOS.filter(c=>c.status!=='Resolvido'):CHAMADOS.filter(c=>c.status!=='Resolvido'&&c.responsavel===nomeLogado);
+  if(!chamadosAtivos.length){cont.innerHTML='<div style="text-align:center;padding:32px 20px;color:var(--txts)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-size:14px;font-weight:600;color:#2E3486">Nenhum chamado em aberto</div>'+(nomeLogado&&!nomeLogado.includes('@')?'<div style="font-size:12px;margin-top:4px">Parabéns, '+nomeLogado.split(' ')[0]+'! Tudo resolvido.</div>':'')+'</div>';return;}
+  if(isAdmin){
+    const porResp={};chamadosAtivos.forEach(c=>{const r=c.responsavel||'— Sem responsável';if(!porResp[r])porResp[r]=[];porResp[r].push(c);});
+    cont.innerHTML=Object.entries(porResp).map(([resp,chs])=>{
+      const eq=EQUIPE_SOLAR.find(u=>u.nome===resp);const emoji=eq?.emoji||(resp==='— Sem responsável'?'⚠':'👤');const comp=eq?.competencia||'';
+      const urgentes=chs.filter(c=>c.prioridade==='Urgente').length;
+      chs.sort((a,b)=>(PRIO_ORD[a.prioridade||'']??2)-(PRIO_ORD[b.prioridade||'']??2));
+      return '<div style="background:var(--cz);border-radius:10px;overflow:hidden;border:1px solid #e4e3dc;margin-bottom:2px">'
+        +'<div style="padding:9px 14px;background:#fff;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0efe8">'
+        +'<div style="display:flex;align-items:center;gap:9px"><div style="width:32px;height:32px;border-radius:50%;background:'+(resp==='— Sem responsável'?'#fdecea':'#2E3486')+';color:'+(resp==='— Sem responsável'?'#D85A30':'#fff')+';display:flex;align-items:center;justify-content:center;font-size:14px">'+emoji+'</div>'
+        +'<div><div style="font-size:13px;font-weight:600;color:'+(resp==='— Sem responsável'?'#D85A30':'#2E3486')+'">'+resp+'</div>'+(comp?'<div style="font-size:10px;color:var(--txts)">'+comp+'</div>':'')+'</div></div>'
+        +'<div style="display:flex;gap:5px">'+(urgentes?'<span style="background:#fdecea;color:#D85A30;padding:2px 8px;border-radius:12px;font-size:10.5px;font-weight:700">⚡ '+urgentes+' urg.</span>':'')
+        +'<span style="background:#eef0ff;color:#2E3486;padding:2px 8px;border-radius:12px;font-size:10.5px;font-weight:600">'+chs.length+' aberto'+(chs.length>1?'s':'')+'</span></div></div>'
+        +'<div style="padding:6px 8px;display:flex;flex-direction:column;gap:5px">'+chs.map(c=>montarCardChamadoDash(c,PRIO_COR,STATUS_BG,STATUS_COR)).join('')+'</div></div>';
+    }).join('');
+  } else {
+    chamadosAtivos.sort((a,b)=>(PRIO_ORD[a.prioridade||'']??2)-(PRIO_ORD[b.prioridade||'']??2));
+    const urgentes=chamadosAtivos.filter(c=>c.prioridade==='Urgente').length;
+    cont.innerHTML='<div style="background:#eef0ff;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+      +'<div style="font-size:13px;font-weight:600;color:#2E3486">Seus chamados em aberto</div>'
+      +'<div style="display:flex;gap:5px">'+(urgentes?'<span style="background:#fdecea;color:#D85A30;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⚡ '+urgentes+' urgente'+(urgentes>1?'s':'')+'</span>':'')
+      +'<span style="background:#2E3486;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">'+chamadosAtivos.length+' total</span></div></div>'
+      +'<div style="display:flex;flex-direction:column;gap:6px">'+chamadosAtivos.map(c=>montarCardChamadoDash(c,PRIO_COR,STATUS_BG,STATUS_COR)).join('')+'</div>';
+  }
+}
+function montarCardChamadoDash(c,PRIO_COR,STATUS_BG,STATUS_COR){
+  const proj=PROJETOS.find(p=>p.id===c.projetoId);const cor=PRIO_COR[c.prioridade||'Normal']||'#3b82f6';const pc=(c.prioridade||'Normal').toLowerCase();const stBg=STATUS_BG[c.status||'Aberto']||'#eef0ff';const stCor=STATUS_COR[c.status||'Aberto']||'#2E3486';
+  return '<div style="background:#fff;border-radius:8px;padding:9px 12px;border-left:3px solid '+cor+';cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px" onclick="abrirEditarChamado('+c.id+')">'
+    +'<div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c.tipo||'Chamado')+(proj?' — '+proj.cliente:c.clienteAvulso?' — '+c.clienteAvulso:'')+'</div>'
+    +'<div style="font-size:11px;color:var(--txts);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c.desc||'').slice(0,60)+(c.desc&&c.desc.length>60?'…':'')+'</div></div>'
+    +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">'
+    +'<span style="padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700;background:'+(pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff')+';color:'+cor+'">'+(c.prioridade||'Normal')+'</span>'
+    +'<span style="padding:1px 7px;border-radius:4px;font-size:10px;font-weight:600;background:'+stBg+';color:'+stCor+'">'+(c.status||'Aberto')+'</span>'
+    +'</div></div>';
+}
+
+// ══ NOTIFICAÇÃO CHAMADOS NO LOGIN ══
+function verificarChamadosDoUsuario(nomeUsuario){
+  const eq=EQUIPE_SOLAR.find(e=>e.email===nomeUsuario||e.nome===nomeUsuario);
+  const nomeReal=eq?.nome||nomeUsuario;
+  window._nomeUsuarioLogado=nomeReal;
+  const meusChamados=CHAMADOS.filter(c=>c.responsavel===nomeReal&&c.status!=='Resolvido');
+  if(!meusChamados.length)return;
+  const modal=document.getElementById('mo-notif-chamados');const lista=document.getElementById('notif-lista');
+  if(!modal||!lista)return;
+  const urgentes=meusChamados.filter(c=>c.prioridade==='Urgente').length;
+  const PRIO_COR={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
+  document.getElementById('notif-titulo').textContent=urgentes>0?'⚠ Você tem '+urgentes+' chamado(s) urgente(s)!':'🔔 Você tem chamados em aberto';
+  document.getElementById('notif-sub').textContent=meusChamados.length+' chamado(s) aguardando resolução';
+  meusChamados.sort((a,b)=>({'Urgente':0,'Alta':1,'Normal':2}[a.prioridade||'']??2)-({'Urgente':0,'Alta':1,'Normal':2}[b.prioridade||'']??2));
+  lista.innerHTML=meusChamados.map(c=>{
+    const proj=PROJETOS.find(p=>p.id===c.projetoId);const cor=PRIO_COR[c.prioridade||'Normal']||'#3b82f6';const pc=(c.prioridade||'Normal').toLowerCase();
+    return '<div style="background:#f7f6f1;border-radius:10px;padding:12px 14px;border-left:4px solid '+cor+';cursor:pointer;margin-bottom:6px" onclick="fecharNotifChamados();abrirEditarChamado('+c.id+')">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:13px;font-weight:600">'+(c.tipo||'Chamado')+'</div><span style="padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:600;background:'+(pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff')+';color:'+cor+'">'+(c.prioridade||'Normal')+'</span></div>'
+      +'<div style="font-size:12px;color:#555;margin-bottom:4px">📁 '+(proj?proj.cliente:(c.clienteAvulso||'Avulso'))+'</div>'
+      +'<div style="font-size:11.5px;color:#666;line-height:1.4">'+(c.desc||'').slice(0,80)+(c.desc&&c.desc.length>80?'…':'')+'</div>'
+      +'<div style="display:flex;gap:10px;margin-top:6px;font-size:10.5px;color:#888"><span>📌 '+(c.status||'Aberto')+'</span><span>🕐 '+fmt_data(c.data)+'</span></div></div>';
+  }).join('');
+  modal.style.display='flex';
+}
+function fecharNotifChamados(){const modal=document.getElementById('mo-notif-chamados');if(modal)modal.style.display='none';}
 
 // ══ MIGRAÇÕES ══
 const DATAS_NASC={1:"1958-09-07",2:"1982-05-22",3:"1973-10-29",4:"1985-05-25",5:"1987-11-05",6:"1963-09-25",7:"1974-06-17",8:"1986-10-19",9:"2003-11-30",10:"1973-04-25",11:"1947-07-09",12:"1962-07-25",13:"1972-12-26",14:"1974-12-13",15:"1978-02-09",16:"1996-08-06",17:"1970-02-24",18:"1966-04-15",19:"1934-12-09",20:"1987-07-07",21:"1958-12-01",22:"1966-05-26",23:"1969-02-07",24:"1964-11-22",25:"1995-01-14",26:"1989-07-17",27:"1997-09-25",28:"1995-02-20",29:"1952-01-01",30:"1995-09-17",31:"1992-12-06",32:"1956-11-18",33:"1980-03-01",34:"1958-01-26",35:"2002-04-13"};
-const LOCALIZACOES={1:{end:"R. Taumaturgo Azevedo, 2000, Centro Sul - Teresina PI",mapsUrl:"https://maps.app.goo.gl/bbCjHqjXL3h8RcyL8"},2:{end:"FA São Pedro, 67, Zona Rural - Campo Maior PI",mapsUrl:"",lat:"-4.874055",lng:"-42.138847"},3:{end:"R. Areal, 12, QD 14, Portal das Flores - Bacabal MA",mapsUrl:"https://maps.app.goo.gl/kX8CDNHm8x8LYLsSA"},4:{end:"CD Manoel Evangelista I, QD 25 Casa 10, Novo Horizonte - Teresina PI",mapsUrl:"",lat:"-5.162702",lng:"-42.786701"},5:{end:"CJ Herbert de Sousa, Q08 C05, Angelim - Teresina PI",mapsUrl:"",lat:"-5.162702",lng:"-42.786701"},6:{end:"R. Napoleão Azevedo, 5801, Parque Poti - Teresina PI",mapsUrl:"https://maps.app.goo.gl/mqQ5MpVJBqfUtjnk7"},7:{end:"Av. Ind. Gil Martins, 3100, Tabuleta - Teresina PI",mapsUrl:"https://maps.app.goo.gl/iWLPu9sfSzgxwthJA"},8:{end:"Av. Miguel Rosa, 5069, Nossa Sra das Graças - Teresina PI",mapsUrl:"https://maps.app.goo.gl/8GtkWcLjpxes6n8w8"},9:{end:"R. João Alves Delmondes, S/N, Santa Cruz - Landri Sales PI",mapsUrl:"https://maps.app.goo.gl/jvJzZMVD9zHP8HbNA"},10:{end:"R. Canastra, 2651, Colorado - Teresina PI",mapsUrl:"https://maps.app.goo.gl/nFqPBunPuRunt5qb9"},11:{end:"Av. Miguel Rosa, 2125, Teresina PI",mapsUrl:"https://maps.app.goo.gl/75XkRfgXVpfbiKch8"},12:{end:"Av. Miguel Rosa, 2131, Teresina PI",mapsUrl:"https://maps.app.goo.gl/75XkRfgXVpfbiKch8"},13:{end:"R. Maestro Pedro Alcântara, 4453, Extrema - Teresina PI",mapsUrl:"https://maps.app.goo.gl/g3U7EJVv14W27EYb6"},14:{end:"CJ Dirceu Arcoverde II, QD 248 Casa 01, Teresina PI",mapsUrl:"https://maps.app.goo.gl/a4t6M5PysMhg5jx77"},15:{end:"R. Medelim, 4701, Novo Horizonte - Teresina PI",mapsUrl:"https://maps.app.goo.gl/1eqV4vFPSiPFAk6b6"},16:{end:"Vl. Dandara dos Cocais, QD 07 Casa 01, Teresina PI",mapsUrl:"https://maps.app.goo.gl/mRtM1PucnYBcy2QPA"},17:{end:"R. Enfermeira Mundoca, 129, Cabral - Teresina PI",mapsUrl:"https://maps.app.goo.gl/5e9Bts1eLJGgzxKC7"},18:{end:"R. Dr. Ocílio Lago, 1136, Ininga - Teresina PI",mapsUrl:"https://maps.app.goo.gl/VbRdXWKKru98ZyEN6"},19:{end:"Av. Sen. Área Leão, 1305, Jóquei - Teresina PI",mapsUrl:"https://maps.app.goo.gl/zE92ZtaazMBykjrZ7"},20:{end:"R. J, 2073, Parque Alvorada - Timon MA",mapsUrl:"https://maps.app.goo.gl/vedLpCyTMBL8ETCb9"},21:{end:"CJ Dirceu Arcoverde II, QD 248 Casa 13, Teresina PI",mapsUrl:"https://maps.app.goo.gl/y2PKNu2UomSssMCU7"},22:{end:"CJ Dirceu Arcoverde II, QD 295 Casa 04, Teresina PI",mapsUrl:"https://maps.app.goo.gl/vGEDLzHk11Smkoyr8"},23:{end:"CJ Dirceu Arcoverde I, Quadra 129, Teresina PI",mapsUrl:"https://maps.app.goo.gl/vGEDLzHk11Smkoyr8"},24:{end:"Av. Mal. Castelo Branco, 1271, Sala 02 - Teresina PI",mapsUrl:"https://maps.app.goo.gl/5c5akZXEFo7xYyWB7"},25:{end:"Rua Francisca de Melo Lobo, 355, Cond. Vila Vitória Casa 103 - Teresina PI",mapsUrl:"https://maps.app.goo.gl/HrFQ4tgguGChhYXf6"},26:{end:"R. Corozal, 3971, Teresina PI",mapsUrl:"https://maps.app.goo.gl/7qsRm4fPA6FXX64r8"},27:{end:"R. Cedral, 4849, Novo Horizonte - Teresina PI",mapsUrl:"https://maps.app.goo.gl/Gig1zKWRm8Jz2LFu6"},28:{end:"CJ Dirceu Arcoverde II, QD 309 Casa 02, Teresina PI",mapsUrl:"https://maps.app.goo.gl/9xhTQcQoiGJSS1f1A"},29:{end:"Rua Motorista Gregório, 2824, Planalto Ininga - Teresina PI",mapsUrl:"https://maps.app.goo.gl/kMzohaCdxjaZXS2p7"},31:{end:"CJ São Raimundo, 80, QD 01 Casa 48, Cristo Rei - Teresina PI",mapsUrl:"https://maps.app.goo.gl/C6mqUWBo8TMRp7EQ6"},33:{end:"Rua Desembargador João Gabriel Batista, 4100, Extrema - Teresina PI",mapsUrl:"https://maps.app.goo.gl/fTys3etMaweJjm5JA",lat:"-5.117200",lng:"-42.758701"},34:{end:"RD 343, S/N, Sítio Água Boa - Altos PI",mapsUrl:"https://maps.app.goo.gl/gZZ3ppVGdHZpdPnJ6"},35:{end:"Rua Antônio da Clara, 63, Centro - Lagoinha do Piauí PI",mapsUrl:"https://maps.app.goo.gl/31vkTNv3En94DAuz8"},36:{end:"R. Pernambuco, 1718, Pirajá - Teresina PI",mapsUrl:"https://maps.app.goo.gl/y76S9nwPRHwy4gFr7"}};
+const LOCALIZACOES={1:{end:"R. Taumaturgo Azevedo, 2000, Centro Sul - Teresina PI",mapsUrl:"https://maps.app.goo.gl/bbCjHqjXL3h8RcyL8"},2:{end:"FA São Pedro, 67, Zona Rural - Campo Maior PI",mapsUrl:"",lat:"-4.874055",lng:"-42.138847"},3:{end:"R. Areal, 12, QD 14, Portal das Flores - Bacabal MA",mapsUrl:"https://maps.app.goo.gl/kX8CDNHm8x8LYLsSA"},6:{end:"R. Napoleão Azevedo, 5801, Parque Poti - Teresina PI",mapsUrl:"https://maps.app.goo.gl/mqQ5MpVJBqfUtjnk7"},7:{end:"Av. Ind. Gil Martins, 3100, Tabuleta - Teresina PI",mapsUrl:"https://maps.app.goo.gl/iWLPu9sfSzgxwthJA"},8:{end:"Av. Miguel Rosa, 5069, Teresina PI",mapsUrl:"https://maps.app.goo.gl/8GtkWcLjpxes6n8w8"},9:{end:"R. João Alves Delmondes, S/N - Landri Sales PI",mapsUrl:"https://maps.app.goo.gl/jvJzZMVD9zHP8HbNA"},10:{end:"R. Canastra, 2651, Colorado - Teresina PI",mapsUrl:"https://maps.app.goo.gl/nFqPBunPuRunt5qb9"}};
 async function migrarDatasNascimento(){if(!db){toast('Firebase não conectado.','er');return;}toast('Migrando...','');let ok=0,err=0;for(const id of Object.keys(DATAS_NASC)){try{await db.collection('projetos').doc(String(id)).set({dataNascimento:DATAS_NASC[id]},{merge:true});ok++;}catch(e){err++;}}toast('✅ '+ok+' datas'+(err?', '+err+' erros':'')+'!','ok');}
 async function migrarLocalizacoes(){if(!db){toast('Firebase não conectado.','er');return;}toast('Migrando...','');let ok=0,err=0;for(const id of Object.keys(LOCALIZACOES)){const loc=LOCALIZACOES[id];try{const upd={end:loc.end,mapsUrl:loc.mapsUrl};if(loc.lat)upd.lat=loc.lat;if(loc.lng)upd.lng=loc.lng;await db.collection('projetos').doc(String(id)).set(upd,{merge:true});ok++;}catch(e){err++;}}toast('✅ '+ok+' localizações'+(err?', '+err+' erros':'')+'!','ok');}
 async function migrarEtapas(){if(!db){toast('Firebase não conectado.','er');return;}const mapa={'Visita':'Proposta','Ligação':'Vistoria'};let ok=0;for(const p of PROJETOS){if(mapa[p.etapa]){try{await db.collection('projetos').doc(String(p.id)).set({etapa:mapa[p.etapa]},{merge:true});ok++;}catch(e){}}}toast(ok>0?'✅ '+ok+' etapas migradas!':'Nenhuma etapa antiga.','ok');}
 
-
-
+// ══ TABELA ADMIN ══
+function abrirEditarTabela(){const modal=document.getElementById('mo-tabela');if(!modal)return;renderEditarTabela();modal.style.display='flex';}
+function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_SOLAR||TABELA_SOLAR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
+function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,total:0,baixarAte:0});renderEditarTabela();}
+function removerLinhaTabela(i){(window.TABELA_SOLAR||TABELA_SOLAR).splice(i,1);renderEditarTabela();}
+async function salvarEFecharTabela(){
+  const tab=window.TABELA_SOLAR||TABELA_SOLAR;tab.sort((a,b)=>a.kwh-b.kwh);
+  try{await db.collection('config').doc('tabela_precos').set({itens:tab,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()});toast('✅ Tabela salva!','ok');}catch(e){toast('Erro: '+e.message,'er');}
+  document.getElementById('mo-tabela').style.display='none';
+}
 
 // ══ BENEFICIÁRIOS ══
-let beneficiarios = []; // [{uc, nome, cpf}]
-
-function toggleTabBen() {
-  const val = document.getElementById('p-ben')?.value;
-  const btn = document.getElementById('tab-ben-btn');
-  if (btn) btn.style.display = val === 'Sim' ? 'inline-flex' : 'none';
-  if (val !== 'Sim') beneficiarios = [];
-}
-
-function adicionarBeneficiario() {
-  const id = Date.now();
-  beneficiarios.push({id, uc:'', nome:'', cpf:''});
-  renderListaBeneficiarios();
-}
-
-function removerBeneficiario(id) {
-  beneficiarios = beneficiarios.filter(b => b.id !== id);
-  renderListaBeneficiarios();
-}
-
-function renderListaBeneficiarios() {
-  const lista = document.getElementById('lista-beneficiarios');
-  const semMsg = document.getElementById('sem-beneficiarios');
-  if (!lista) return;
-  if (!beneficiarios.length) {
-    lista.innerHTML = '';
-    if (semMsg) semMsg.style.display = 'block';
-    return;
-  }
-  if (semMsg) semMsg.style.display = 'none';
-  lista.innerHTML = beneficiarios.map((b, i) => `
-    <div style="background:var(--cz);border-radius:10px;padding:12px 14px;border:1px solid #e4e3dc">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:600;color:var(--az)">Beneficiário ${i+1}</div>
-        <button type="button" onclick="removerBeneficiario(${b.id})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px">✕ Remover</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="display:flex;flex-direction:column;gap:3px">
-          <label style="font-size:10.5px;color:var(--txts);font-weight:500;text-transform:uppercase;letter-spacing:.4px">Nome do Beneficiário</label>
-          <input type="text" value="${b.nome}" oninput="beneficiarios[${i}].nome=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px" placeholder="Nome completo">
-        </div>
-        <div style="display:flex;flex-direction:column;gap:3px">
-          <label style="font-size:10.5px;color:var(--txts);font-weight:500;text-transform:uppercase;letter-spacing:.4px">CPF</label>
-          <input type="text" value="${b.cpf}" oninput="beneficiarios[${i}].cpf=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px" placeholder="000.000.000-00">
-        </div>
-        <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1">
-          <label style="font-size:10.5px;color:var(--txts);font-weight:500;text-transform:uppercase;letter-spacing:.4px">Unidade Consumidora (UC)</label>
-          <input type="text" value="${b.uc}" oninput="beneficiarios[${i}].uc=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px" placeholder="Número da UC">
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Salvar beneficiários junto com o projeto
-const _saveProjOriginal = saveProjeto;
-saveProjeto = function() {
-  // Capturar beneficiários antes de salvar
-  const g = i => document.getElementById(i)?.value || '';
-  const id = editProjId || (PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1);
-  const benData = document.getElementById('p-ben')?.value === 'Sim' ? beneficiarios.map(b => ({uc:b.uc, nome:b.nome, cpf:b.cpf})) : [];
-  _saveProjOriginal();
-  // Salvar beneficiários no documento (merge)
-  if (benData.length) {
-    setTimeout(() => {
-      db.collection('projetos').doc(String(id)).set({beneficiarios: benData}, {merge: true}).catch(()=>{});
-    }, 500);
-  }
-};
-
-// Carregar beneficiários ao editar
-const _openEditOriginal = openEditProj;
-openEditProj = function(id) {
-  _openEditOriginal(id);
-  const p = PROJETOS.find(x => x.id === id);
-  if (p) {
-    beneficiarios = (p.beneficiarios || []).map((b, i) => ({...b, id: Date.now() + i}));
-    renderListaBeneficiarios();
-    toggleTabBen();
-  }
-};
-
-// ══ LEITURAS — UC Beneficiários ══
-function popularUcBeneficiarios() {
-  const projId = parseInt(document.getElementById('ml-proj')?.value);
-  const proj = PROJETOS.find(p => p.id === projId);
-  const wrap = document.getElementById('ml-uc-ben-wrap');
-  const sel = document.getElementById('ml-uc-ben');
-  if (!wrap || !sel) return;
-  if (proj && proj.beneficiarios && proj.beneficiarios.length) {
-    wrap.style.display = 'block';
-    sel.innerHTML = '<option value="">UC principal do titular (' + (proj.uc || '—') + ')</option>'
-      + proj.beneficiarios.map((b, i) => `<option value="${b.uc}">UC Ben. ${i+1}: ${b.uc} — ${b.nome||'—'}</option>`).join('');
-  } else {
-    wrap.style.display = 'none';
-    sel.innerHTML = '<option value="">UC principal do titular</option>';
-  }
-}
-
-// ══ LEITURAS — saveLeitura expandido ══
-const _saveLeituraOrig = saveLeitura;
-saveLeitura = function() {
-  const id = LEITURAS.length ? Math.max(...LEITURAS.map(x=>x.id))+1 : 1;
-  const g = i => document.getElementById(i)?.value || '';
-  const obj = {
-    id,
-    projetoId: parseInt(g('ml-proj')) || null,
-    ucBeneficiario: g('ml-uc-ben'),
-    mes: g('ml-mes'),
-    kwh: parseFloat(g('ml-kwh')) || 0,
-    consumida: parseFloat(g('ml-consumida')) || 0,
-    injetada: parseFloat(g('ml-injetada')) || 0,
-    valorFatura: parseFloat(g('ml-valor-fatura')) || 0,
-    linkFatura: g('ml-link-fatura'),
-    obs: g('ml-obs')
-  };
-  fbWrite('leituras', id, obj).then(() => { toast('Leitura salva!', 'ok'); closeMo('mo-leit'); });
-};
-
-// ══ LEITURAS — renderLeituras expandido ══
-renderLeituras = function() {
-  const sorted = [...LEITURAS].sort((a,b) => b.mes.localeCompare(a.mes));
-  const cont = document.getElementById('b-leituras');
-  if (!cont) return;
-  if (!sorted.length) { cont.innerHTML = '<div class="empty">Nenhuma leitura registrada.</div>'; return; }
-  cont.innerHTML = sorted.map(l => {
-    const p = PROJETOS.find(x => x.id === l.projetoId);
-    const isben = l.ucBeneficiario ? true : false;
-    return `<div style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:14px;font-weight:600">${p?.cliente || '—'} <span style="font-size:11px;color:var(--txts);font-weight:400">• ${l.mes}</span>${isben ? ' <span style="background:#e8f8ef;color:#1D9E75;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:4px">UC Beneficiário: ' + l.ucBeneficiario + '</span>' : ''}</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          ${l.linkFatura ? `<a href="${l.linkFatura}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">📄 Ver Fatura</a>` : ''}
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
-        ${l.kwh ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">⚡ Gerado</div><div style="font-size:16px;font-weight:700;color:var(--az)">${l.kwh.toLocaleString('pt-BR')} <span style="font-size:11px;font-weight:400">kWh</span></div></div>` : ''}
-        ${l.consumida ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">🔌 Consumido</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${l.consumida.toLocaleString('pt-BR')} <span style="font-size:11px;font-weight:400">kWh</span></div></div>` : ''}
-        ${l.injetada ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">📤 Injetado</div><div style="font-size:16px;font-weight:700;color:#1D9E75">${l.injetada.toLocaleString('pt-BR')} <span style="font-size:11px;font-weight:400">kWh</span></div></div>` : ''}
-        ${l.valorFatura ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">💰 Fatura</div><div style="font-size:16px;font-weight:700;color:#2E3486">R$ ${l.valorFatura.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>` : ''}
-      </div>
-      ${l.obs ? `<div style="font-size:12px;color:var(--txts);margin-top:8px;padding-top:8px;border-top:1px solid #f0efe8">${l.obs}</div>` : ''}
-    </div>`;
-  }).join('');
-};
-
-// ══ PROPOSTAS — CARTÃO com taxas reais ══
-// Sobrescrever atualizarPreview para usar taxas de cartão corretas
-const _atualizarPreviewOrig = atualizarPreview;
-atualizarPreview = function() {
-  _atualizarPreviewOrig();
-  // Corrigir taxas do cartão após a chamada original
-  const modalidade = document.getElementById('pp-modalidade')?.value || 'avista';
-  const valor = parseFloat(document.getElementById('pp-valor')?.value) || 0;
-  const parcMax = parseInt(document.getElementById('pp-parcelas')?.value) || 6;
-  if (modalidade !== 'cartao' || !valor) return;
-
-  // Taxas: 1 vez = 1.70%, 2-6x = 2.10%, 7-12x = 2.20%, 13-18x = 3.20%
-  function getTaxaCartao(n) {
-    if (n === 1) return 1.70;
-    if (n <= 6) return 2.10;
-    if (n <= 12) return 2.20;
-    return 3.20;
-  }
-
-  const pRows = document.getElementById('pc-parcelas-rows');
-  const parSub = document.getElementById('pc-parcela-sub');
-  const aVistaEl = document.getElementById('pc-avista');
-
-  const opts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].filter(p => p <= parcMax);
-  if (pRows) {
-    pRows.innerHTML = opts.map((p, i) => {
-      const taxa = getTaxaCartao(p) / 100;
-      const valorTotal = valor * (1 + (p === 1 ? taxa : taxa)); // taxa única aplicada sobre o total
-      const parcela = valorTotal / p;
-      const bg = i % 2 === 0 ? '#EDECE5' : '#fff';
-      const taxaLabel = p === 1 ? '(+1,70%)' : p <= 6 ? '(+2,10%)' : p <= 12 ? '(+2,20%)' : '(+3,20%)';
-      return `<div style="display:flex;justify-content:space-between;background:${bg};padding:4px 8px;font-size:9.5px">
-        <span style="color:#555">${p}x <span style="color:#888;font-size:8.5px">${taxaLabel}</span></span>
-        <span style="font-weight:700;color:#2E3486">R$ ${parcela.toLocaleString('pt-BR',{minimumFractionDigits:2})}/mês</span>
-      </div>`;
-    }).join('') + '<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';
-  }
-
-  if (aVistaEl) {
-    const valorAvista = valor * 1.017; // 1,70% à vista
-    aVistaEl.textContent = 'R$ ' + valorAvista.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' (+1,70%)';
-  }
-
-  if (parSub && parcMax > 0) {
-    const taxa = getTaxaCartao(parcMax) / 100;
-    const valorTotal = valor * (1 + taxa);
-    const parcela = valorTotal / parcMax;
-    parSub.textContent = `ou ${parcMax}x de R$ ${parcela.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-  }
-};
-
-// Também corrigir a prop-card no HTML da prévia para mostrar taxas
-// Atualizar label do cabeçalho do financiamento quando cartão é selecionado
-function atualizarModalidade() {
-  const mod = document.getElementById('pp-modalidade')?.value || 'avista';
-  const wrap = document.getElementById('pp-parcelas-wrap');
-  const wrapCartao = document.getElementById('pp-wrap-cartao');
-  const wrapFin = document.getElementById('pp-wrap-financiado');
-  if (wrap) wrap.style.display = mod === 'avista' ? 'none' : 'block';
-  if (wrapCartao) wrapCartao.style.display = mod === 'cartao' ? 'flex' : 'none';
-  if (wrapFin) wrapFin.style.display = mod === 'financiado' ? 'flex' : 'none';
-  atualizarPreview();
-}
-
-// openModalLeitura — resetar campos extras
-const _openLeituraOrig = openModalLeitura;
-openModalLeitura = function() {
-  _openLeituraOrig();
-  ['ml-consumida','ml-injetada','ml-valor-fatura','ml-link-fatura'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value = '';
-  });
-  document.getElementById('ml-uc-ben-wrap') && (document.getElementById('ml-uc-ben-wrap').style.display = 'none');
-};
-
-
-// ══ TABELA DE PREÇOS SOLAR MACHADO ══
-const TABELA_SOLAR = [{"kwh": 450, "wpMod": 710, "nMod": 5, "potInv": 3, "kwp": 3.6, "total": 11410, "baixarAte": 10410}, {"kwh": 500, "wpMod": 615, "nMod": 7, "potInv": 3, "kwp": 4.3, "total": 12000, "baixarAte": 11000}, {"kwh": 600, "wpMod": 625, "nMod": 8, "potInv": 4, "kwp": 5.0, "total": 13500, "baixarAte": 12500}, {"kwh": 700, "wpMod": 710, "nMod": 8, "potInv": 5, "kwp": 5.7, "total": 14500, "baixarAte": 13500}, {"kwh": 800, "wpMod": 615, "nMod": 11, "potInv": 6, "kwp": 6.8, "total": 15000, "baixarAte": 14000}, {"kwh": 900, "wpMod": 615, "nMod": 12, "potInv": 6, "kwp": 7.4, "total": 16500, "baixarAte": 15500}, {"kwh": 1000, "wpMod": 620, "nMod": 13, "potInv": 6, "kwp": 8.1, "total": 19000, "baixarAte": 18000}, {"kwh": 1200, "wpMod": 620, "nMod": 16, "potInv": 7.5, "kwp": 9.9, "total": 21500, "baixarAte": 20500}, {"kwh": 1300, "wpMod": 615, "nMod": 17, "potInv": 7.5, "kwp": 10.5, "total": 24000, "baixarAte": 23000}, {"kwh": 1500, "wpMod": 710, "nMod": 17, "potInv": 9.1, "kwp": 12.1, "total": 25000, "baixarAte": 24000}, {"kwh": 1800, "wpMod": 615, "nMod": 23, "potInv": 9.1, "kwp": 14.1, "total": 27000, "baixarAte": 26000}, {"kwh": 2000, "wpMod": 710, "nMod": 23, "potInv": 9.1, "kwp": 16.3, "total": 30500, "baixarAte": 29500}, {"kwh": 2200, "wpMod": 615, "nMod": 28, "potInv": 15, "kwp": 17.2, "total": 33500, "baixarAte": 32500}, {"kwh": 2500, "wpMod": 615, "nMod": 32, "potInv": 15, "kwp": 19.7, "total": 36500, "baixarAte": 35500}, {"kwh": 3000, "wpMod": 615, "nMod": 39, "potInv": 20, "kwp": 24.0, "total": 49000, "baixarAte": 48000}, {"kwh": 3500, "wpMod": 615, "nMod": 45, "potInv": 20, "kwp": 27.7, "total": 56500, "baixarAte": 55500}];
-
-function buscarTabelaPreview() {
-  const consumo = parseInt(document.getElementById('pp-tab-consumo')?.value) || 0;
-  const sel = document.getElementById('pp-tab-sugestao');
-  const info = document.getElementById('pp-tab-info');
-  if (!sel) return;
-  if (consumo < 100) {
-    sel.innerHTML = '<option value="">— Digite o consumo —</option>';
-    if (info) info.style.display = 'none';
-    return;
-  }
-  // Encontrar kits compatíveis (geração >= consumo)
-  const compativeis = TABELA_SOLAR.filter(k => k.kwh >= consumo);
-  if (!compativeis.length) {
-    sel.innerHTML = '<option value="">Consumo acima da tabela</option>';
-    if (info) info.style.display = 'none';
-    return;
-  }
-  sel.innerHTML = compativeis.map((k, i) =>
-    `<option value="${i}" ${i===0?'selected':''}>
-      ${k.nMod}x ${k.wpMod}Wp · ${k.kwp} kWp · R$ ${k.total.toLocaleString('pt-BR')}
-    </option>`
-  ).join('');
-  // Mostrar info do kit selecionado
-  mostrarInfoKit(compativeis[0]);
-  if (info) info.style.display = 'block';
-}
-
-function selecionarKitTabela() {
-  const consumo = parseInt(document.getElementById('pp-tab-consumo')?.value) || 0;
-  const idx = parseInt(document.getElementById('pp-tab-sugestao')?.value);
-  const compativeis = TABELA_SOLAR.filter(k => k.kwh >= consumo);
-  if (!isNaN(idx) && compativeis[idx]) mostrarInfoKit(compativeis[idx]);
-}
-
-function mostrarInfoKit(k) {
-  const info = document.getElementById('pp-tab-info');
-  if (!info) return;
-  info.style.display = 'block';
-  info.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">
-      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Módulos</div><div style="font-size:13px;font-weight:700;color:#2E3486">${k.nMod}x ${k.wpMod}Wp</div></div>
-      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">kWp</div><div style="font-size:13px;font-weight:700;color:#2E3486">${k.kwp}</div></div>
-      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Inversor</div><div style="font-size:13px;font-weight:700;color:#2E3486">${k.potInv} kW</div></div>
-      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Valor</div><div style="font-size:13px;font-weight:700;color:#1D9E75">R$ ${k.total.toLocaleString('pt-BR')}</div></div>
-    </div>
-    <div style="font-size:10.5px;color:#5a5b6e;margin-top:5px">💰 Baixar até: <strong>R$ ${k.baixarAte.toLocaleString('pt-BR')}</strong> · Geração estimada: <strong>${k.kwh} kWh/mês</strong></div>
-  `;
-}
-
-function aplicarKitTabela() {
-  const consumo = parseInt(document.getElementById('pp-tab-consumo')?.value) || 0;
-  const idx = parseInt(document.getElementById('pp-tab-sugestao')?.value);
-  const compativeis = TABELA_SOLAR.filter(k => k.kwh >= consumo);
-  if (isNaN(idx) || !compativeis[idx]) { toast('Selecione um kit primeiro.', 'er'); return; }
-  const k = compativeis[idx];
-  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
-  set('pp-modulos', k.nMod);
-  set('pp-wpmod', k.wpMod);
-  set('pp-inv', 'SOLPLANET');
-  set('pp-pinv', k.potInv);
-  set('pp-valor', k.total);
-  set('pp-consumo', consumo || k.kwh);
-  calcularProposta(); // recalcula kWh gerado + atualiza preview
-  toast('✅ Kit aplicado! ' + k.nMod + 'x ' + k.wpMod + 'Wp · R$ ' + k.total.toLocaleString('pt-BR'), 'ok');
-}
-
-
-// ══ TABELA DE PREÇOS — FIRESTORE SYNC ══
-async function carregarTabelaFirestore() {
-  try {
-    const doc = await db.collection('config').doc('tabela_precos').get();
-    if (doc.exists && doc.data().itens && doc.data().itens.length) {
-      window.TABELA_SOLAR = doc.data().itens;
-      console.log('✅ Tabela carregada do Firestore:', TABELA_SOLAR.length, 'itens');
-    }
-    // Se não existe ainda usa a tabela embutida (TABELA_SOLAR já definida)
-  } catch(e) {
-    console.warn('Tabela não carregada do Firestore, usando local:', e.message);
-  }
-}
-
-async function salvarTabelaFirestore() {
-  try {
-    await db.collection('config').doc('tabela_precos').set({
-      itens: window.TABELA_SOLAR,
-      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-      atualizadoPor: usuarioAtual?.email || '—'
-    });
-    toast('✅ Tabela salva no Firebase!', 'ok');
-  } catch(e) {
-    toast('Erro: ' + e.message, 'er');
-  }
-}
-
-function abrirEditarTabela() {
-  const modal = document.getElementById('mo-tabela');
-  if (!modal) return;
-  renderEditarTabela();
-  modal.style.display = 'flex';
-}
-
-function renderEditarTabela() {
-  const tbody = document.getElementById('tabela-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = window.TABELA_SOLAR.map((k, i) => `
-    <tr style="font-size:12px">
-      <td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="TABELA_SOLAR[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="TABELA_SOLAR[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="TABELA_SOLAR[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="TABELA_SOLAR[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="TABELA_SOLAR[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="TABELA_SOLAR[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="TABELA_SOLAR[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
-      <td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td>
-    </tr>
-  `).join('');
-}
-
-function adicionarLinhaTabela() {
-  window.TABELA_SOLAR.push({kwh:0, wpMod:615, nMod:0, potInv:0, kwp:0, total:0, baixarAte:0});
-  renderEditarTabela();
-}
-
-function removerLinhaTabela(i) {
-  window.TABELA_SOLAR.splice(i, 1);
-  renderEditarTabela();
-}
-
-async function salvarEFecharTabela() {
-  // Ordenar por kWh antes de salvar
-  window.TABELA_SOLAR.sort((a,b) => a.kwh - b.kwh);
-  await salvarTabelaFirestore();
-  document.getElementById('mo-tabela').style.display = 'none';
-}
-
-
-
-// ══ RESPONSÁVEIS — EQUIPE + FIREBASE ══
-function popularResponsaveis(valorInicial) {
-  const sel = document.getElementById('mc-responsavel');
-  if (!sel) return;
-  const cur = sel.value;
-
-  // Usar valorInicial (ao editar chamado) ou valor atual do select
-  const target = valorInicial !== undefined ? valorInicial : cur;
-
-  function renderOpts(lista) {
-    sel.innerHTML = '<option value="">Selecionar responsável</option>'
-      + lista.map(u => {
-          const comp = u.competencia ? ' — ' + u.competencia : '';
-          return '<option value="' + u.nome + '">' + u.nome + comp + '</option>';
-        }).join('');
-    if (target) {
-      sel.value = target;
-      mostrarCardResponsavel();
-    }
-  }
-
-  // Usar equipe fixa imediatamente
-  if (typeof EQUIPE_SOLAR !== 'undefined' && EQUIPE_SOLAR.length) {
-    renderOpts(EQUIPE_SOLAR);
-  }
-
-  // Enriquecer com Firebase
-  if (typeof db !== 'undefined') {
-    db.collection('usuarios').get().then(snap => {
-      const fbUsers = snap.docs.map(d => d.data()).filter(u => !u.desativado);
-      if (fbUsers.length) {
-        const nomesFb = new Set(fbUsers.map(u => u.nome));
-        const extras = EQUIPE_SOLAR.filter(e => !nomesFb.has(e.nome));
-        const merged = [
-          ...fbUsers.map(u => {
-            const eq = EQUIPE_SOLAR.find(e => e.nome === u.nome);
-            return { ...u, competencia: u.competencia || eq?.competencia || '', emoji: eq?.emoji || '👤' };
-          }),
-          ...extras
-        ];
-        window._usuariosCache = merged;
-        renderOpts(merged);
-      } else {
-        window._usuariosCache = [...EQUIPE_SOLAR];
-      }
-    }).catch(() => {
-      window._usuariosCache = [...EQUIPE_SOLAR];
-    });
-  } else {
-    window._usuariosCache = [...EQUIPE_SOLAR];
-  }
-}
-
-function mostrarCardResponsavel() {
-  const sel = document.getElementById('mc-responsavel');
-  const card = document.getElementById('mc-resp-card');
-  const nome = sel?.value;
-  if (!nome || !card) { if (card) card.style.display = 'none'; return; }
-  const cache = window._usuariosCache || EQUIPE_SOLAR;
-  const u = cache.find(x => x.nome === nome);
-  if (!u) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-  const avatar = document.getElementById('mc-resp-avatar');
-  const nomeEl = document.getElementById('mc-resp-nome');
-  const compEl = document.getElementById('mc-resp-competencia');
-  const emailEl = document.getElementById('mc-resp-email');
-  if (avatar) avatar.textContent = u.emoji || (u.nome[0] || '?').toUpperCase();
-  if (nomeEl) nomeEl.textContent = u.nome;
-  if (compEl) {
-    const comp = u.competencia || 'Sem área definida';
-    compEl.innerHTML = '<span style="background:#eef0ff;color:#2E3486;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + comp + '</span>';
-  }
-  if (emailEl) emailEl.textContent = u.email || '';
-}
-
-function editChamado(id){ abrirEditarChamado(id); }
-
-
-// ══ FUNÇÃO CENTRAL — Abrir chamado para edição ══
-function abrirEditarChamado(id) {
-  const c = CHAMADOS.find(x => x.id === id);
-  if (!c) return;
-  editChId = id;
-
-  // Título
-  const titulo = document.getElementById('mct');
-  if (titulo) titulo.textContent = 'Editar Chamado #' + id;
-
-  // Projeto
-  const selProj = document.getElementById('mc-proj');
-  if (selProj) selProj.innerHTML = '<option value="">Nenhum (Avulso)</option>'
-    + PROJETOS.map(p => '<option value="'+p.id+'"'+(p.id==c.projetoId?' selected':'')+'>'+p.cliente+'</option>').join('');
-
-  // Todos os campos
-  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
-  set('mc-avulso', c.clienteAvulso);
-  set('mc-tipo',   c.tipo || 'Manutenção Preventiva');
-  set('mc-pri',    c.prioridade || 'Normal');
-  set('mc-st',     c.status || 'Aberto');
-  set('mc-desc',   c.desc);
-  set('mc-data',   c.data);
-  set('mc-res',    c.res);
-
-  // Responsável — popular equipe AGORA e setar valor
-  const rspSel = document.getElementById('mc-responsavel');
-  if (rspSel) {
-    const lista = window._usuariosCache || EQUIPE_SOLAR;
-    rspSel.innerHTML = '<option value="">Selecionar responsável</option>'
-      + lista.map(u => '<option value="'+u.nome+'"'+(u.nome===c.responsavel?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
-    // Mostrar card se tem responsável
-    if (c.responsavel) {
-      setTimeout(mostrarCardResponsavel, 0);
-    } else {
-      const card = document.getElementById('mc-resp-card');
-      if (card) card.style.display = 'none';
-    }
-  }
-
-  // Abrir modal
-  document.getElementById('mo-ch').classList.add('open');
-}
+let beneficiarios=[];
+function toggleTabBen(){const val=document.getElementById('p-ben')?.value;const btn=document.getElementById('tab-ben-btn');if(btn)btn.style.display=val==='Sim'?'inline-flex':'none';if(val!=='Sim')beneficiarios=[];}
+function adicionarBeneficiario(){beneficiarios.push({id:Date.now(),uc:'',nome:'',cpf:''});renderListaBeneficiarios();}
+function removerBeneficiario(id){beneficiarios=beneficiarios.filter(b=>b.id!==id);renderListaBeneficiarios();}
+function renderListaBeneficiarios(){const lista=document.getElementById('lista-beneficiarios');const semMsg=document.getElementById('sem-beneficiarios');if(!lista)return;if(!beneficiarios.length){lista.innerHTML='';if(semMsg)semMsg.style.display='block';return;}if(semMsg)semMsg.style.display='none';lista.innerHTML=beneficiarios.map((b,i)=>`<div style="background:var(--cz);border-radius:10px;padding:12px 14px;border:1px solid #e4e3dc"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--az)">Beneficiário ${i+1}</div><button type="button" onclick="removerBeneficiario(${b.id})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px">✕</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">Nome</label><input type="text" value="${b.nome}" oninput="beneficiarios[${i}].nome=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">CPF</label><input type="text" value="${b.cpf}" oninput="beneficiarios[${i}].cpf=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1"><label style="font-size:10.5px;color:var(--txts);font-weight:500">UC</label><input type="text" value="${b.uc}" oninput="beneficiarios[${i}].uc=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div></div></div>`).join('');}
+function popularUcBeneficiarios(){const projId=parseInt(document.getElementById('ml-proj')?.value);const proj=PROJETOS.find(p=>p.id===projId);const wrap=document.getElementById('ml-uc-ben-wrap');const sel=document.getElementById('ml-uc-ben');if(!wrap||!sel)return;if(proj&&proj.beneficiarios?.length){wrap.style.display='block';sel.innerHTML='<option value="">UC principal ('+( proj.uc||'—')+')</option>'+proj.beneficiarios.map((b,i)=>'<option value="'+b.uc+'">UC Ben. '+(i+1)+': '+b.uc+' — '+(b.nome||'—')+'</option>').join('');}else{wrap.style.display='none';sel.innerHTML='<option value="">UC principal do titular</option>';}}
 </script>
 </body>
 </html>
