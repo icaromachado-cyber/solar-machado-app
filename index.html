@@ -336,6 +336,31 @@ tr:hover td{background:#faf9f5}
   </div>
 </div>
 
+
+<!-- MODAL NOTIFICAÇÃO CHAMADOS -->
+<div id="mo-notif-chamados" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:flex-start;justify-content:center;padding-top:60px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;animation:slideDown .25s ease">
+    <div style="background:#2E3486;padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px">🔔</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#fff" id="notif-titulo">Chamados em aberto</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6)" id="notif-sub"></div>
+        </div>
+      </div>
+      <button onclick="fecharNotifChamados()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600">Ver depois</button>
+    </div>
+    <div id="notif-lista" style="max-height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+    <div style="padding:12px 16px;border-top:1px solid #f0efe8;display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="fecharNotifChamados()" style="background:#EDECE5;border:none;color:#5a5b6e;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:500">Fechar</button>
+      <button onclick="go('chamados');fecharNotifChamados()" style="background:#2E3486;border:none;color:#fff;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:600">Ver todos os chamados →</button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
 <div class="sb-overlay" id="sb-overlay" onclick="toggleMenu()"></div>
 
 <!-- SIDEBAR -->
@@ -407,9 +432,12 @@ tr:hover td{background:#faf9f5}
       <div class="kpi-grid" id="dash-kpis"></div>
       
       <div class="charts-row">
-        <div class="card">
-          <div class="ph" style="margin-bottom:12px"><h2>Geração Total (kWh)</h2></div>
-          <div class="chart-container"><canvas id="chart-mes"></canvas></div>
+        <div class="card" style="flex:1.2">
+          <div class="ph" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+            <h2>🔔 Chamados por Responsável</h2>
+            <button onclick="go('chamados')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">Ver Kanban →</button>
+          </div>
+          <div id="dash-chamados-equipe" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
         <div class="card">
           <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
@@ -909,11 +937,11 @@ function toggleMenu(force) {
 // FIREBASE & DATA
 // ══════════════════════════════════════════
 const EQUIPE_SOLAR = [
-  {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧"},
-  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧"},
-  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼"},
-  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊"},
-  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊"}
+  {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧", email:"icarocaio18@gmail.com"},
+  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧", email:"projetos@solarmachado.com.br"},
+  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼", email:"comercial@solarmachado.com.br"},
+  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊", email:"brendavirna@hotmail.com"},
+  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊", email:"shelydamachado@solarmachado.com.br"}
 ];
 let _usuariosCache = [...EQUIPE_SOLAR];
 let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
@@ -1234,7 +1262,6 @@ function openModalChamado(projetoId) {
   const sel = document.getElementById('mc-proj');
   sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>'
     + PROJETOS.map(p => `<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
-  // Resetar todos os campos
   ['mc-avulso','mc-desc','mc-res'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
@@ -1242,7 +1269,6 @@ function openModalChamado(projetoId) {
   document.getElementById('mc-pri').value = 'Normal';
   document.getElementById('mc-st').value = 'Aberto';
   document.getElementById('mc-tipo').value = 'Manutenção Preventiva';
-  // Resetar responsável
   const rsp = document.getElementById('mc-responsavel');
   if(rsp) rsp.value = '';
   const card = document.getElementById('mc-resp-card');
@@ -1253,8 +1279,8 @@ function openModalChamado(projetoId) {
 
 
 function saveChamado(){
-  const id=editChId||(CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const g=i=>document.getElementById(i)?.value||'';
+  const id=editChId||(CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const respNome=g('mc-responsavel');
   const respUser=(window._usuariosCache||EQUIPE_SOLAR).find(x=>x.nome===respNome);
   const obj={id,projetoId:parseInt(g('mc-proj'))||null,clienteAvulso:g('mc-avulso'),tipo:g('mc-tipo'),prioridade:g('mc-pri'),status:g('mc-st'),desc:g('mc-desc'),data:g('mc-data'),res:g('mc-res'),responsavel:respNome,responsavelEmail:respUser?.email||'',responsavelCompetencia:respUser?.competencia||''};
@@ -1318,11 +1344,12 @@ auth.onAuthStateChanged(async user=>{
   if(user){
     usuarioAtual=user;
     document.getElementById('login-screen').style.display='none';
+    let nomeUsuario = user.email;
     try{
       const perfil=await db.collection('usuarios').doc(user.uid).get();
-      const nome=perfil.exists?(perfil.data().nome||user.email):user.email;
+      nomeUsuario=perfil.exists?(perfil.data().nome||user.email):user.email;
       const isAdmin=perfil.exists?perfil.data().perfil==='admin':false;
-      document.getElementById('usr-nome').textContent=nome;
+      document.getElementById('usr-nome').textContent=nomeUsuario;
       document.getElementById('usr-email-display').textContent=user.email;
       if(isAdmin){
         document.getElementById('btn-usuarios').style.display='block';
@@ -1331,6 +1358,8 @@ auth.onAuthStateChanged(async user=>{
       }
     }catch(e){document.getElementById('usr-nome').textContent=user.email;}
     initFirebaseListeners();
+    // Verificar chamados após carregar os dados (aguarda 2s para o onSnapshot)
+    setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 2500);
   } else {
     usuarioAtual=null;
     document.getElementById('login-screen').style.display='flex';
@@ -2144,6 +2173,132 @@ function abrirEditarChamado(id) {
 
   // Abrir modal
   document.getElementById('mo-ch').classList.add('open');
+}
+
+// ══ NOTIFICAÇÃO DE CHAMADOS NO LOGIN ══
+function verificarChamadosDoUsuario(nomeUsuario) {
+  // Chamados atribuídos a este usuário que não estão Resolvidos
+  const meusChamados = CHAMADOS.filter(c =>
+    c.responsavel === nomeUsuario && c.status !== 'Resolvido'
+  );
+  if (!meusChamados.length) return; // Nada a notificar
+
+  const modal = document.getElementById('mo-notif-chamados');
+  const lista = document.getElementById('notif-lista');
+  const titulo = document.getElementById('notif-titulo');
+  const sub = document.getElementById('notif-sub');
+  if (!modal || !lista) return;
+
+  const PRIO_COR = {'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
+  const urgentes = meusChamados.filter(c => c.prioridade === 'Urgente').length;
+
+  titulo.textContent = urgentes > 0
+    ? '⚠ Você tem ' + urgentes + ' chamado(s) urgente(s)!'
+    : '🔔 Você tem chamados em aberto';
+  sub.textContent = meusChamados.length + ' chamado(s) aguardando resolução';
+
+  // Ordenar por prioridade
+  const PRIO_ORD = {'Urgente':0,'Alta':1,'Normal':2};
+  meusChamados.sort((a,b)=>(PRIO_ORD[a.prioridade||'']??2)-(PRIO_ORD[b.prioridade||'']??2));
+
+  lista.innerHTML = meusChamados.map(c => {
+    const proj = PROJETOS.find(p => p.id === c.projetoId);
+    const cor = PRIO_COR[c.prioridade || 'Normal'] || '#3b82f6';
+    const pc = (c.prioridade||'Normal').toLowerCase();
+    return '<div style="background:#f7f6f1;border-radius:10px;padding:12px 14px;border-left:4px solid '+cor+';cursor:pointer" onclick="fecharNotifChamados();abrirEditarChamado('+c.id+')">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'
+      + '<div style="font-size:13px;font-weight:600">'+(c.tipo||'Chamado')+'</div>'
+      + '<span style="padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:600;background:'+(pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff')+';color:'+cor+'">'+(c.prioridade||'Normal')+'</span>'
+      + '</div>'
+      + '<div style="font-size:12px;color:#555;margin-bottom:4px">📁 '+(proj?proj.cliente:(c.clienteAvulso||'Chamado avulso'))+'</div>'
+      + '<div style="font-size:11.5px;color:#666;line-height:1.4">'+(c.desc||'').slice(0,80)+(c.desc&&c.desc.length>80?'…':'')+'</div>'
+      + '<div style="display:flex;gap:10px;margin-top:6px;font-size:10.5px;color:#888">'
+      + '<span>📌 '+(c.status||'Aberto')+'</span>'
+      + '<span>🕐 '+fmt_data(c.data)+'</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  modal.style.display = 'flex';
+}
+
+function fecharNotifChamados() {
+  const modal = document.getElementById('mo-notif-chamados');
+  if (modal) modal.style.display = 'none';
+}
+
+// ══ PAINEL DE CHAMADOS POR RESPONSÁVEL ══
+function renderDashChamadosEquipe() {
+  const cont = document.getElementById('dash-chamados-equipe');
+  if (!cont) return;
+
+  const PRIO_COR = {'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
+  const STATUS_BG = {'Aberto':'#eef0ff','Em Andamento':'#fff8e0','Resolvido':'#e8f8ef'};
+  const STATUS_COR = {'Aberto':'#2E3486','Em Andamento':'#f59e0b','Resolvido':'#1D9E75'};
+
+  // Agrupar chamados por responsável
+  const chamadosAtivos = CHAMADOS.filter(c => c.status !== 'Resolvido');
+
+  if (!chamadosAtivos.length) {
+    cont.innerHTML = '<div style="text-align:center;padding:24px;color:var(--txts);font-size:13px">✅ Nenhum chamado em aberto no momento</div>';
+    return;
+  }
+
+  // Agrupar por responsável
+  const porResp = {};
+  chamadosAtivos.forEach(c => {
+    const resp = c.responsavel || '— Sem responsável';
+    if (!porResp[resp]) porResp[resp] = [];
+    porResp[resp].push(c);
+  });
+
+  // Ordenar: urgentes primeiro
+  const PRIO_ORD = {'Urgente':0,'Alta':1,'Normal':2};
+
+  cont.innerHTML = Object.entries(porResp).map(([resp, chs]) => {
+    const eq = EQUIPE_SOLAR.find(u => u.nome === resp);
+    const emoji = eq?.emoji || '👤';
+    const competencia = eq?.competencia || '';
+    const urgentes = chs.filter(c => c.prioridade === 'Urgente').length;
+    const alta = chs.filter(c => c.prioridade === 'Alta').length;
+
+    // Ordenar chamados por prioridade
+    chs.sort((a,b) => (PRIO_ORD[a.prioridade||'']??2) - (PRIO_ORD[b.prioridade||'']??2));
+
+    return '<div style="background:var(--cz);border-radius:10px;overflow:hidden;border:1px solid #e4e3dc">'
+      // Header do responsável
+      + '<div style="padding:10px 14px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #f0efe8">'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:'+(resp==='— Sem responsável'?'#f0efe8':'#2E3486')+';color:'+(resp==='— Sem responsável'?'#888':'#fff')+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+emoji+'</div>'
+      + '<div>'
+      + '<div style="font-size:13px;font-weight:600;color:'+(resp==='— Sem responsável'?'#D85A30':'#2E3486')+'">'+resp+'</div>'
+      + (competencia?'<div style="font-size:10.5px;color:var(--txts)">'+competencia+'</div>':'')
+      + '</div></div>'
+      + '<div style="display:flex;gap:5px;align-items:center">'
+      + (urgentes?'<span style="background:#fdecea;color:#D85A30;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⚡ '+urgentes+' urgente'+(urgentes>1?'s':'')+'</span>':'')
+      + '<span style="background:#eef0ff;color:#2E3486;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">'+chs.length+' aberto'+(chs.length>1?'s':'')+'</span>'
+      + '</div></div>'
+      // Chamados
+      + '<div style="padding:8px 10px;display:flex;flex-direction:column;gap:6px">'
+      + chs.map(c => {
+          const proj = PROJETOS.find(p => p.id === c.projetoId);
+          const cor = PRIO_COR[c.prioridade||'Normal']||'#3b82f6';
+          const pc = (c.prioridade||'Normal').toLowerCase();
+          const stBg = STATUS_BG[c.status||'Aberto']||'#eef0ff';
+          const stCor = STATUS_COR[c.status||'Aberto']||'#2E3486';
+          return '<div style="background:#fff;border-radius:8px;padding:9px 12px;border-left:3px solid '+cor+';cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px" onclick="abrirEditarChamado('+c.id+')">'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c.tipo||'Chamado')+(proj?' — '+proj.cliente:c.clienteAvulso?' — '+c.clienteAvulso:'')+'</div>'
+            + '<div style="font-size:11px;color:var(--txts);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c.desc||'').slice(0,60)+(c.desc&&c.desc.length>60?'…':'')+'</div>'
+            + '</div>'
+            + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">'
+            + '<span style="padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700;background:'+(pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff')+';color:'+cor+'">'+(c.prioridade||'Normal')+'</span>'
+            + '<span style="padding:1px 7px;border-radius:4px;font-size:10px;font-weight:600;background:'+stBg+';color:'+stCor+'">'+(c.status||'Aberto')+'</span>'
+            + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div></div>';
+  }).join('');
 }
 </script>
 </body>
