@@ -1065,7 +1065,7 @@ function renderDash() {
     + '</div>';
 
   renderCharts();
-  renderDashChamadosEquipe();
+  renderDashChamadosEquipe(window._nomeUsuarioLogado);
 }
 
 function renderCharts() {
@@ -1407,8 +1407,10 @@ auth.onAuthStateChanged(async user=>{
     // _nomeUsuarioLogado já definido — initFirebaseListeners vai ter o nome correto
     initFirebaseListeners();
     // Atualizar painel de chamados após carregamento dos dados
+    // Guardar nome para uso posterior
+    window._nomeUsuarioLogado = nomeUsuario;
     setTimeout(() => {
-      renderDashChamadosEquipe();
+      renderDashChamadosEquipe(nomeUsuario);
       verificarChamadosDoUsuario(nomeUsuario);
     }, 2000);
   } else {
@@ -1422,22 +1424,22 @@ auth.onAuthStateChanged(async user=>{
 });
 // ══ TABELA DE PREÇOS ══
 const TABELA_SOLAR = [
-  {kwh:450, wpMod:710, nMod:5,  potInv:3,   kwp:3.6,  total:11410, baixarAte:10410},
-  {kwh:500, wpMod:615, nMod:7,  potInv:3,   kwp:4.3,  total:12000, baixarAte:11000},
-  {kwh:600, wpMod:625, nMod:8,  potInv:4,   kwp:5.0,  total:13500, baixarAte:12500},
-  {kwh:700, wpMod:710, nMod:8,  potInv:5,   kwp:5.7,  total:14500, baixarAte:13500},
-  {kwh:800, wpMod:615, nMod:11, potInv:6,   kwp:6.8,  total:15000, baixarAte:14000},
-  {kwh:900, wpMod:615, nMod:12, potInv:6,   kwp:7.4,  total:16500, baixarAte:15500},
-  {kwh:1000,wpMod:620, nMod:13, potInv:6,   kwp:8.1,  total:19000, baixarAte:18000},
-  {kwh:1200,wpMod:620, nMod:16, potInv:7.5, kwp:9.9,  total:21500, baixarAte:20500},
-  {kwh:1300,wpMod:615, nMod:17, potInv:7.5, kwp:10.5, total:24000, baixarAte:23000},
-  {kwh:1500,wpMod:710, nMod:17, potInv:9.1, kwp:12.1, total:25000, baixarAte:24000},
-  {kwh:1800,wpMod:615, nMod:23, potInv:9.1, kwp:14.1, total:27000, baixarAte:26000},
-  {kwh:2000,wpMod:710, nMod:23, potInv:9.1, kwp:16.3, total:30500, baixarAte:29500},
-  {kwh:2200,wpMod:615, nMod:28, potInv:15,  kwp:17.2, total:33500, baixarAte:32500},
-  {kwh:2500,wpMod:615, nMod:32, potInv:15,  kwp:19.7, total:36500, baixarAte:35500},
-  {kwh:3000,wpMod:615, nMod:39, potInv:20,  kwp:24.0, total:49000, baixarAte:48000},
-  {kwh:3500,wpMod:615, nMod:45, potInv:20,  kwp:27.7, total:56500, baixarAte:55500}
+  {kwh:450, wpMod:710, nMod:5,  potInv:3,   kwp:3.6,  total:12562, baixarAte:11562},
+  {kwh:500, wpMod:615, nMod:7,  potInv:3,   kwp:4.3,  total:13152, baixarAte:12152},
+  {kwh:600, wpMod:625, nMod:8,  potInv:4,   kwp:5.0,  total:14652, baixarAte:13652},
+  {kwh:700, wpMod:710, nMod:8,  potInv:5,   kwp:5.7,  total:15652, baixarAte:14652},
+  {kwh:800, wpMod:615, nMod:11, potInv:6,   kwp:6.8,  total:16152, baixarAte:15152},
+  {kwh:900, wpMod:615, nMod:12, potInv:6,   kwp:7.4,  total:17652, baixarAte:16652},
+  {kwh:1000,wpMod:620, nMod:13, potInv:6,   kwp:8.1,  total:20152, baixarAte:19152},
+  {kwh:1200,wpMod:620, nMod:16, potInv:7.5, kwp:9.9,  total:22652, baixarAte:21652},
+  {kwh:1300,wpMod:615, nMod:17, potInv:7.5, kwp:10.5, total:25152, baixarAte:24152},
+  {kwh:1500,wpMod:710, nMod:17, potInv:9.1, kwp:12.1, total:26152, baixarAte:25152},
+  {kwh:1800,wpMod:615, nMod:23, potInv:9.1, kwp:14.1, total:28152, baixarAte:27152},
+  {kwh:2000,wpMod:710, nMod:23, potInv:9.1, kwp:16.3, total:31652, baixarAte:30652},
+  {kwh:2200,wpMod:615, nMod:28, potInv:15,  kwp:17.2, total:34652, baixarAte:33652},
+  {kwh:2500,wpMod:615, nMod:32, potInv:15,  kwp:19.7, total:37652, baixarAte:36652},
+  {kwh:3000,wpMod:615, nMod:39, potInv:20,  kwp:24.0, total:50152, baixarAte:49152},
+  {kwh:3500,wpMod:615, nMod:45, potInv:20,  kwp:27.7, total:55052, baixarAte:54052}
 ];
 
 // ══ KANBAN CHAMADOS ══
@@ -1733,9 +1735,9 @@ async function criarUsuario(){
 function desativarUsuarioBt(btn){const uid=btn.getAttribute('data-uid');const nome=btn.getAttribute('data-nome');if(confirm('Remover acesso de '+nome+'?'))db.collection('usuarios').doc(uid).update({desativado:true}).then(()=>{toast('Acesso removido.','ok');carregarListaUsuarios();});}
 
 // ══ DASHBOARD CHAMADOS POR RESPONSÁVEL ══
-function renderDashChamadosEquipe(){
+function renderDashChamadosEquipe(nomeParam){
   const cont=document.getElementById('dash-chamados-equipe');if(!cont)return;
-  const nomeLogado=window._nomeUsuarioLogado||document.getElementById('usr-nome')?.textContent||'';
+  const nomeLogado=nomeParam||window._nomeUsuarioLogado||document.getElementById('usr-nome')?.textContent||'';
   const PRIO_COR={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
   const STATUS_BG={'Aberto':'#eef0ff','Em Andamento':'#fff8e0','Resolvido':'#e8f8ef'};
   const STATUS_COR={'Aberto':'#2E3486','Em Andamento':'#f59e0b','Resolvido':'#1D9E75'};
