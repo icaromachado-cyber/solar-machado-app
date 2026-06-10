@@ -439,9 +439,9 @@ tr:hover td{background:#faf9f5}
           </div>
           <div id="dash-chamados-equipe" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
-        <div class="card">
+        <div class="card" style="min-height:320px">
           <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
-          <div class="chart-container"><canvas id="chart-status"></canvas></div>
+          <div class="chart-container" style="height:260px"><canvas id="chart-status"></canvas></div>
         </div>
       </div>
 
@@ -1065,16 +1065,37 @@ function renderDash() {
     + '</div>';
 
   renderCharts();
+  renderDashChamadosEquipe();
 }
 
 function renderCharts() {
-  const ctxM = document.getElementById('chart-mes');
   const ctxS = document.getElementById('chart-status');
-  if(!ctxM || !ctxS) return;
-  if(chDM) chDM.destroy(); if(chDS) chDS.destroy();
-  chDM = new Chart(ctxM, { type:'line', data:{ labels:["Jan","Fev","Mar","Abr","Mai","Jun"], datasets:[{label:'kWh',data:[2800,3100,4200,3800,5200,4800],borderColor:'#2E3486',fill:true,tension:.4}] }, options:{responsive:true,maintainAspectRatio:false} });
-  const stCounts = ETAPAS.map(e => PROJETOS.filter(p=>p.etapa===e).length);
-  chDS = new Chart(ctxS, { type:'doughnut', data:{ labels:ETAPAS, datasets:[{data:stCounts,backgroundColor:['#94a3b8','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#f97316','#06b6d4','#22c55e'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10,boxWidth:14,usePointStyle:true,pointStyle:'rectRounded'}}},cutout:'62%'}});
+  if (!ctxS) return;
+  if (chDS) chDS.destroy();
+  const stCounts = ETAPAS.map(e => PROJETOS.filter(p => p.etapa === e).length);
+  chDS = new Chart(ctxS, {
+    type: 'doughnut',
+    data: {
+      labels: ETAPAS,
+      datasets: [{
+        data: stCounts,
+        backgroundColor: ['#94a3b8','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#f97316','#06b6d4','#22c55e'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: {size:11}, padding: 10, boxWidth: 14, usePointStyle: true, pointStyle: 'rectRounded' }
+        }
+      },
+      cutout: '62%'
+    }
+  });
 }
 
 function renderPipeline() {
