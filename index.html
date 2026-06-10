@@ -267,6 +267,45 @@ tr:hover td{background:#faf9f5}
   </div>
 </div>
 
+
+<!-- MODAL TABELA DE PREÇOS -->
+<div id="mo-tabela" class="mo" style="display:none">
+  <div class="mbox" style="max-width:780px">
+    <div class="mhdr">
+      <span>📊 Tabela de Preços — Solar Machado</span>
+      <button class="mcl" onclick="document.getElementById('mo-tabela').style.display='none'">✕</button>
+    </div>
+    <div style="padding:20px">
+      <div style="background:#fff8e0;border:1px solid #fac775;border-radius:8px;padding:10px 14px;font-size:12px;color:#633806;margin-bottom:14px">
+        ⚠ Edite os valores abaixo e clique em <strong>Salvar no Firebase</strong>. A tabela fica disponível para todos os usuários automaticamente.
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:var(--az);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">
+              <th style="padding:7px 6px;text-align:left">kWh/mês</th>
+              <th style="padding:7px 6px;text-align:left">Wp/Mód</th>
+              <th style="padding:7px 6px;text-align:left">Nº Mód</th>
+              <th style="padding:7px 6px;text-align:left">Inv (kW)</th>
+              <th style="padding:7px 6px;text-align:left">kWp</th>
+              <th style="padding:7px 6px;text-align:left">Total (R$)</th>
+              <th style="padding:7px 6px;text-align:left">Baixar até</th>
+              <th style="padding:7px 6px"></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-tbody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn" onclick="adicionarLinhaTabela()" style="background:var(--cz);color:var(--txt);font-size:12px;padding:7px 14px">+ Adicionar linha</button>
+        <div style="flex:1"></div>
+        <button class="btn" onclick="document.getElementById('mo-tabela').style.display='none'" style="background:var(--cz);color:var(--txt);font-size:12px;padding:7px 14px">Cancelar</button>
+        <button class="btn btn-p" onclick="salvarEFecharTabela()" style="font-size:12px;padding:7px 14px">💾 Salvar no Firebase</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL USUÁRIOS -->
 <div id="mo-usuarios" class="mo" style="display:none">
   <div class="mbox" style="max-width:520px">
@@ -474,7 +513,28 @@ tr:hover td{background:#faf9f5}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
         <div style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:20px">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--am)">👤 Dados do Cliente</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--am)">👤 Dados do Cliente</div>
+          <!-- PREENCHIMENTO AUTOMÁTICO DA TABELA -->
+          <div style="background:#f0f4ff;border:1px solid #c5d0f5;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="font-size:11.5px;font-weight:700;color:#2E3486">⚡ Preencher pela Tabela de Preços</div>
+                <button id="btn-editar-tabela" onclick="abrirEditarTabela()" style="display:none;background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">✏ Editar Tabela</button>
+              </div>
+            <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+              <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px">
+                <label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Consumo mensal (kWh)</label>
+                <input type="number" id="pp-tab-consumo" placeholder="Ex: 600" oninput="buscarTabelaPreview()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px">
+                <label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Kit sugerido</label>
+                <select id="pp-tab-sugestao" onchange="selecionarKitTabela()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+                  <option value="">— Digite o consumo —</option>
+                </select>
+              </div>
+              <button type="button" onclick="aplicarKitTabela()" style="background:#2E3486;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">✅ Aplicar</button>
+            </div>
+            <div id="pp-tab-info" style="margin-top:8px;font-size:11px;color:var(--txts);display:none"></div>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Nome do Cliente *</label><input type="text" id="pp-nome" placeholder="Ex: João Silva" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Cidade</label><input type="text" id="pp-cidade" placeholder="Teresina" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
@@ -833,6 +893,9 @@ function setFbStatus(ok) {
 }
 
 function initFirebaseListeners() {
+  // Carregar tabela de preços do Firestore
+  carregarTabelaFirestore();
+
   db.collection('projetos').onSnapshot(snap => {
     PROJETOS = snap.docs.map(d => d.data());
     PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
@@ -1226,7 +1289,11 @@ auth.onAuthStateChanged(async user=>{
       const isAdmin=perfil.exists?perfil.data().perfil==='admin':false;
       document.getElementById('usr-nome').textContent=nome;
       document.getElementById('usr-email-display').textContent=user.email;
-      if(isAdmin)document.getElementById('btn-usuarios').style.display='block';
+      if(isAdmin){
+        document.getElementById('btn-usuarios').style.display='block';
+        const btnTab=document.getElementById('btn-editar-tabela');
+        if(btnTab)btnTab.style.display='block';
+      }
     }catch(e){document.getElementById('usr-nome').textContent=user.email;}
     initFirebaseListeners();
   } else {
@@ -1765,6 +1832,145 @@ openModalLeitura = function() {
   });
   document.getElementById('ml-uc-ben-wrap') && (document.getElementById('ml-uc-ben-wrap').style.display = 'none');
 };
+
+
+// ══ TABELA DE PREÇOS SOLAR MACHADO ══
+const TABELA_SOLAR = [{"kwh": 450, "wpMod": 710, "nMod": 5, "potInv": 3, "kwp": 3.6, "total": 11410, "baixarAte": 10410}, {"kwh": 500, "wpMod": 615, "nMod": 7, "potInv": 3, "kwp": 4.3, "total": 12000, "baixarAte": 11000}, {"kwh": 600, "wpMod": 625, "nMod": 8, "potInv": 4, "kwp": 5.0, "total": 13500, "baixarAte": 12500}, {"kwh": 700, "wpMod": 710, "nMod": 8, "potInv": 5, "kwp": 5.7, "total": 14500, "baixarAte": 13500}, {"kwh": 800, "wpMod": 615, "nMod": 11, "potInv": 6, "kwp": 6.8, "total": 15000, "baixarAte": 14000}, {"kwh": 900, "wpMod": 615, "nMod": 12, "potInv": 6, "kwp": 7.4, "total": 16500, "baixarAte": 15500}, {"kwh": 1000, "wpMod": 620, "nMod": 13, "potInv": 6, "kwp": 8.1, "total": 19000, "baixarAte": 18000}, {"kwh": 1200, "wpMod": 620, "nMod": 16, "potInv": 7.5, "kwp": 9.9, "total": 21500, "baixarAte": 20500}, {"kwh": 1300, "wpMod": 615, "nMod": 17, "potInv": 7.5, "kwp": 10.5, "total": 24000, "baixarAte": 23000}, {"kwh": 1500, "wpMod": 710, "nMod": 17, "potInv": 9.1, "kwp": 12.1, "total": 25000, "baixarAte": 24000}, {"kwh": 1800, "wpMod": 615, "nMod": 23, "potInv": 9.1, "kwp": 14.1, "total": 27000, "baixarAte": 26000}, {"kwh": 2000, "wpMod": 710, "nMod": 23, "potInv": 9.1, "kwp": 16.3, "total": 30500, "baixarAte": 29500}, {"kwh": 2200, "wpMod": 615, "nMod": 28, "potInv": 15, "kwp": 17.2, "total": 33500, "baixarAte": 32500}, {"kwh": 2500, "wpMod": 615, "nMod": 32, "potInv": 15, "kwp": 19.7, "total": 36500, "baixarAte": 35500}, {"kwh": 3000, "wpMod": 615, "nMod": 39, "potInv": 20, "kwp": 24.0, "total": 49000, "baixarAte": 48000}, {"kwh": 3500, "wpMod": 615, "nMod": 45, "potInv": 20, "kwp": 27.7, "total": 56500, "baixarAte": 55500}];
+
+function buscarTabelaPreview() {
+  const consumo = parseInt(document.getElementById('pp-tab-consumo')?.value) || 0;
+  const sel = document.getElementById('pp-tab-sugestao');
+  const info = document.getElementById('pp-tab-info');
+  if (!sel) return;
+  if (consumo < 100) {
+    sel.innerHTML = '<option value="">— Digite o consumo —</option>';
+    if (info) info.style.display = 'none';
+    return;
+  }
+  // Encontrar kits compatíveis (geração >= consumo)
+  const compativeis = TABELA_SOLAR.filter(k => k.kwh >= consumo);
+  if (!compativeis.length) {
+    sel.innerHTML = '<option value="">Consumo acima da tabela</option>';
+    if (info) info.style.display = 'none';
+    return;
+  }
+  sel.innerHTML = compativeis.map((k, i) =>
+    `<option value="${i}" ${i===0?'selected':''}>
+      ${k.nMod}x ${k.wpMod}Wp · ${k.kwp} kWp · R$ ${k.total.toLocaleString('pt-BR')}
+    </option>`
+  ).join('');
+  // Mostrar info do kit selecionado
+  mostrarInfoKit(compativeis[0]);
+  if (info) info.style.display = 'block';
+}
+
+function selecionarKitTabela() {
+  const consumo = parseInt(document.getElementById('pp-tab-consumo')?.value) || 0;
+  const idx = parseInt(document.getElementById('pp-tab-sugestao')?.value);
+  const compativeis = TABELA_SOLAR.filter(k => k.kwh >= consumo);
+  if (!isNaN(idx) && compativeis[idx]) mostrarInfoKit(compativeis[idx]);
+}
+
+function mostrarInfoKit(k) {
+  const info = document.getElementById('pp-tab-info');
+  if (!info) return;
+  info.style.display = 'block';
+  info.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">
+      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Módulos</div><div style="font-size:13px;font-weight:700;color:#2E3486">${k.nMod}x ${k.wpMod}Wp</div></div>
+      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">kWp</div><div style="font-size:13px;font-weight:700;color:#2E3486">${k.kwp}</div></div>
+      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Inversor</div><div style="font-size:13px;font-weight:700;color:#2E3486">${k.potInv} kW</div></div>
+      <div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Valor</div><div style="font-size:13px;font-weight:700;color:#1D9E75">R$ ${k.total.toLocaleString('pt-BR')}</div></div>
+    </div>
+    <div style="font-size:10.5px;color:#5a5b6e;margin-top:5px">💰 Baixar até: <strong>R$ ${k.baixarAte.toLocaleString('pt-BR')}</strong> · Geração estimada: <strong>${k.kwh} kWh/mês</strong></div>
+  `;
+}
+
+function aplicarKitTabela() {
+  const consumo = parseInt(document.getElementById('pp-tab-consumo')?.value) || 0;
+  const idx = parseInt(document.getElementById('pp-tab-sugestao')?.value);
+  const compativeis = TABELA_SOLAR.filter(k => k.kwh >= consumo);
+  if (isNaN(idx) || !compativeis[idx]) { toast('Selecione um kit primeiro.', 'er'); return; }
+  const k = compativeis[idx];
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
+  set('pp-modulos', k.nMod);
+  set('pp-wpmod', k.wpMod);
+  set('pp-inv', 'SOLPLANET');
+  set('pp-pinv', k.potInv);
+  set('pp-valor', k.total);
+  set('pp-consumo', consumo || k.kwh);
+  calcularProposta(); // recalcula kWh gerado + atualiza preview
+  toast('✅ Kit aplicado! ' + k.nMod + 'x ' + k.wpMod + 'Wp · R$ ' + k.total.toLocaleString('pt-BR'), 'ok');
+}
+
+
+// ══ TABELA DE PREÇOS — FIRESTORE SYNC ══
+async function carregarTabelaFirestore() {
+  try {
+    const doc = await db.collection('config').doc('tabela_precos').get();
+    if (doc.exists && doc.data().itens && doc.data().itens.length) {
+      window.TABELA_SOLAR = doc.data().itens;
+      console.log('✅ Tabela carregada do Firestore:', TABELA_SOLAR.length, 'itens');
+    }
+    // Se não existe ainda usa a tabela embutida (TABELA_SOLAR já definida)
+  } catch(e) {
+    console.warn('Tabela não carregada do Firestore, usando local:', e.message);
+  }
+}
+
+async function salvarTabelaFirestore() {
+  try {
+    await db.collection('config').doc('tabela_precos').set({
+      itens: window.TABELA_SOLAR,
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      atualizadoPor: usuarioAtual?.email || '—'
+    });
+    toast('✅ Tabela salva no Firebase!', 'ok');
+  } catch(e) {
+    toast('Erro: ' + e.message, 'er');
+  }
+}
+
+function abrirEditarTabela() {
+  const modal = document.getElementById('mo-tabela');
+  if (!modal) return;
+  renderEditarTabela();
+  modal.style.display = 'flex';
+}
+
+function renderEditarTabela() {
+  const tbody = document.getElementById('tabela-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = window.TABELA_SOLAR.map((k, i) => `
+    <tr style="font-size:12px">
+      <td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="TABELA_SOLAR[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="TABELA_SOLAR[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="TABELA_SOLAR[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="TABELA_SOLAR[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="TABELA_SOLAR[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="TABELA_SOLAR[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="TABELA_SOLAR[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td>
+      <td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function adicionarLinhaTabela() {
+  window.TABELA_SOLAR.push({kwh:0, wpMod:615, nMod:0, potInv:0, kwp:0, total:0, baixarAte:0});
+  renderEditarTabela();
+}
+
+function removerLinhaTabela(i) {
+  window.TABELA_SOLAR.splice(i, 1);
+  renderEditarTabela();
+}
+
+async function salvarEFecharTabela() {
+  // Ordenar por kWh antes de salvar
+  window.TABELA_SOLAR.sort((a,b) => a.kwh - b.kwh);
+  await salvarTabelaFirestore();
+  document.getElementById('mo-tabela').style.display = 'none';
+}
 
 </script>
 </body>
