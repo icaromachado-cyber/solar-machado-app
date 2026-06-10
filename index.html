@@ -818,11 +818,38 @@ function renderDash() {
     <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
   `;
 
-  const rec = CHAMADOS.slice(0,5);
-  document.getElementById('dash-chamados').innerHTML = rec.map(c=>{
-    const p = PROJETOS.find(x=>x.id===c.projetoId);
-    return `<div class="chamado-row"><div class="ch-info"><div class="cn">${c.tipo} — ${p?.cliente || c.clienteAvulso || 'Avulso'}</div><div class="cs">${c.desc}</div><div class="cd">${fmt_data(c.data)} • ${c.status}</div></div></div>`;
-  }).join('') || '<div class="empty">Nenhum chamado.</div>';
+  // Kanban mini no dashboard
+  const COLS_DASH=[
+    {id:'Aberto',label:'Aberto',cor:'#2E3486',bg:'#eef0ff'},
+    {id:'Em Andamento',label:'Em Andamento',cor:'#f59e0b',bg:'#fff8e0'},
+    {id:'Resolvido',label:'Resolvido',cor:'#1D9E75',bg:'#e8f8ef'},
+  ];
+  const PRIO_D={'Urgente':0,'Alta':1,'Normal':2,'':3};
+  const PCORES={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
+  document.getElementById('dash-chamados').innerHTML = '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">'
+    + COLS_DASH.map(col=>{
+        let chs=CHAMADOS.filter(c=>c.status===col.id||(!c.status&&col.id==='Aberto'));
+        chs.sort((a,b)=>(PRIO_D[a.prioridade||'']??3)-(PRIO_D[b.prioridade||'']??3));
+        const cards=chs.slice(0,4).map(c=>{
+          const proj=PROJETOS.find(p=>p.id===c.projetoId);
+          const cor=PCORES[c.prioridade||'Normal']||'#3b82f6';
+          const pc=(c.prioridade||'Normal').toLowerCase();
+          return '<div style="background:#fff;border-radius:8px;padding:9px 11px;border:1px solid #e4e3dc;border-left:3px solid '+cor+';cursor:pointer;margin-bottom:6px" onclick="abrirDetChamado('+c.id+')">'
+            +'<div style="font-size:12px;font-weight:600;margin-bottom:2px">'+(c.tipo||'Chamado')+'</div>'
+            +'<div style="font-size:11px;color:#666;margin-bottom:4px">'+(proj?proj.cliente:(c.clienteAvulso||'—'))+'</div>'
+            +'<div style="display:flex;gap:5px;align-items:center">'
+            +'<span style="padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:'+(pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff')+';color:'+cor+'">'+(c.prioridade||'Normal')+'</span>'
+            +(c.responsavel?'<span style="font-size:10px;color:#888">👤 '+c.responsavel+'</span>':'')
+            +'</div></div>';
+        }).join('')+(chs.length>4?'<div style="font-size:11px;color:var(--txts);text-align:center;padding:4px">+' +(chs.length-4)+' mais</div>':'')
+          ||'<div style="font-size:11px;color:var(--txts);text-align:center;padding:8px">Nenhum</div>';
+        return '<div style="flex:1;min-width:180px">'
+          +'<div style="background:'+col.bg+';padding:7px 10px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+          +'<span style="font-size:11px;font-weight:700;color:'+col.cor+';text-transform:uppercase;letter-spacing:.4px">'+col.label+'</span>'
+          +'<span style="background:'+col.cor+';color:#fff;border-radius:12px;padding:1px 7px;font-size:10px;font-weight:600">'+chs.length+'</span>'
+          +'</div>'+cards+'</div>';
+      }).join('')
+    + '</div>';
 
   renderCharts();
 }
@@ -867,7 +894,7 @@ function renderProjetos(){
   document.getElementById('b-projetos').innerHTML=filtered.map(p=>{
     const wppNum=(p.tel||'').replace(/[^0-9]/g,'');
     const wppLink=wppNum?'<a href="https://wa.me/'+wppNum+'" target="_blank" class="wpp-link" onclick="event.stopPropagation()">'+WPP+' '+p.tel+'</a>':'';
-    return '<tr><td>#'+p.id+'</td><td><div style="font-size:13px;font-weight:500">'+(p.cliente||'—')+'</div>'+wppLink+'</td><td>'+p.kwp+' kWp</td><td>'+p.etapa+'</td><td>'+fmt_data(p.dataLigacao)+'</td><td><div class="ab"><button class="bi v" onclick="openDet('+p.id+')">👁</button><button class="bi ch" onclick="openModalChamado('+p.id+')">🛠</button></div></td></tr>';
+    return '<tr><td>#'+p.id+'</td><td><div style="font-size:13px;font-weight:500">'+(p.cliente||'—')+'</div>'+wppLink+'</td><td>'+p.kwp+' kWp</td><td>'+p.etapa+'</td><td>'+fmt_data(p.dataLigacao)+'</td><td><div class="ab"><button class="bi v" onclick="openDet('+p.id+')">👁</button><button class="bi e" onclick="openEditProj('+p.id+')">✎</button><button class="bi ch" onclick="openModalChamado('+p.id+')">🛠</button></div></td></tr>';
   }).join('');
 }
 
