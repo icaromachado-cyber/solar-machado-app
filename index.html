@@ -1375,7 +1375,6 @@ auth.onAuthStateChanged(async user=>{
         nomeUsuario = perfil.data().nome || eq?.nome || user.email;
         isAdmin = perfil.data().perfil === 'admin';
       } else if (!perfil.exists) {
-        // Primeiro login — criar perfil automaticamente
         nomeUsuario = eq?.nome || user.email;
         isAdmin = user.email === 'icarocaio18@gmail.com';
         await db.collection('usuarios').doc(user.uid).set({
@@ -1407,19 +1406,15 @@ auth.onAuthStateChanged(async user=>{
     }
     initFirebaseListeners();
     setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 2500);
+  } else {
+    // Sem usuário — garantir que tela de login está visível
+    usuarioAtual = null;
+    const ls = document.getElementById('login-screen');
+    if (ls) ls.style.display = 'flex';
+    const btn = document.getElementById('login-btn');
+    if (btn) { btn.textContent = 'Entrar no Sistema'; btn.disabled = false; }
   }
 });
-
-// ══ EQUIPE SOLAR MACHADO ══
-const EQUIPE_SOLAR = [
-  {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧", email:"icarocaio18@gmail.com"},
-  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧", email:"projetos@solarmachado.com.br"},
-  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼", email:"comercial@solarmachado.com.br"},
-  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊", email:"brendavirna@hotmail.com"},
-  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊", email:"shelydamachado@solarmachado.com.br"}
-];
-let _usuariosCache = [...EQUIPE_SOLAR];
-
 // ══ TABELA DE PREÇOS ══
 const TABELA_SOLAR = [
   {kwh:450, wpMod:710, nMod:5,  potInv:3,   kwp:3.6,  total:11410, baixarAte:10410},
