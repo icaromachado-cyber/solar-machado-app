@@ -221,6 +221,15 @@ tr:hover td{background:#faf9f5}
 .det-panel.open{display:flex}
 .det-body{padding:20px 22px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;height:0}
 
+
+/* Drag & drop chamados */
+.ch-col-body.ch-drop-active{background:rgba(46,52,134,.07)!important;border-radius:8px;outline:2px dashed #2E3486;outline-offset:-3px}
+.ch-card{cursor:pointer;transition:box-shadow .15s,transform .15s,opacity .15s}
+.ch-card:hover{box-shadow:0 5px 16px rgba(0,0,0,.12);transform:translateY(-2px)}
+.ch-card.ch-dragging{opacity:.35;transform:scale(0.96)!important;box-shadow:none!important}
+.ch-drag-handle{font-size:16px;color:#ccc;cursor:grab;flex-shrink:0;line-height:1;margin-top:1px}
+.ch-drag-handle:active{cursor:grabbing}
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -473,7 +482,7 @@ tr:hover td{background:#faf9f5}
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Qtd. Módulos *</label><input type="number" id="pp-modulos" placeholder="13" oninput="calcularProposta()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Módulo (Wp)</label><input type="number" id="pp-wpmod" placeholder="610" oninput="calcularProposta()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Inversor</label><input type="text" id="pp-inv" placeholder="SOLPLANET" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
-            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Inversor</label><input type="text" id="pp-pinv" placeholder="6 KW" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Inversor (kW)</label><input type="number" id="pp-pinv" step="0.1" placeholder="6 KW" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Geração Mensal (kWh)</label><input type="number" id="pp-geracao" placeholder="800" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tarifa kWh (R$)</label><input type="number" id="pp-tarifa" placeholder="0.85" step="0.01" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
           </div>
@@ -1223,34 +1232,132 @@ function criarPinSolar(kwp){const k=parseFloat(kwp)||0;const size=k>=20?36:k>=10
 async function renderMapa(){iniciarLeafletMap();const comLoc=PROJETOS.filter(p=>p.end||p.mapsUrl||(p.lat&&p.lng)||COORDS_FIXAS[p.id]);const cntEl=document.getElementById('mapa-cnt');if(cntEl)cntEl.textContent=comLoc.length+' cliente(s) com localização';const lista=document.getElementById('mapa-lista');if(lista){lista.innerHTML=comLoc.map(p=>{const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink=p.mapsUrl||(p.lat&&p.lng?'https://www.google.com/maps?q='+p.lat+','+p.lng:p.end?'https://www.google.com/maps/search/'+encodeURIComponent(p.end):null);const wppUrl=wppNum?'https://wa.me/'+wppNum:null;const kwp=parseFloat(p.kwp)||0;return '<div style="background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:12px 14px;display:flex;align-items:flex-start;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📍</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+(p.cliente||'—')+'</div><div style="font-size:11.5px;color:var(--txts);margin-top:2px">'+(p.end||'—')+'</div><div style="font-size:11px;color:var(--txts);margin-top:2px">'+kwp.toFixed(2)+' kWp · '+(p.etapa||'')+'</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+(mapsLink?'<a href="'+mapsLink+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">🗺 Maps</a>':'')+(wppUrl?'<a href="'+wppUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:#e8f8ef;color:#1a8045;border:1px solid #b2e0c4;text-decoration:none">💬 WhatsApp</a>':'')+'</div></div></div>';}).join('')||'<div style="font-size:13px;color:var(--txts);padding:20px 0">Execute a migração no Dashboard.</div>';}
 if(!_leafletMap){setTimeout(renderMapa,500);return;}_mapaMarkers.forEach(m=>_leafletMap.removeLayer(m));_mapaMarkers=[];const bounds=[];const jitter=()=>(Math.random()-0.5)*0.003;PROJETOS.forEach(p=>{const coord=COORDS_FIXAS[p.id]||(p.lat&&p.lng?[+p.lat,+p.lng]:null);if(!coord)return;const lat=coord[0]+jitter(),lng=coord[1]+jitter();const kwp=parseFloat(p.kwp)||0;const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink='https://www.google.com/maps?q='+lat+','+lng;const popup='<div style="font-size:13px;min-width:160px"><strong>'+(p.cliente||'—')+'</strong><br><span style="font-size:11px;color:#888">'+(p.end||'')+'</span><br><span style="font-size:13px;color:#2E3486;font-weight:700">'+kwp.toFixed(2)+' kWp</span><br><br><a href="'+mapsLink+'" target="_blank" style="color:#2E3486;font-size:12px">🗺 Maps</a>'+(wppNum?' &nbsp;<a href="https://wa.me/'+wppNum+'" target="_blank" style="color:#1D9E75;font-size:12px">💬 WhatsApp</a>':'')+'</div>';const marker=L.marker([lat,lng],{icon:criarPinSolar(kwp)}).bindPopup(popup,{maxWidth:240}).addTo(_leafletMap);_mapaMarkers.push(marker);bounds.push([lat,lng]);});if(bounds.length>1)_leafletMap.fitBounds(bounds,{padding:[40,40]});setTimeout(()=>_leafletMap&&_leafletMap.invalidateSize(),300);}
 
-// ══ CHAMADOS KANBAN ══
+// ══ CHAMADOS KANBAN COM DRAG AND DROP ══
+let _chDragging = false;
+let _chDragId = null;
+
 function renderChamados(){
-  const board=document.getElementById('ch-board');if(!board)return;
-  const fProj=document.getElementById('f-ch-proj');
-  if(fProj&&fProj.options.length<=1)PROJETOS.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent='#'+p.id+' '+p.cliente;fProj.appendChild(o);});
-  const filtroProj=fProj?parseInt(fProj.value)||null:null;
-  const COLS=[{id:'Aberto',label:'Aberto',cor:'#2E3486',bg:'#eef0ff'},{id:'Em Andamento',label:'Em Andamento',cor:'#f59e0b',bg:'#fff8e0'},{id:'Resolvido',label:'Resolvido',cor:'#1D9E75',bg:'#e8f8ef'}];
-  const PRIO={'Urgente':0,'Alta':1,'Normal':2,'':3};
-  const priCores={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
-  board.innerHTML=COLS.map(col=>{
-    let chs=CHAMADOS.filter(c=>c.status===col.id||(!c.status&&col.id==='Aberto'));
-    if(filtroProj)chs=chs.filter(c=>c.projetoId===filtroProj);
-    chs.sort((a,b)=>(PRIO[a.prioridade||'']??3)-(PRIO[b.prioridade||'']??3));
-    const cards=chs.map(c=>{
-      const proj=PROJETOS.find(p=>p.id===c.projetoId);
-      const cor=priCores[c.prioridade||'Normal']||'#3b82f6';
-      const pc=(c.prioridade||'Normal').toLowerCase();
-      return '<div class="ch-card" style="border-left:4px solid '+cor+'" onclick="abrirDetChamado('+c.id+')">'
-        +'<div class="ch-card-ttl">'+(c.tipo||'Chamado')+'</div>'
-        +'<div style="font-size:11px;color:var(--txts);margin-bottom:5px">📁 '+(proj?'#'+proj.id+' '+proj.cliente:(c.clienteAvulso||'—'))+'</div>'
-        +'<div style="font-size:12px;color:#333;margin-bottom:6px;line-height:1.4">'+(c.desc||'').slice(0,80)+((c.desc&&c.desc.length>80)?'…':'')+'</div>'
-        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;background:'+(pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff')+';color:'+cor+'">'+(c.prioridade||'Normal')+'</span><span style="font-size:10.5px;color:var(--txts)">🕐 '+fmt_data(c.data)+'</span></div>'
-        +(c.responsavel?'<div style="font-size:11px;color:var(--txts);margin-top:5px">👤 Resp: <strong>'+c.responsavel+'</strong></div>':'')
-        +(c.abertoPorNome?'<div style="font-size:11px;color:var(--txts)">✍️ '+c.abertoPorNome+'</div>':'')
-        +'</div>';
-    }).join('')||'<div style="font-size:12px;color:var(--txts);padding:10px;text-align:center">Nenhum chamado</div>';
-    return '<div class="ch-col"><div class="ch-col-hdr" style="background:'+col.bg+'"><span class="ch-ttl" style="color:'+col.cor+'">'+col.label+'</span><span class="ch-cnt" style="background:'+col.cor+';color:#fff">'+chs.length+'</span></div><div class="ch-col-body">'+cards+'</div></div>';
+  const board = document.getElementById('ch-board');
+  if (!board) return;
+
+  const fProj = document.getElementById('f-ch-proj');
+  if (fProj && fProj.options.length <= 1)
+    PROJETOS.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p.id; o.textContent = '#' + p.id + ' ' + p.cliente;
+      fProj.appendChild(o);
+    });
+  const filtroProj = fProj ? parseInt(fProj.value) || null : null;
+
+  const COLS = [
+    {id:'Aberto',      label:'Aberto',       cor:'#2E3486', bg:'#eef0ff'},
+    {id:'Em Andamento',label:'Em Andamento', cor:'#f59e0b', bg:'#fff8e0'},
+    {id:'Resolvido',   label:'Resolvido',    cor:'#1D9E75', bg:'#e8f8ef'},
+  ];
+  const PRIO = {'Urgente':0,'Alta':1,'Normal':2,'':3};
+  const PCOR = {'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
+
+  board.innerHTML = COLS.map(col => {
+    let chs = CHAMADOS.filter(c => c.status === col.id || (!c.status && col.id === 'Aberto'));
+    if (filtroProj) chs = chs.filter(c => c.projetoId === filtroProj);
+    chs.sort((a,b) => (PRIO[a.prioridade||''] ?? 3) - (PRIO[b.prioridade||''] ?? 3));
+
+    const cards = chs.map(c => {
+      const proj = PROJETOS.find(p => p.id === c.projetoId);
+      const cor  = PCOR[c.prioridade || 'Normal'] || '#3b82f6';
+      const pc   = (c.prioridade || 'Normal').toLowerCase();
+      return `<div class="ch-card"
+        draggable="true"
+        data-chid="${c.id}"
+        style="border-left:4px solid ${cor}"
+        >
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px">
+          <div class="ch-card-ttl">${c.tipo || 'Chamado'}</div>
+          <span class="ch-drag-handle" title="Arrastar">⠿</span>
+        </div>
+        <div style="font-size:11px;color:var(--txts);margin-bottom:5px">📁 ${proj ? '#'+proj.id+' '+proj.cliente : (c.clienteAvulso||'—')}</div>
+        <div style="font-size:12px;color:#333;margin-bottom:6px;line-height:1.4">${(c.desc||'').slice(0,80)}${c.desc&&c.desc.length>80?'…':''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <span style="padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;background:${pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff'};color:${cor}">${c.prioridade||'Normal'}</span>
+          <span style="font-size:10.5px;color:var(--txts)">🕐 ${fmt_data(c.data)}</span>
+        </div>
+        ${c.responsavel?`<div style="font-size:11px;color:var(--txts);margin-top:5px">👤 Resp: <strong>${c.responsavel}</strong></div>`:''}
+        ${c.abertoPorNome?`<div style="font-size:11px;color:var(--txts)">✍️ ${c.abertoPorNome}</div>`:''}
+      </div>`;
+    }).join('') || `<div style="font-size:12px;color:var(--txts);padding:20px;text-align:center;border:2px dashed #ddd;border-radius:8px;min-height:60px;display:flex;align-items:center;justify-content:center;color:#aaa">Solte aqui</div>`;
+
+    return `<div class="ch-col"
+      data-status="${col.id}"
+      ondragover="chDragOver(event)"
+      ondragleave="chDragLeave(event)"
+      ondrop="chDrop(event,'${col.id}')">
+      <div class="ch-col-hdr" style="background:${col.bg};display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ch-ttl" style="color:${col.cor}">${col.label}</span>
+          <span class="ch-cnt" style="background:${col.cor};color:#fff">${chs.length}</span>
+        </div>
+        <span style="font-size:10px;color:${col.cor};opacity:.5;font-style:italic">arraste os cards</span>
+      </div>
+      <div class="ch-col-body" data-status="${col.id}">${cards}</div>
+    </div>`;
   }).join('');
+
+  // Adicionar event listeners após renderizar (evita conflito onclick/drag)
+  board.querySelectorAll('.ch-card').forEach(card => {
+    const id = parseInt(card.dataset.chid);
+
+    card.addEventListener('dragstart', e => {
+      _chDragging = true;
+      _chDragId = id;
+      e.dataTransfer.setData('text/plain', String(id));
+      e.dataTransfer.effectAllowed = 'move';
+      card.classList.add('ch-dragging');
+    });
+
+    card.addEventListener('dragend', e => {
+      card.classList.remove('ch-dragging');
+      board.querySelectorAll('.ch-col-body').forEach(b => b.classList.remove('ch-drop-active'));
+      setTimeout(() => { _chDragging = false; }, 50);
+    });
+
+    card.addEventListener('click', e => {
+      if (_chDragging) return;
+      abrirDetChamado(id);
+    });
+  });
+}
+
+function chDragOver(ev) {
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = 'move';
+  ev.currentTarget.querySelector('.ch-col-body')?.classList.add('ch-drop-active');
+}
+
+function chDragLeave(ev) {
+  if (!ev.currentTarget.contains(ev.relatedTarget))
+    ev.currentTarget.querySelector('.ch-col-body')?.classList.remove('ch-drop-active');
+}
+
+async function chDrop(ev, novoStatus) {
+  ev.preventDefault();
+  ev.currentTarget.querySelector('.ch-col-body')?.classList.remove('ch-drop-active');
+  const id = parseInt(ev.dataTransfer.getData('text/plain') || _chDragId);
+  if (!id) return;
+  const ch = CHAMADOS.find(x => x.id === id);
+  if (!ch) return;
+  const statusAtual = ch.status || 'Aberto';
+  if (statusAtual === novoStatus) return;
+  ch.status = novoStatus;
+  renderChamados();
+  renderDash();
+  try {
+    await db.collection('chamados').doc(String(id)).set({status: novoStatus}, {merge: true});
+    toast('✅ Movido para ' + novoStatus, 'ok');
+  } catch(e) {
+    ch.status = statusAtual; // reverter
+    renderChamados();
+    toast('Erro: ' + e.message, 'er');
+  }
 }
 
 function abrirDetChamado(id){
