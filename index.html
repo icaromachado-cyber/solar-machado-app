@@ -957,6 +957,8 @@ function setFbStatus(ok) {
 function initFirebaseListeners() {
   // Carregar tabela de preços do Firestore
   carregarTabelaFirestore();
+  // Limpar chamados resolvidos com mais de 2 dias
+  setTimeout(limparChamadosAntigos, 5000);
 
   db.collection('projetos').onSnapshot(snap => {
     PROJETOS = snap.docs.map(d => d.data());
@@ -1172,7 +1174,12 @@ function drop(ev, novaEtapa) {
 // ══════════════════════════════════════════
 function openDet(id){
   const p=PROJETOS.find(x=>x.id===id); if(!p) return;
-  const hist=CHAMADOS.filter(c=>c.projetoId===id);
+  // Histórico completo — todos os chamados do projeto (ativos e resolvidos)
+  const hist=CHAMADOS.filter(c=>c.projetoId===id).sort((a,b)=>{
+    const da=new Date(a.dataAbertura||a.data||'2000-01-01');
+    const db2=new Date(b.dataAbertura||b.data||'2000-01-01');
+    return db2-da; // mais recentes primeiro
+  });
   document.getElementById('det-title').textContent=p.cliente;
   const wppNum=(p.tel||'').replace(/[^0-9]/g,'');
   const wppHtml=wppNum?'<a href="https://wa.me/'+wppNum+'" target="_blank" style="color:#1D9E75;font-weight:500;font-size:12px">💬 '+p.tel+'</a>':(p.tel||'—');
@@ -1280,6 +1287,8 @@ function saveProjeto(){
 function openModalChamado(projetoId) {
   editChId = null;
   document.getElementById('mct').textContent = 'Novo Chamado';
+  const btnExNv = document.getElementById('btn-excluir-ch');
+  if (btnExNv) btnExNv.style.display = 'none';
   const sel = document.getElementById('mc-proj');
   sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>'
     + PROJETOS.map(p => `<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
@@ -1304,7 +1313,13 @@ function saveChamado(){
   const id=editChId||(CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const respNome=g('mc-responsavel');
   const respUser=(window._usuariosCache||EQUIPE_SOLAR).find(x=>x.nome===respNome);
-  const obj={id,projetoId:parseInt(g('mc-proj'))||null,clienteAvulso:g('mc-avulso'),tipo:g('mc-tipo'),prioridade:g('mc-pri'),status:g('mc-st'),desc:g('mc-desc'),data:g('mc-data'),res:g('mc-res'),responsavel:respNome,responsavelEmail:respUser?.email||'',responsavelCompetencia:respUser?.competencia||''};
+  const novoStatus = g('mc-st');
+  const obj={id,projetoId:parseInt(g('mc-proj'))||null,clienteAvulso:g('mc-avulso'),tipo:g('mc-tipo'),prioridade:g('mc-pri'),status:novoStatus,desc:g('mc-desc'),data:g('mc-data'),res:g('mc-res'),responsavel:respNome,responsavelEmail:respUser?.email||'',responsavelCompetencia:respUser?.competencia||''};
+  // Registrar data de resolução quando muda para Resolvido
+  const chAnterior = CHAMADOS.find(c => c.id === id);
+  if (novoStatus === 'Resolvido' && chAnterior?.status !== 'Resolvido') {
+    obj.dataResolucao = new Date().toISOString().slice(0,10);
+  }
   if(!editChId&&typeof usuarioAtual!=='undefined'&&usuarioAtual){obj.abertoPorId=usuarioAtual.uid;obj.abertoPorEmail=usuarioAtual.email;obj.abertoPorNome=document.getElementById('usr-nome')?.textContent||usuarioAtual.email;obj.dataAbertura=new Date().toISOString();}
   fbWrite('chamados',id,obj).then(()=>{toast('Chamado salvo!','ok');closeMo('mo-ch');});
 }
@@ -1831,6 +1846,45 @@ function adicionarBeneficiario(){beneficiarios.push({id:Date.now(),uc:'',nome:''
 function removerBeneficiario(id){beneficiarios=beneficiarios.filter(b=>b.id!==id);renderListaBeneficiarios();}
 function renderListaBeneficiarios(){const lista=document.getElementById('lista-beneficiarios');const semMsg=document.getElementById('sem-beneficiarios');if(!lista)return;if(!beneficiarios.length){lista.innerHTML='';if(semMsg)semMsg.style.display='block';return;}if(semMsg)semMsg.style.display='none';lista.innerHTML=beneficiarios.map((b,i)=>`<div style="background:var(--cz);border-radius:10px;padding:12px 14px;border:1px solid #e4e3dc"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--az)">Beneficiário ${i+1}</div><button type="button" onclick="removerBeneficiario(${b.id})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px">✕</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">Nome</label><input type="text" value="${b.nome}" oninput="beneficiarios[${i}].nome=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">CPF</label><input type="text" value="${b.cpf}" oninput="beneficiarios[${i}].cpf=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1"><label style="font-size:10.5px;color:var(--txts);font-weight:500">UC</label><input type="text" value="${b.uc}" oninput="beneficiarios[${i}].uc=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div></div></div>`).join('');}
 function popularUcBeneficiarios(){const projId=parseInt(document.getElementById('ml-proj')?.value);const proj=PROJETOS.find(p=>p.id===projId);const wrap=document.getElementById('ml-uc-ben-wrap');const sel=document.getElementById('ml-uc-ben');if(!wrap||!sel)return;if(proj&&proj.beneficiarios?.length){wrap.style.display='block';sel.innerHTML='<option value="">UC principal ('+( proj.uc||'—')+')</option>'+proj.beneficiarios.map((b,i)=>'<option value="'+b.uc+'">UC Ben. '+(i+1)+': '+b.uc+' — '+(b.nome||'—')+'</option>').join('');}else{wrap.style.display='none';sel.innerHTML='<option value="">UC principal do titular</option>';}}
+
+// ══ EXCLUIR CHAMADO ══
+async function excluirChamado() {
+  if (!editChId) return;
+  const ch = CHAMADOS.find(c => c.id === editChId);
+  const nome = ch ? (ch.tipo || 'Chamado') : '#' + editChId;
+  if (!confirm('Excluir o chamado "' + nome + '"? Esta ação não pode ser desfeita.')) return;
+  try {
+    await db.collection('chamados').doc(String(editChId)).delete();
+    CHAMADOS = CHAMADOS.filter(c => c.id !== editChId);
+    closeMo('mo-ch');
+    renderChamados();
+    renderDash();
+    renderDashChamadosEquipe(window._nomeUsuarioLogado);
+    toast('✅ Chamado excluído.', 'ok');
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, 'er');
+  }
+}
+
+// ══ LIMPAR CHAMADOS RESOLVIDOS > 2 DIAS ══
+async function limparChamadosAntigos() {
+  const limite = new Date();
+  limite.setDate(limite.getDate() - 2); // 2 dias atrás
+  const antigos = CHAMADOS.filter(c => {
+    if (c.status !== 'Resolvido') return false;
+    // Verificar pela data de atualização ou data do chamado
+    const dataRef = c.dataResolucao || c.data;
+    if (!dataRef) return false;
+    return new Date(dataRef) < limite;
+  });
+  if (!antigos.length) return;
+  console.log(`Limpando ${antigos.length} chamados resolvidos com mais de 2 dias`);
+  for (const ch of antigos) {
+    try {
+      await db.collection('chamados').doc(String(ch.id)).delete();
+    } catch(e) {}
+  }
+}
 </script>
 </body>
 </html>
