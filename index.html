@@ -908,6 +908,14 @@ function toggleMenu(force) {
 // ══════════════════════════════════════════
 // FIREBASE & DATA
 // ══════════════════════════════════════════
+const EQUIPE_SOLAR = [
+  {nome:"Ícaro Machado",    competencia:"Técnico Instalador",  emoji:"🔧"},
+  {nome:"Pedro Victor",     competencia:"Técnico Instalador",  emoji:"🔧"},
+  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼"},
+  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊"},
+  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊"}
+];
+let _usuariosCache = [...EQUIPE_SOLAR];
 let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
 const ETAPAS = ["Proposta","Aprovação","Visita Técnica","Elaboração","Projeto Enviado","Instalação","Vistoria","Concluído"];
 
@@ -1243,26 +1251,12 @@ function openModalChamado(projetoId) {
   document.getElementById('mo-ch').classList.add('open');
 }
 
-function editChamado(id) {
-  const c = CHAMADOS.find(x=>x.id===id); if(!c) return;
-  editChId = id; document.getElementById('mct').textContent = 'Editar Chamado #' + id;
-  const sel = document.getElementById('mc-proj');
-  sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>' + PROJETOS.map(p => `<option value="${p.id}" ${c.projetoId==p.id?'selected':''}>${p.cliente}</option>`).join('');
-  document.getElementById('mc-avulso').value = c.clienteAvulso || '';
-  document.getElementById('mc-tipo').value = c.tipo;
-  document.getElementById('mc-pri').value = c.prioridade;
-  document.getElementById('mc-data').value = c.data;
-  document.getElementById('mc-st').value = c.status;
-  document.getElementById('mc-desc').value = c.desc;
-  document.getElementById('mc-res').value = c.res || '';
-  document.getElementById('mo-ch').classList.add('open');
-}
 
 function saveChamado(){
   const id=editChId||(CHAMADOS.length?Math.max(...CHAMADOS.map(x=>x.id))+1:1);
   const g=i=>document.getElementById(i)?.value||'';
   const respNome=g('mc-responsavel');
-  const respUser=_usuariosCache.find(x=>x.nome===respNome);
+  const respUser=(window._usuariosCache||EQUIPE_SOLAR).find(x=>x.nome===respNome);
   const obj={id,projetoId:parseInt(g('mc-proj'))||null,clienteAvulso:g('mc-avulso'),tipo:g('mc-tipo'),prioridade:g('mc-pri'),status:g('mc-st'),desc:g('mc-desc'),data:g('mc-data'),res:g('mc-res'),responsavel:respNome,responsavelEmail:respUser?.email||'',responsavelCompetencia:respUser?.competencia||''};
   if(!editChId&&typeof usuarioAtual!=='undefined'&&usuarioAtual){obj.abertoPorId=usuarioAtual.uid;obj.abertoPorEmail=usuarioAtual.email;obj.abertoPorNome=document.getElementById('usr-nome')?.textContent||usuarioAtual.email;obj.dataAbertura=new Date().toISOString();}
   fbWrite('chamados',id,obj).then(()=>{toast('Chamado salvo!','ok');closeMo('mo-ch');});
@@ -1445,23 +1439,40 @@ function renderChamados(){
       const proj = PROJETOS.find(p => p.id === c.projetoId);
       const cor  = PCOR[c.prioridade || 'Normal'] || '#3b82f6';
       const pc   = (c.prioridade || 'Normal').toLowerCase();
+      const respNome = c.responsavel || '';
+      const eq = (window._usuariosCache||EQUIPE_SOLAR).find(u=>u.nome===respNome);
+      const respEmoji = eq?.emoji || '👤';
       return `<div class="ch-card"
         draggable="true"
         data-chid="${c.id}"
         style="border-left:4px solid ${cor}"
         >
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px">
           <div class="ch-card-ttl">${c.tipo || 'Chamado'}</div>
           <span class="ch-drag-handle" title="Arrastar">⠿</span>
         </div>
         <div style="font-size:11px;color:var(--txts);margin-bottom:5px">📁 ${proj ? '#'+proj.id+' '+proj.cliente : (c.clienteAvulso||'—')}</div>
-        <div style="font-size:12px;color:#333;margin-bottom:6px;line-height:1.4">${(c.desc||'').slice(0,80)}${c.desc&&c.desc.length>80?'…':''}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+        <div style="font-size:12px;color:#444;margin-bottom:7px;line-height:1.4">${(c.desc||'').slice(0,80)}${c.desc&&c.desc.length>80?'…':''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:7px">
           <span style="padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600;background:${pc==='urgente'?'#fdecea':pc==='alta'?'#fff8e0':'#eff6ff'};color:${cor}">${c.prioridade||'Normal'}</span>
           <span style="font-size:10.5px;color:var(--txts)">🕐 ${fmt_data(c.data)}</span>
         </div>
-        ${c.responsavel?`<div style="font-size:11px;color:var(--txts);margin-top:5px">👤 Resp: <strong>${c.responsavel}</strong></div>`:''}
-        ${c.abertoPorNome?`<div style="font-size:11px;color:var(--txts)">✍️ ${c.abertoPorNome}</div>`:''}
+        <div style="padding-top:7px;border-top:1px solid #f0efe8;display:flex;align-items:center;justify-content:space-between;gap:6px">
+          ${respNome
+            ? `<div style="display:flex;align-items:center;gap:6px">
+                <div style="width:24px;height:24px;border-radius:50%;background:#2E3486;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${respEmoji}</div>
+                <div>
+                  <div style="font-size:11.5px;font-weight:600;color:#2E3486;line-height:1.2">${respNome}</div>
+                  <div style="font-size:10px;color:#888">${eq?.competencia||''}</div>
+                </div>
+               </div>`
+            : `<div style="display:flex;align-items:center;gap:5px;color:#D85A30">
+                <span style="font-size:12px">⚠</span>
+                <span style="font-size:11px;font-weight:500">Sem responsável</span>
+               </div>`
+          }
+          <span style="font-size:10px;color:#bbb;font-style:italic">clique p/ editar</span>
+        </div>
       </div>`;
     }).join('');
 
@@ -1538,16 +1549,7 @@ async function chDrop(ev, novoStatus) {
   }
 }
 
-function abrirDetChamado(id){
-  const c=CHAMADOS.find(x=>x.id===id);if(!c)return;
-  editChId=id;
-  document.getElementById('mch').textContent='Chamado #'+id;
-  const g=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||'';};
-  g('mc-proj',c.projetoId||'');g('mc-avulso',c.clienteAvulso);g('mc-tipo',c.tipo);g('mc-pri',c.prioridade||'Normal');g('mc-st',c.status||'Aberto');g('mc-desc',c.desc);g('mc-data',c.data);g('mc-res',c.res);
-  const rsp=document.getElementById('mc-responsavel');if(rsp)rsp.value=c.responsavel||'';
-  popularResponsaveis();
-  document.getElementById('mo-ch').classList.add('open');
-}
+function abrirDetChamado(id){ abrirEditarChamado(id); }
 
 // popularResponsaveis e openModalChamado definidos abaixo
 
@@ -2020,20 +2022,16 @@ async function salvarEFecharTabela() {
   document.getElementById('mo-tabela').style.display = 'none';
 }
 
-const EQUIPE_SOLAR = [
-  {nome:"Ícaro Machado",    competencia:"Técnico Instalador",  emoji:"🔧"},
-  {nome:"Pedro Victor",     competencia:"Técnico Instalador",  emoji:"🔧"},
-  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼"},
-  {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊"},
-  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊"}
-];
-let _usuariosCache = [...EQUIPE_SOLAR];
+
 
 // ══ RESPONSÁVEIS — EQUIPE + FIREBASE ══
-function popularResponsaveis() {
+function popularResponsaveis(valorInicial) {
   const sel = document.getElementById('mc-responsavel');
   if (!sel) return;
   const cur = sel.value;
+
+  // Usar valorInicial (ao editar chamado) ou valor atual do select
+  const target = valorInicial !== undefined ? valorInicial : cur;
 
   function renderOpts(lista) {
     sel.innerHTML = '<option value="">Selecionar responsável</option>'
@@ -2041,7 +2039,10 @@ function popularResponsaveis() {
           const comp = u.competencia ? ' — ' + u.competencia : '';
           return '<option value="' + u.nome + '">' + u.nome + comp + '</option>';
         }).join('');
-    if (cur) { sel.value = cur; mostrarCardResponsavel(); }
+    if (target) {
+      sel.value = target;
+      mostrarCardResponsavel();
+    }
   }
 
   // Usar equipe fixa imediatamente
@@ -2098,34 +2099,52 @@ function mostrarCardResponsavel() {
   if (emailEl) emailEl.textContent = u.email || '';
 }
 
-function editChamado(id) {
+function editChamado(id){ abrirEditarChamado(id); }
+
+
+// ══ FUNÇÃO CENTRAL — Abrir chamado para edição ══
+function abrirEditarChamado(id) {
   const c = CHAMADOS.find(x => x.id === id);
   if (!c) return;
   editChId = id;
-  document.getElementById('mct').textContent = 'Editar Chamado #' + id;
-  const sel = document.getElementById('mc-proj');
-  sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>'
-    + PROJETOS.map(p => `<option value="${p.id}" ${p.id==c.projetoId?'selected':''}>${p.cliente}</option>`).join('');
-  const g = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
-  g('mc-avulso', c.clienteAvulso);
-  g('mc-tipo', c.tipo);
-  g('mc-pri', c.prioridade || 'Normal');
-  g('mc-st', c.status || 'Aberto');
-  g('mc-desc', c.desc);
-  g('mc-data', c.data);
-  g('mc-res', c.res);
-  // Responsável
-  popularResponsaveis();
-  setTimeout(() => {
-    const rsp = document.getElementById('mc-responsavel');
-    if (rsp && c.responsavel) {
-      rsp.value = c.responsavel;
-      mostrarCardResponsavel();
+
+  // Título
+  const titulo = document.getElementById('mct');
+  if (titulo) titulo.textContent = 'Editar Chamado #' + id;
+
+  // Projeto
+  const selProj = document.getElementById('mc-proj');
+  if (selProj) selProj.innerHTML = '<option value="">Nenhum (Avulso)</option>'
+    + PROJETOS.map(p => '<option value="'+p.id+'"'+(p.id==c.projetoId?' selected':'')+'>'+p.cliente+'</option>').join('');
+
+  // Todos os campos
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  set('mc-avulso', c.clienteAvulso);
+  set('mc-tipo',   c.tipo || 'Manutenção Preventiva');
+  set('mc-pri',    c.prioridade || 'Normal');
+  set('mc-st',     c.status || 'Aberto');
+  set('mc-desc',   c.desc);
+  set('mc-data',   c.data);
+  set('mc-res',    c.res);
+
+  // Responsável — popular equipe AGORA e setar valor
+  const rspSel = document.getElementById('mc-responsavel');
+  if (rspSel) {
+    const lista = window._usuariosCache || EQUIPE_SOLAR;
+    rspSel.innerHTML = '<option value="">Selecionar responsável</option>'
+      + lista.map(u => '<option value="'+u.nome+'"'+(u.nome===c.responsavel?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
+    // Mostrar card se tem responsável
+    if (c.responsavel) {
+      setTimeout(mostrarCardResponsavel, 0);
+    } else {
+      const card = document.getElementById('mc-resp-card');
+      if (card) card.style.display = 'none';
     }
-  }, 300);
+  }
+
+  // Abrir modal
   document.getElementById('mo-ch').classList.add('open');
 }
-
 </script>
 </body>
 </html>
