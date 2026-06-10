@@ -1221,12 +1221,25 @@ function saveProjeto(){
 }
 
 function openModalChamado(projetoId) {
-  editChId=null;
-  const sel=document.getElementById('mc-proj');
-  sel.innerHTML='<option value="">Nenhum (Chamado Avulso)</option>'+PROJETOS.map(p=>`<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
-  document.getElementById('mc-avulso').value='';
-  document.getElementById('mc-desc').value='';
-  document.getElementById('mc-data').value=new Date().toISOString().slice(0,10);
+  editChId = null;
+  document.getElementById('mct').textContent = 'Novo Chamado';
+  const sel = document.getElementById('mc-proj');
+  sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>'
+    + PROJETOS.map(p => `<option value="${p.id}" ${p.id==projetoId?'selected':''}>${p.cliente}</option>`).join('');
+  // Resetar todos os campos
+  ['mc-avulso','mc-desc','mc-res'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('mc-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('mc-pri').value = 'Normal';
+  document.getElementById('mc-st').value = 'Aberto';
+  document.getElementById('mc-tipo').value = 'Manutenção Preventiva';
+  // Resetar responsável
+  const rsp = document.getElementById('mc-responsavel');
+  if(rsp) rsp.value = '';
+  const card = document.getElementById('mc-resp-card');
+  if(card) card.style.display = 'none';
+  popularResponsaveis();
   document.getElementById('mo-ch').classList.add('open');
 }
 
@@ -1536,20 +1549,7 @@ function abrirDetChamado(id){
   document.getElementById('mo-ch').classList.add('open');
 }
 
-function popularResponsaveis(){
-  const sel=document.getElementById('mc-responsavel');if(!sel)return;
-  if(typeof db==='undefined')return;
-  const cur=sel.value;
-  db.collection('usuarios').get().then(snap=>{
-    const opts=snap.docs.map(d=>d.data()).filter(u=>!u.desativado);
-    sel.innerHTML='<option value="">Selecionar responsável</option>'+opts.map(u=>'<option value="'+u.nome+'">'+u.nome+'</option>').join('');
-    if(cur)sel.value=cur;
-  }).catch(()=>{});
-}
-
-// Abrir chamado com popularResponsaveis
-const _openModalChamadoOrig=openModalChamado;
-openModalChamado=function(projetoId){popularResponsaveis();_openModalChamadoOrig(projetoId);};
+// popularResponsaveis e openModalChamado definidos abaixo
 
 // ══ PROPOSTAS ══
 function calcPMT(pv,taxa,n){if(!taxa)return pv/n;return pv*taxa*Math.pow(1+taxa,n)/(Math.pow(1+taxa,n)-1);}
@@ -2021,13 +2021,111 @@ async function salvarEFecharTabela() {
 }
 
 const EQUIPE_SOLAR = [
-  {nome:"Ícaro Machado",    competencia:"Equipe Técnica e Gestão",  emoji:"🔧"},
-  {nome:"Pedro Victor",     competencia:"Equipe Técnica",  emoji:"🔧"},
+  {nome:"Ícaro Machado",    competencia:"Técnico Instalador",  emoji:"🔧"},
+  {nome:"Pedro Victor",     competencia:"Técnico Instalador",  emoji:"🔧"},
   {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼"},
   {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊"},
   {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊"}
 ];
 let _usuariosCache = [...EQUIPE_SOLAR];
+
+// ══ RESPONSÁVEIS — EQUIPE + FIREBASE ══
+function popularResponsaveis() {
+  const sel = document.getElementById('mc-responsavel');
+  if (!sel) return;
+  const cur = sel.value;
+
+  function renderOpts(lista) {
+    sel.innerHTML = '<option value="">Selecionar responsável</option>'
+      + lista.map(u => {
+          const comp = u.competencia ? ' — ' + u.competencia : '';
+          return '<option value="' + u.nome + '">' + u.nome + comp + '</option>';
+        }).join('');
+    if (cur) { sel.value = cur; mostrarCardResponsavel(); }
+  }
+
+  // Usar equipe fixa imediatamente
+  if (typeof EQUIPE_SOLAR !== 'undefined' && EQUIPE_SOLAR.length) {
+    renderOpts(EQUIPE_SOLAR);
+  }
+
+  // Enriquecer com Firebase
+  if (typeof db !== 'undefined') {
+    db.collection('usuarios').get().then(snap => {
+      const fbUsers = snap.docs.map(d => d.data()).filter(u => !u.desativado);
+      if (fbUsers.length) {
+        const nomesFb = new Set(fbUsers.map(u => u.nome));
+        const extras = EQUIPE_SOLAR.filter(e => !nomesFb.has(e.nome));
+        const merged = [
+          ...fbUsers.map(u => {
+            const eq = EQUIPE_SOLAR.find(e => e.nome === u.nome);
+            return { ...u, competencia: u.competencia || eq?.competencia || '', emoji: eq?.emoji || '👤' };
+          }),
+          ...extras
+        ];
+        window._usuariosCache = merged;
+        renderOpts(merged);
+      } else {
+        window._usuariosCache = [...EQUIPE_SOLAR];
+      }
+    }).catch(() => {
+      window._usuariosCache = [...EQUIPE_SOLAR];
+    });
+  } else {
+    window._usuariosCache = [...EQUIPE_SOLAR];
+  }
+}
+
+function mostrarCardResponsavel() {
+  const sel = document.getElementById('mc-responsavel');
+  const card = document.getElementById('mc-resp-card');
+  const nome = sel?.value;
+  if (!nome || !card) { if (card) card.style.display = 'none'; return; }
+  const cache = window._usuariosCache || EQUIPE_SOLAR;
+  const u = cache.find(x => x.nome === nome);
+  if (!u) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const avatar = document.getElementById('mc-resp-avatar');
+  const nomeEl = document.getElementById('mc-resp-nome');
+  const compEl = document.getElementById('mc-resp-competencia');
+  const emailEl = document.getElementById('mc-resp-email');
+  if (avatar) avatar.textContent = u.emoji || (u.nome[0] || '?').toUpperCase();
+  if (nomeEl) nomeEl.textContent = u.nome;
+  if (compEl) {
+    const comp = u.competencia || 'Sem área definida';
+    compEl.innerHTML = '<span style="background:#eef0ff;color:#2E3486;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + comp + '</span>';
+  }
+  if (emailEl) emailEl.textContent = u.email || '';
+}
+
+function editChamado(id) {
+  const c = CHAMADOS.find(x => x.id === id);
+  if (!c) return;
+  editChId = id;
+  document.getElementById('mct').textContent = 'Editar Chamado #' + id;
+  const sel = document.getElementById('mc-proj');
+  sel.innerHTML = '<option value="">Nenhum (Chamado Avulso)</option>'
+    + PROJETOS.map(p => `<option value="${p.id}" ${p.id==c.projetoId?'selected':''}>${p.cliente}</option>`).join('');
+  const g = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+  g('mc-avulso', c.clienteAvulso);
+  g('mc-tipo', c.tipo);
+  g('mc-pri', c.prioridade || 'Normal');
+  g('mc-st', c.status || 'Aberto');
+  g('mc-desc', c.desc);
+  g('mc-data', c.data);
+  g('mc-res', c.res);
+  // Responsável
+  popularResponsaveis();
+  setTimeout(() => {
+    const rsp = document.getElementById('mc-responsavel');
+    if (rsp && c.responsavel) {
+      rsp.value = c.responsavel;
+      mostrarCardResponsavel();
+    }
+  }, 300);
+  document.getElementById('mo-ch').classList.add('open');
+}
+
 </script>
 </body>
 </html>
