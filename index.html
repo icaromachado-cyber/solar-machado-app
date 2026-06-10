@@ -1731,12 +1731,12 @@ function desativarUsuarioBt(btn){const uid=btn.getAttribute('data-uid');const no
 function renderDashChamadosEquipe(){
   const cont=document.getElementById('dash-chamados-equipe');if(!cont)return;
   const nomeLogado=window._nomeUsuarioLogado||document.getElementById('usr-nome')?.textContent||'';
-  const isAdmin=document.getElementById('btn-usuarios')?.style.display!=='none';
   const PRIO_COR={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'};
   const STATUS_BG={'Aberto':'#eef0ff','Em Andamento':'#fff8e0','Resolvido':'#e8f8ef'};
   const STATUS_COR={'Aberto':'#2E3486','Em Andamento':'#f59e0b','Resolvido':'#1D9E75'};
   const PRIO_ORD={'Urgente':0,'Alta':1,'Normal':2};
-  let chamadosAtivos=isAdmin?CHAMADOS.filter(c=>c.status!=='Resolvido'):CHAMADOS.filter(c=>c.status!=='Resolvido'&&c.responsavel===nomeLogado);
+  // Todos veem apenas os seus próprios chamados nesta área
+  let chamadosAtivos=CHAMADOS.filter(c=>c.status!=='Resolvido'&&c.responsavel===nomeLogado);
   if(!chamadosAtivos.length){cont.innerHTML='<div style="text-align:center;padding:32px 20px;color:var(--txts)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-size:14px;font-weight:600;color:#2E3486">Nenhum chamado em aberto</div>'+(nomeLogado&&!nomeLogado.includes('@')?'<div style="font-size:12px;margin-top:4px">Parabéns, '+nomeLogado.split(' ')[0]+'! Tudo resolvido.</div>':'')+'</div>';return;}
   if(isAdmin){
     const porResp={};chamadosAtivos.forEach(c=>{const r=c.responsavel||'— Sem responsável';if(!porResp[r])porResp[r]=[];porResp[r].push(c);});
