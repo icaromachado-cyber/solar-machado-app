@@ -1380,8 +1380,20 @@ auth.onAuthStateChanged(async user=>{
   if(user){
     usuarioAtual=user;
     document.getElementById('login-screen').style.display='none';
-    let nomeUsuario = user.email;
-    let isAdmin = false;
+    // Resolver nome IMEDIATAMENTE via EQUIPE_SOLAR (antes de qualquer await)
+    const eqImediato = EQUIPE_SOLAR.find(e => e.email === user.email);
+    let nomeUsuario = eqImediato?.nome || user.email;
+    window._nomeUsuarioLogado = nomeUsuario;
+    document.getElementById('usr-nome').textContent = nomeUsuario;
+    document.getElementById('usr-email-display').textContent = user.email;
+    let isAdmin = user.email === 'icarocaio18@gmail.com';
+    if (isAdmin) {
+      document.getElementById('btn-usuarios').style.display = 'block';
+      const btnTabI = document.getElementById('btn-editar-tabela');
+      if (btnTabI) btnTabI.style.display = 'block';
+    }
+    // Iniciar listeners AGORA com nome já definido
+    initFirebaseListeners();
     try {
       const perfil = await db.collection('usuarios').doc(user.uid).get();
       const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
@@ -1419,10 +1431,7 @@ auth.onAuthStateChanged(async user=>{
       document.getElementById('usr-nome').textContent = nomeUsuario;
       document.getElementById('usr-email-display').textContent = user.email;
     }
-    // _nomeUsuarioLogado já definido — initFirebaseListeners vai ter o nome correto
-    initFirebaseListeners();
-    // Atualizar painel de chamados após carregamento dos dados
-    // Guardar nome para uso posterior
+    // Atualizar com nome do Firestore se diferente
     window._nomeUsuarioLogado = nomeUsuario;
     // Primeira tentativa: 2s (dados podem não ter chegado)
     setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 2000);
@@ -1888,6 +1897,19 @@ async function limparChamadosAntigos() {
     try {
       await db.collection('chamados').doc(String(ch.id)).delete();
     } catch(e) {}
+  }
+}
+
+async function excluirChamadoDireto(id) {
+  try {
+    await db.collection('chamados').doc(String(id)).delete();
+    CHAMADOS = CHAMADOS.filter(c => c.id !== id);
+    renderChamados();
+    renderDash();
+    renderDashChamadosEquipe(window._nomeUsuarioLogado);
+    toast('✅ Chamado excluído.', 'ok');
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, 'er');
   }
 }
 </script>
