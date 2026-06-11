@@ -947,40 +947,45 @@ tr:hover td{background:#faf9f5}
 
 <!-- PAGE FINANCEIRO -->
 <div id="page-financeiro" class="page">
-  <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <!-- Linha 1: Título + Botões -->
+  <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
     <div>
       <h1 style="font-size:20px;font-weight:700;color:var(--az)">💰 Financeiro</h1>
       <p style="font-size:13px;color:var(--txts);margin-top:2px">Controle de entradas e saídas</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <select id="fin-filtro-ano" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-        <option value="">Todos</option>
-      </select>
-      <select id="fin-filtro-mes" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-        <option value="">Todos os meses</option>
-        <option value="01">Janeiro</option><option value="02">Fevereiro</option>
-        <option value="03">Março</option><option value="04">Abril</option>
-        <option value="05">Maio</option><option value="06">Junho</option>
-        <option value="07">Julho</option><option value="08">Agosto</option>
-        <option value="09">Setembro</option><option value="10">Outubro</option>
-        <option value="11">Novembro</option><option value="12">Dezembro</option>
-      </select>
-      <select id="fin-filtro-tipo" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-        <option value="">Todos os tipos</option>
-        <option value="Entrada">Entradas</option>
-        <option value="Saída">Saídas</option>
-        <option value="Saída Prevista">Saída Prevista</option>
-        <option value="Entrada Prevista">Entrada Prevista</option>
-      </select>
-      <button class="btn btn-p" onclick="openModalMovimentacao()" style="padding:8px 14px">+ Registro</button>
-      <button id="btn-importar-fin" onclick="importarMovimentacoes()" style="display:none;background:#FDC300;border:none;color:#2E3486;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">⬆ Importar Planilha</button>
+      <button class="btn btn-p" onclick="openModalMovimentacao()" style="padding:8px 16px">+ Registro</button>
+      <button id="btn-importar-fin" onclick="importarMovimentacoes()" style="display:none;background:#FDC300;border:none;color:#2E3486;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">⬆ Importar</button>
     </div>
   </div>
 
+  <!-- Linha 2: Filtros -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <select id="fin-filtro-ano" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+      <option value="2026">2026</option>
+      <option value="2025">2025</option>
+      <option value="">Todos os anos</option>
+    </select>
+    <select id="fin-filtro-mes" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+      <option value="">Todos os meses</option>
+      <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+      <option value="03">Março</option><option value="04">Abril</option>
+      <option value="05">Maio</option><option value="06">Junho</option>
+      <option value="07">Julho</option><option value="08">Agosto</option>
+      <option value="09">Setembro</option><option value="10">Outubro</option>
+      <option value="11">Novembro</option><option value="12">Dezembro</option>
+    </select>
+    <select id="fin-filtro-tipo" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+      <option value="">Todos os tipos</option>
+      <option value="Entrada">Entradas</option>
+      <option value="Saída">Saídas</option>
+      <option value="Saída Prevista">Saída Prevista</option>
+      <option value="Entrada Prevista">Entrada Prevista</option>
+    </select>
+  </div>
+
   <!-- KPIs -->
-  <div id="fin-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px"></div>
+  <div id="fin-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px"></div>
 
   <!-- Gráfico mensal -->
   <div class="card" style="margin-bottom:18px">
