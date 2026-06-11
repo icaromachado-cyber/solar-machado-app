@@ -1073,10 +1073,10 @@ function toggleMenu(force) {
 // ══════════════════════════════════════════
 const EQUIPE_SOLAR = [
   {nome:"Ícaro Machado",    competencia:"Equipe Técnica",      emoji:"🔧", email:"icarocaio18@gmail.com"},
-  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧", email:"projetos@solarmachado.com.br"},
-  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼", email:"comercial@solarmachado.com.br"},
+  {nome:"Pedro Victor",     competencia:"Equipe Técnica",      emoji:"🔧", email:"projetos@solarmachadoeng.com.br"},
+  {nome:"Thays Pereira",    competencia:"Comercial / Vendas",  emoji:"💼", email:"comercial@solarmachadoeng.com.br"},
   {nome:"Brenda Rocha",     competencia:"Comercial e Gestão",  emoji:"📊", email:"brendavirna@hotmail.com"},
-  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊", email:"shelydamachado@solarmachado.com.br"}
+  {nome:"Shélyda Raiane",   competencia:"Comercial e Gestão",  emoji:"📊", email:"shelydamachado@solarmachadoeng.com.br"}
 ];
 let _usuariosCache = [...EQUIPE_SOLAR];
 let PROJETOS = []; let CHAMADOS = []; let LEITURAS = [];
@@ -1582,7 +1582,7 @@ auth.onAuthStateChanged(async user=>{
         if (btnTabI) btnTabI.style.display = 'block';
       }
       // Financeiro: acesso restrito a Ícaro, Raiane e Brenda
-      const FIN_USERS = ["icarocaio18@gmail.com", "shelydamachado@solarmachado.com.br", "brendavirna@hotmail.com"];
+      const FIN_USERS = ["icarocaio18@gmail.com", "shelydamachado@solarmachadoeng.com.br", "brendavirna@hotmail.com"];
       if (FIN_USERS.includes(user.email)) {
         const navFin = document.getElementById('nav-financeiro');
         const sepFin = document.getElementById('sep-financeiro');
