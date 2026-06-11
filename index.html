@@ -306,77 +306,6 @@ tr:hover td{background:#faf9f5}
   </div>
 
 
-<!-- PAGE FINANCEIRO -->
-<div id="page-financeiro" class="page">
-  <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <div>
-      <h1 style="font-size:20px;font-weight:700;color:var(--az)">💰 Financeiro</h1>
-      <p style="font-size:13px;color:var(--txts);margin-top:2px">Controle de entradas e saídas</p>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <select id="fin-filtro-ano" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-        <option value="">Todos</option>
-      </select>
-      <select id="fin-filtro-mes" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-        <option value="">Todos os meses</option>
-        <option value="01">Janeiro</option><option value="02">Fevereiro</option>
-        <option value="03">Março</option><option value="04">Abril</option>
-        <option value="05">Maio</option><option value="06">Junho</option>
-        <option value="07">Julho</option><option value="08">Agosto</option>
-        <option value="09">Setembro</option><option value="10">Outubro</option>
-        <option value="11">Novembro</option><option value="12">Dezembro</option>
-      </select>
-      <select id="fin-filtro-tipo" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-        <option value="">Todos os tipos</option>
-        <option value="Entrada">Entradas</option>
-        <option value="Saída">Saídas</option>
-        <option value="Saída Prevista">Saída Prevista</option>
-        <option value="Entrada Prevista">Entrada Prevista</option>
-      </select>
-      <button class="btn btn-p" onclick="openModalMovimentacao()" style="padding:8px 14px">+ Registro</button>
-      <button id="btn-importar-fin" onclick="importarMovimentacoes()" style="display:none;background:#FDC300;border:none;color:#2E3486;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">⬆ Importar Planilha</button>
-    </div>
-  </div>
-
-  <!-- KPIs -->
-  <div id="fin-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px"></div>
-
-  <!-- Gráfico mensal -->
-  <div class="card" style="margin-bottom:18px">
-    <div class="ph" style="margin-bottom:10px"><h2>Fluxo de Caixa Mensal</h2></div>
-    <div style="height:200px"><canvas id="fin-chart-mensal"></canvas></div>
-  </div>
-
-  <!-- Tabela de movimentações -->
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <h2 style="font-size:15px;font-weight:700;color:var(--az)">Movimentações</h2>
-      <input type="text" id="fin-busca" placeholder="Buscar..." oninput="renderFinanceiro()"
-        style="padding:6px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:200px">
-    </div>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead>
-          <tr style="background:var(--az);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px">
-            <th style="padding:8px 10px;text-align:left">Data</th>
-            <th style="padding:8px 10px;text-align:left">Tipo</th>
-            <th style="padding:8px 10px;text-align:left">Descrição</th>
-            <th style="padding:8px 10px;text-align:left">Categoria</th>
-            <th style="padding:8px 10px;text-align:right">Valor</th>
-            <th style="padding:8px 10px;text-align:center">Ação</th>
-          </tr>
-        </thead>
-        <tbody id="fin-tbody"></tbody>
-      </table>
-    </div>
-    <div id="fin-empty" style="text-align:center;padding:30px;color:var(--txts);display:none">
-      Nenhuma movimentação encontrada.
-    </div>
-  </div>
-</div>
-
 <!-- MODAL MOVIMENTAÇÃO -->
 <div class="mo" id="mo-mov">
   <div class="mbox" style="max-width:520px">
@@ -1015,6 +944,78 @@ tr:hover td{background:#faf9f5}
     </div>
   </div>
 </div>
+
+<!-- PAGE FINANCEIRO -->
+<div id="page-financeiro" class="page">
+  <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <h1 style="font-size:20px;font-weight:700;color:var(--az)">💰 Financeiro</h1>
+      <p style="font-size:13px;color:var(--txts);margin-top:2px">Controle de entradas e saídas</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select id="fin-filtro-ano" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="">Todos</option>
+      </select>
+      <select id="fin-filtro-mes" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        <option value="">Todos os meses</option>
+        <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+        <option value="03">Março</option><option value="04">Abril</option>
+        <option value="05">Maio</option><option value="06">Junho</option>
+        <option value="07">Julho</option><option value="08">Agosto</option>
+        <option value="09">Setembro</option><option value="10">Outubro</option>
+        <option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+      <select id="fin-filtro-tipo" onchange="renderFinanceiro()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        <option value="">Todos os tipos</option>
+        <option value="Entrada">Entradas</option>
+        <option value="Saída">Saídas</option>
+        <option value="Saída Prevista">Saída Prevista</option>
+        <option value="Entrada Prevista">Entrada Prevista</option>
+      </select>
+      <button class="btn btn-p" onclick="openModalMovimentacao()" style="padding:8px 14px">+ Registro</button>
+      <button id="btn-importar-fin" onclick="importarMovimentacoes()" style="display:none;background:#FDC300;border:none;color:#2E3486;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">⬆ Importar Planilha</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div id="fin-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px"></div>
+
+  <!-- Gráfico mensal -->
+  <div class="card" style="margin-bottom:18px">
+    <div class="ph" style="margin-bottom:10px"><h2>Fluxo de Caixa Mensal</h2></div>
+    <div style="height:200px"><canvas id="fin-chart-mensal"></canvas></div>
+  </div>
+
+  <!-- Tabela de movimentações -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h2 style="font-size:15px;font-weight:700;color:var(--az)">Movimentações</h2>
+      <input type="text" id="fin-busca" placeholder="Buscar..." oninput="renderFinanceiro()"
+        style="padding:6px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:200px">
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--az);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px">
+            <th style="padding:8px 10px;text-align:left">Data</th>
+            <th style="padding:8px 10px;text-align:left">Tipo</th>
+            <th style="padding:8px 10px;text-align:left">Descrição</th>
+            <th style="padding:8px 10px;text-align:left">Categoria</th>
+            <th style="padding:8px 10px;text-align:right">Valor</th>
+            <th style="padding:8px 10px;text-align:center">Ação</th>
+          </tr>
+        </thead>
+        <tbody id="fin-tbody"></tbody>
+      </table>
+    </div>
+    <div id="fin-empty" style="text-align:center;padding:30px;color:var(--txts);display:none">
+      Nenhuma movimentação encontrada.
+    </div>
+  </div>
+</div>
+
 
 <!-- MODAL LEITURA -->
 <div class="mo" id="mo-leit">
