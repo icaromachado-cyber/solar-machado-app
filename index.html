@@ -1553,6 +1553,9 @@ function abrirEditarChamado(id){
     if(c.responsavel)setTimeout(mostrarCardResponsavel,0);
     else {const card=document.getElementById('mc-resp-card');if(card)card.style.display='none';}
   }
+  // Mostrar botão excluir ao editar
+  const btnEx = document.getElementById('btn-excluir-ch');
+  if (btnEx) btnEx.style.display = 'block';
   document.getElementById('mo-ch').classList.add('open');
 }
 
