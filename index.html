@@ -525,6 +525,8 @@ tr:hover td{background:#faf9f5}
     <div class="nav-sec">Comercial</div>
     <div class="ni" onclick="go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
+    <div class="ni" id="nav-financeiro" onclick="go('financeiro');toggleMenu(false)" style="display:none">
+      <div class="ic">💰</div><span>Financeiro</span>
     </div>
   </nav>
   <div class="sb-foot">
@@ -1569,8 +1571,19 @@ auth.onAuthStateChanged(async user=>{
 
       if (isAdmin) {
         document.getElementById('btn-usuarios').style.display = 'block';
-        const btnTab = document.getElementById('btn-editar-tabela');
-        if (btnTab) btnTab.style.display = 'block';
+        const btnTabI = document.getElementById('btn-editar-tabela');
+        if (btnTabI) btnTabI.style.display = 'block';
+      }
+      // Financeiro: acesso restrito a Ícaro, Raiane e Brenda
+      const FIN_USERS = ["icarocaio18@gmail.com", "shelydamachado@solarmachado.com.br", "brendavirna@hotmail.com"];
+      if (FIN_USERS.includes(user.email)) {
+        const navFin = document.getElementById('nav-financeiro');
+        if (navFin) navFin.style.display = 'flex';
+        // Botão importar só para admin (Ícaro)
+        if (isAdmin) {
+          const btnImp = document.getElementById('btn-importar-fin');
+          if (btnImp) btnImp.style.display = 'block';
+        }
       }
     } catch(e) {
       const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
