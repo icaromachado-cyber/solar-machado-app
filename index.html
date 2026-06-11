@@ -1424,10 +1424,10 @@ auth.onAuthStateChanged(async user=>{
     // Atualizar painel de chamados após carregamento dos dados
     // Guardar nome para uso posterior
     window._nomeUsuarioLogado = nomeUsuario;
-    setTimeout(() => {
-      renderDashChamadosEquipe(nomeUsuario);
-      verificarChamadosDoUsuario(nomeUsuario);
-    }, 2000);
+    // Primeira tentativa: 2s (dados podem não ter chegado)
+    setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 2000);
+    // Segunda tentativa: 4s (garantia)
+    setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 4000);
   } else {
     // Sem usuário — garantir que tela de login está visível
     usuarioAtual = null;
