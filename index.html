@@ -1139,10 +1139,12 @@ function go(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
-  const map = {dash:0,pipeline:1,projetos:2,chamados:3,leituras:4,mapa:5,propostas:6};
-  document.querySelectorAll('.ni')[map[p]]?.classList.add('on');
-  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas'};
+  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',financeiro:'Financeiro'};
   document.getElementById('tb-title').textContent = titles[p]||p;
+  // Destacar item ativo na sidebar
+  document.querySelectorAll('.ni').forEach(n => {
+    if (n.getAttribute('onclick')?.includes("'"+p+"'")) n.classList.add('on');
+  });
   if(p==='dash') renderDash();
   if(p==='pipeline') renderPipeline();
   if(p==='projetos') renderProjetos();
@@ -1150,6 +1152,7 @@ function go(p) {
   if(p==='leituras') renderLeituras();
   if(p==='mapa') setTimeout(()=>{iniciarLeafletMap();renderMapa();},50);
   if(p==='propostas') atualizarPreview();
+  if(p==='financeiro') setTimeout(renderFinanceiro, 100);
 }
 
 // ══════════════════════════════════════════
