@@ -2055,7 +2055,7 @@ async function excluirChamado() {
 // ══ LIMPAR CHAMADOS RESOLVIDOS > 2 DIAS ══
 async function limparChamadosAntigos() {
   const limite = new Date();
-  limite.setDate(limite.getDate() - 2); // 2 dias atrás
+  limite.setDate(limite.getDate() - 15); // 15 dias após conclusão
   const antigos = CHAMADOS.filter(c => {
     if (c.status !== 'Resolvido') return false;
     // Verificar pela data de atualização ou data do chamado
