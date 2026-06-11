@@ -873,9 +873,12 @@ tr:hover td{background:#faf9f5}
         <div class="fgrp full"><label>Resolução / Notas Técnicas</label><textarea id="mc-res"></textarea></div>
       </div>
     </div>
-    <div class="mftr">
-      <button class="btn btn-g" onclick="closeMo('mo-ch')">Cancelar</button>
-      <button class="btn btn-p" onclick="saveChamado()">Salvar Chamado</button>
+    <div class="mftr" style="justify-content:space-between;align-items:center;gap:8px">
+      <button id="btn-excluir-ch" onclick="excluirChamado()" style="display:none;background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-g" onclick="closeMo('mo-ch')">Cancelar</button>
+        <button class="btn btn-p" onclick="saveChamado()">Salvar Chamado</button>
+      </div>
     </div>
   </div>
 </div>
