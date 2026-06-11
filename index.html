@@ -1301,10 +1301,36 @@ function renderChamados() {
 }
 
 function renderLeituras() {
-  const sorted = [...LEITURAS].sort((a,b)=>b.mes.localeCompare(a.mes));
-  document.getElementById('b-leituras').innerHTML = sorted.map(l => {
-    const p = PROJETOS.find(x=>x.id===l.projetoId);
-    return `<div class="card-sm" style="margin-bottom:10px"><b>${l.mes}</b>: ${l.kwh} kWh — ${p?.cliente || '—'}</div>`;
+  const sorted = [...LEITURAS].sort((a,b) => (b.mes||'').localeCompare(a.mes||''));
+  const cont = document.getElementById('b-leituras');
+  if (!cont) return;
+  if (!sorted.length) { cont.innerHTML = '<div class="empty">Nenhuma leitura registrada.</div>'; return; }
+
+  cont.innerHTML = sorted.map(l => {
+    const p = PROJETOS.find(x => x.id === l.projetoId);
+    const isben = l.ucBeneficiario ? true : false;
+    const mesFormatado = l.mes ? l.mes.slice(0,7).split('-').reverse().join('/') : '—';
+
+    return `<div style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:14px;font-weight:600">${p?.cliente || '—'}
+            <span style="font-size:11px;color:var(--txts);font-weight:400">• ${mesFormatado}</span>
+            ${isben ? '<span style="background:#e8f8ef;color:#1D9E75;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:4px">UC Ben.: ' + l.ucBeneficiario + '</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          ${l.linkFatura ? `<a href="${l.linkFatura}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">📄 Ver Fatura</a>` : ''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
+        ${l.kwh ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">⚡ Gerado</div><div style="font-size:16px;font-weight:700;color:var(--az)">${(+l.kwh).toLocaleString('pt-BR')} <span style="font-size:11px;font-weight:400">kWh</span></div></div>` : ''}
+        ${l.consumida ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">🔌 Consumido</div><div style="font-size:16px;font-weight:700;color:#f59e0b">${(+l.consumida).toLocaleString('pt-BR')} <span style="font-size:11px;font-weight:400">kWh</span></div></div>` : ''}
+        ${l.injetada ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">📤 Injetado</div><div style="font-size:16px;font-weight:700;color:#1D9E75">${(+l.injetada).toLocaleString('pt-BR')} <span style="font-size:11px;font-weight:400">kWh</span></div></div>` : ''}
+        ${l.valorFatura ? `<div style="background:#f7f6f1;border-radius:8px;padding:9px 11px"><div style="font-size:10px;color:var(--txts);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">💰 Fatura</div><div style="font-size:16px;font-weight:700;color:#2E3486">R$ ${(+l.valorFatura).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>` : ''}
+      </div>
+      ${l.obs ? `<div style="font-size:12px;color:var(--txts);margin-top:8px;padding-top:8px;border-top:1px solid #f0efe8">${l.obs}</div>` : ''}
+    </div>`;
   }).join('');
 }
 
@@ -1543,7 +1569,8 @@ auth.onAuthStateChanged(async user=>{
     window._nomeUsuarioLogado = nomeUsuario;
     document.getElementById('usr-nome').textContent = nomeUsuario;
     document.getElementById('usr-email-display').textContent = user.email;
-    let isAdmin = user.email === 'icarocaio18@gmail.com';
+    const ADMINS = ['icarocaio18@gmail.com','shelydamachado@solarmachadoeng.com.br','brendavirna@hotmail.com'];
+    isAdmin = ADMINS.includes(user.email);
     if (isAdmin) {
       document.getElementById('btn-usuarios').style.display = 'block';
       const btnTabI = document.getElementById('btn-editar-tabela');
@@ -1557,7 +1584,7 @@ auth.onAuthStateChanged(async user=>{
 
       if (perfil.exists && !perfil.data().desativado) {
         nomeUsuario = perfil.data().nome || eq?.nome || user.email;
-        isAdmin = perfil.data().perfil === 'admin';
+        isAdmin = perfil.data().perfil === 'admin' || ['icarocaio18@gmail.com','shelydamachado@solarmachadoeng.com.br','brendavirna@hotmail.com'].includes(user.email);
       } else if (!perfil.exists) {
         nomeUsuario = eq?.nome || user.email;
         isAdmin = user.email === 'icarocaio18@gmail.com';
@@ -1904,8 +1931,9 @@ async function carregarListaUsuarios(){
     const isMe=u.uid===usuarioAtual?.uid;
     const eq=EQUIPE_SOLAR.find(e=>e.nome===u.nome);
     const comp=u.competencia||eq?.competencia||'';const emoji=u.emoji||eq?.emoji||'👤';
+    const primeiroNome=(u.nome||'').split(' ')[0];
     return '<div style="background:var(--cz);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px">'
-      +'<div style="width:36px;height:36px;border-radius:50%;background:'+(u._fixo?'#EDECE5':'#2E3486')+';color:'+(u._fixo?'#5a5b6e':'#fff')+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+emoji+'</div>'
+      +'<div style="width:44px;height:44px;border-radius:50%;background:'+(u._fixo?'#EDECE5':'#2E3486')+';color:'+(u._fixo?'#5a5b6e':'#fff')+';display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;line-height:1.2"><span>'+emoji+'</span><span style="font-size:8px;font-weight:700;letter-spacing:0">'+primeiroNome+'</span></div>'
       +'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+u.nome+(isMe?' <span style="font-size:10px;color:var(--az)">(você)</span>':'')+'</div>'
       +'<div style="font-size:11px;color:var(--txts);margin-top:2px">'+(u._fixo?'<span style="background:#fff3cd;color:#856404;padding:1px 5px;border-radius:3px;font-size:10px">Equipe fixa</span>':'<span style="background:#e8f8ef;color:#1D9E75;padding:1px 5px;border-radius:3px;font-size:10px">'+u.perfil+'</span>')+' '+(comp?'<span style="background:#eef0ff;color:#2E3486;padding:1px 5px;border-radius:3px;font-size:10px">'+comp+'</span>':'')+'</div>'
       +(u._fixo?'':'<div style="font-size:10.5px;color:#aaa;margin-top:2px">'+u.email+'</div>')
