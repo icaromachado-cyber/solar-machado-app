@@ -1932,7 +1932,7 @@ function calcularProposta(){
   const wp=parseInt(document.getElementById('pp-wpmod')?.value)||610;
   const kwp=parseFloat((mods*wp/1000).toFixed(2));
   const gerEl=document.getElementById('pp-geracao');
-  if(gerEl&&kwp>0)gerEl.value=Math.round(kwp*5.39*30*0.75);
+  if(gerEl&&kwp>0)gerEl.value=Math.round(kwp*5.39*30*0.79);
   atualizarPreview();
 }
 function atualizarPreview(){
