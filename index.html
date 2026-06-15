@@ -1243,7 +1243,7 @@ function renderCharts() {
     // Calcular geração real dos projetos
     const kwpTotal = PROJETOS.reduce((s,p)=>s+(parseFloat(p.kwp)||0),0);
     const irr=[4.7,4.93,5.04,4.98,5.08,5.31,5.51,5.98,6.24,5.99,5.65,5.3];
-    const gens = irr.map(i => Math.round(kwpTotal * i * 30));
+    const gens = irr.map(i => Math.round(kwpTotal * i * 30 * 0.79));
     window.chDM = new Chart(ctxM, {
       type:'line',
       data:{
