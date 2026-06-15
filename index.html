@@ -875,6 +875,51 @@ tr:hover td{background:#faf9f5}
         </div>
       </div>
     </div>
+
+<!-- MODAL MOVIMENTAÇÃO -->
+<div class="mo" id="mo-mov">
+  <div class="mbox" style="max-width:580px">
+    <div class="mhdr">
+      <h3 id="mov-titulo">Nova Movimentação</h3>
+      <button class="mcls" onclick="closeMo('mo-mov')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="fg">
+        <div class="fgrp"><label>Data *</label><input type="date" id="mov-data" required></div>
+        <div class="fgrp"><label>Tipo *</label>
+          <select id="mov-tipo" required>
+            <option value="Entrada">Entrada</option>
+            <option value="Saída">Saída</option>
+            <option value="Entrada Prevista">Entrada Prevista</option>
+            <option value="Saída Prevista">Saída Prevista</option>
+          </select>
+        </div>
+        <div class="fgrp"><label>Valor (R$) *</label><input type="number" id="mov-valor" step="0.01" required></div>
+        <div class="fgrp full"><label>Descrição *</label><input type="text" id="mov-desc" placeholder="Ex: Venda de sistema solar" required></div>
+        <div class="fgrp full"><label>Categoria</label>
+          <select id="mov-categoria">
+            <option value="">Selecione...</option>
+            <option value="Sistema Solar">Sistema Solar</option>
+            <option value="Custos FIXO">Custos Fixos</option>
+            <option value="Custo Variado">Custos Variados</option>
+            <option value="Serviços">Serviços</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div class="fgrp full"><label>Referência</label><input type="text" id="mov-ref" placeholder="Ex: NF 12345"></div>
+        <div class="fgrp full"><label>Observações</label><textarea id="mov-obs" style="min-height:60px"></textarea></div>
+      </div>
+    </div>
+    <div class="mftr" style="justify-content:space-between;align-items:center;gap:8px">
+      <button id="btn-excluir-mov" onclick="excluirMovimentacao()" style="display:none;background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-g" onclick="closeMo('mo-mov')">Cancelar</button>
+        <button class="btn btn-p" onclick="salvarMovimentacao()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- DETAIL PANEL -->
@@ -1336,7 +1381,7 @@ function renderLeituras() {
     const isben = l.ucBeneficiario ? true : false;
     const mesFormatado = l.mes ? l.mes.slice(0,7).split('-').reverse().join('/') : '—';
 
-    return `<div onclick="openEditLeitura(${l.id})" style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,0.02)" onmouseover="this.style.borderColor='var(--az3)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e4e3dc';this.style.transform='none'">
+    return `<div style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px;margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:14px;font-weight:600">${p?.cliente || '—'}
@@ -1345,7 +1390,7 @@ function renderLeituras() {
           </div>
         </div>
         <div style="display:flex;gap:6px">
-          ${l.linkFatura ? `<a href="${l.linkFatura}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">📄 Ver Fatura</a>` : ''}
+          ${l.linkFatura ? `<a href="${l.linkFatura}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">📄 Ver Fatura</a>` : ''}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
@@ -1532,113 +1577,18 @@ function saveChamado(){
   fbWrite('chamados',id,obj).then(()=>{toast('Chamado salvo!','ok');closeMo('mo-ch');});
 }
 
-let editLeituraId = null;
-
 function openModalLeitura() {
-  editLeituraId = null;
-  document.getElementById('ml-title').textContent = 'Registrar Leitura de Geração';
-  
   const sel=document.getElementById('ml-proj');
   sel.innerHTML=PROJETOS.map(p=>`<option value="${p.id}">${p.cliente}</option>`).join('');
-  
   document.getElementById('ml-mes').value=new Date().toISOString().slice(0,7);
   document.getElementById('ml-kwh').value='';
-  document.getElementById('ml-consumida').value='';
-  document.getElementById('ml-injetada').value='';
-  document.getElementById('ml-valor-fatura').value='';
-  document.getElementById('ml-link-fatura').value='';
-  document.getElementById('ml-obs').value='';
-  
-  document.getElementById('ml-uc-ben-wrap').style.display='none';
-  
-  // Adicionar botão excluir (escondido)
-  let btnExcluir = document.getElementById('btn-excluir-leit');
-  if(btnExcluir) btnExcluir.style.display = 'none';
-  
-  popularUcBeneficiarios();
   document.getElementById('mo-leit').classList.add('open');
-}
-
-function openEditLeitura(id) {
-  const l = LEITURAS.find(x => x.id === id);
-  if(!l) return;
-  
-  editLeituraId = id;
-  document.getElementById('ml-title').textContent = 'Editar Leitura';
-  
-  const sel=document.getElementById('ml-proj');
-  sel.innerHTML=PROJETOS.map(p=>`<option value="${p.id}" ${p.id===l.projetoId?'selected':''}>${p.cliente}</option>`).join('');
-  
-  popularUcBeneficiarios();
-  setTimeout(() => {
-    if(l.ucBeneficiario) {
-      const ucSel = document.getElementById('ml-uc-ben');
-      if(ucSel) ucSel.value = l.ucBeneficiario;
-    }
-  }, 100);
-  
-  document.getElementById('ml-mes').value=l.mes || '';
-  document.getElementById('ml-kwh').value=l.kwh || '';
-  document.getElementById('ml-consumida').value=l.consumida || '';
-  document.getElementById('ml-injetada').value=l.injetada || '';
-  document.getElementById('ml-valor-fatura').value=l.valorFatura || '';
-  document.getElementById('ml-link-fatura').value=l.linkFatura || '';
-  document.getElementById('ml-obs').value=l.obs || '';
-  
-  // Mostrar botão excluir
-  let btnExcluir = document.getElementById('btn-excluir-leit');
-  if(!btnExcluir) {
-    const mftr = document.querySelector('#mo-leit .mftr');
-    if(mftr) {
-      mftr.style.justifyContent = 'space-between';
-      mftr.innerHTML = `
-        <button id="btn-excluir-leit" onclick="excluirLeitura()" style="background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir</button>
-        <div style="display:flex;gap:8px;margin-left:auto">
-          <button class="btn btn-g" onclick="closeMo('mo-leit')">Cancelar</button>
-          <button class="btn btn-p" onclick="saveLeitura()">Salvar</button>
-        </div>
-      `;
-    }
-  } else {
-    btnExcluir.style.display = 'block';
-  }
-  
-  document.getElementById('mo-leit').classList.add('open');
-}
-
-function excluirLeitura() {
-  if(!editLeituraId) return;
-  if(confirm('Tem certeza que deseja excluir esta leitura? Esta ação não pode ser desfeita.')) {
-    fbDelete('leituras', editLeituraId).then(() => {
-      toast('Leitura excluída!', 'ok');
-      closeMo('mo-leit');
-    });
-  }
 }
 
 function saveLeitura() {
-  const id = editLeituraId || (LEITURAS.length ? Math.max(...LEITURAS.map(x=>x.id))+1 : 1);
-  
-  const projId = parseInt(document.getElementById('ml-proj').value);
-  if(!projId) { toast('Selecione um projeto', 'er'); return; }
-  
-  const obj = { 
-    id: id, 
-    projetoId: projId, 
-    mes: document.getElementById('ml-mes').value, 
-    kwh: parseFloat(document.getElementById('ml-kwh').value) || 0,
-    consumida: parseFloat(document.getElementById('ml-consumida').value) || 0,
-    injetada: parseFloat(document.getElementById('ml-injetada').value) || 0,
-    valorFatura: parseFloat(document.getElementById('ml-valor-fatura').value) || 0,
-    linkFatura: document.getElementById('ml-link-fatura').value || '',
-    obs: document.getElementById('ml-obs').value || '',
-    ucBeneficiario: document.getElementById('ml-uc-ben-wrap').style.display !== 'none' ? document.getElementById('ml-uc-ben').value : ''
-  };
-  
-  fbWrite('leituras', id, obj).then(() => { 
-    toast(editLeituraId ? 'Leitura Atualizada!' : 'Leitura Salva!', 'ok'); 
-    closeMo('mo-leit'); 
-  });
+  const id = LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
+  const obj = { id, projetoId: parseInt(document.getElementById('ml-proj').value), mes: document.getElementById('ml-mes').value, kwh: parseFloat(document.getElementById('ml-kwh').value) };
+  fbWrite('leituras', id, obj).then(() => { toast('Leitura Salva!', 'ok'); closeMo('mo-leit'); });
 }
 
 function setTab(i) {
@@ -2318,6 +2268,10 @@ async function excluirChamadoDireto(id) {
 // MÓDULO FINANCEIRO
 // ══════════════════════════════════
 let MOVIMENTACOES = [];
+
+// ══════════════════════════════════════════
+// MOVIMENTAÇÕES FINANCEIRAS
+// ══════════════════════════════════════════
 let editMovId = null;
 let _finChart = null;
 
@@ -2328,136 +2282,11 @@ function initFinanceiroListener() {
     MOVIMENTACOES = snap.docs.map(d => ({id: d.id, ...d.data()}));
     if (document.getElementById('page-financeiro')?.classList.contains('on'))
       renderFinanceiro();
+  }, err => {
+    console.error('Erro ao carregar movimentações:', err);
   });
 }
 
-// Renderizar painel financeiro
-function renderFinanceiro() {
-  const ano  = document.getElementById('fin-filtro-ano')?.value  || '';
-  const mes  = document.getElementById('fin-filtro-mes')?.value  || '';
-  const tipo = document.getElementById('fin-filtro-tipo')?.value || '';
-  const busca= (document.getElementById('fin-busca')?.value || '').toLowerCase();
-
-  let movs = [...MOVIMENTACOES];
-
-  // Filtros
-  if (ano)  movs = movs.filter(m => (m.data||'').startsWith(ano));
-  if (mes)  movs = movs.filter(m => (m.data||'').slice(5,7) === mes);
-  if (tipo) movs = movs.filter(m => m.tipo === tipo);
-  if (busca) movs = movs.filter(m =>
-    (m.desc||'').toLowerCase().includes(busca) ||
-    (m.ref||'').toLowerCase().includes(busca)  ||
-    (m.categoria||'').toLowerCase().includes(busca)
-  );
-
-  // KPIs
-  const entradas    = movs.filter(m=>m.tipo==='Entrada').reduce((s,m)=>s+(m.valor||0),0);
-  const saidas      = movs.filter(m=>m.tipo==='Saída').reduce((s,m)=>s+(m.valor||0),0);
-  const entPrev     = movs.filter(m=>m.tipo==='Entrada Prevista').reduce((s,m)=>s+(m.valor||0),0);
-  const saidPrev    = movs.filter(m=>m.tipo==='Saída Prevista').reduce((s,m)=>s+(m.valor||0),0);
-  const saldo       = entradas - saidas;
-  const saldoPrev   = saldo + entPrev - saidPrev;
-
-  const kpiEl = document.getElementById('fin-kpis');
-  if (kpiEl) kpiEl.innerHTML = [
-    {label:'Total Entradas', valor:entradas,     cor:'#1D9E75', icon:'📥'},
-    {label:'Total Saídas',   valor:saidas,        cor:'#D85A30', icon:'📤'},
-    {label:'Saldo Atual',    valor:saldo,         cor:saldo>=0?'#2E3486':'#D85A30', icon:'💰'},
-    {label:'Saldo Previsto', valor:saldoPrev,     cor:saldoPrev>=0?'#5b67d8':'#f97316', icon:'🔮'},
-  ].map(k=>`
-    <div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #e4e3dc">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:6px">${k.icon} ${k.label}</div>
-      <div style="font-size:22px;font-weight:800;color:${k.cor}">R$ ${Math.abs(k.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
-      ${k.valor<0?'<div style="font-size:10px;color:#D85A30;margin-top:2px">⚠ Negativo</div>':''}
-    </div>
-  `).join('');
-
-  // Gráfico mensal
-  renderFinChart(ano||'2026');
-
-  // Tabela
-  const tbody = document.getElementById('fin-tbody');
-  const emptyEl = document.getElementById('fin-empty');
-  if (!tbody) return;
-
-  // Ordenar por data desc
-  movs.sort((a,b)=>(b.data||'').localeCompare(a.data||''));
-
-  if (!movs.length) {
-    tbody.innerHTML = '';
-    if (emptyEl) emptyEl.style.display = 'block';
-    return;
-  }
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  const TIPO_STYLE = {
-    'Entrada':        {bg:'#e8f8ef',cor:'#1D9E75',icon:'↑'},
-    'Saída':          {bg:'#fdecea',cor:'#D85A30',icon:'↓'},
-    'Entrada Prevista':{bg:'#e8f8ef',cor:'#5aaa7a',icon:'↑~'},
-    'Saída Prevista': {bg:'#fff3cd',cor:'#f59e0b',icon:'↓~'},
-  };
-
-  tbody.innerHTML = movs.map((m,i)=>{
-    const st = TIPO_STYLE[m.tipo] || {bg:'#f0f0f0',cor:'#888',icon:'?'};
-    const isPrev = m.tipo?.includes('Prevista');
-    return `<tr style="border-bottom:1px solid #f0efe8;${isPrev?'opacity:.7':''}">
-      <td style="padding:9px 10px;font-size:12px;color:var(--txts);white-space:nowrap">${m.data?m.data.split('-').reverse().join('/'):'-'}</td>
-      <td style="padding:9px 10px">
-        <span style="background:${st.bg};color:${st.cor};padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600">${st.icon} ${m.tipo}</span>
-      </td>
-      <td style="padding:9px 10px;font-size:12.5px;max-width:260px">
-        <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.desc||'-'}</div>
-        ${m.ref?`<div style="font-size:11px;color:var(--txts)">${m.ref}</div>`:''}
-      </td>
-      <td style="padding:9px 10px"><span style="font-size:11px;color:var(--txts)">${m.categoria||'—'}</span></td>
-      <td style="padding:9px 10px;text-align:right;font-weight:700;font-size:13px;color:${st.cor};white-space:nowrap">
-        R$ ${(m.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
-      </td>
-      <td style="padding:9px 10px;text-align:center">
-        <button onclick="editarMovimentacao('${m.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:5px;padding:3px 10px;cursor:pointer;font-size:11px">✎</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// Gráfico fluxo de caixa mensal
-function renderFinChart(ano) {
-  const ctx = document.getElementById('fin-chart-mensal');
-  if (!ctx) return;
-  if (_finChart) { _finChart.destroy(); _finChart = null; }
-
-  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const movAno = MOVIMENTACOES.filter(m=>(m.data||'').startsWith(ano||new Date().getFullYear()));
-
-  const entradas = MESES.map((_,i)=>{
-    const mes = String(i+1).padStart(2,'0');
-    return movAno.filter(m=>m.tipo==='Entrada'&&(m.data||'').slice(5,7)===mes).reduce((s,m)=>s+(m.valor||0),0);
-  });
-  const saidas = MESES.map((_,i)=>{
-    const mes = String(i+1).padStart(2,'0');
-    return movAno.filter(m=>m.tipo==='Saída'&&(m.data||'').slice(5,7)===mes).reduce((s,m)=>s+(m.valor||0),0);
-  });
-  const saldos = entradas.map((e,i)=>e-saidas[i]);
-
-  _finChart = new Chart(ctx, {
-    type:'bar',
-    data:{
-      labels: MESES,
-      datasets:[
-        {label:'Entradas',data:entradas,backgroundColor:'rgba(29,158,117,.7)',borderRadius:4},
-        {label:'Saídas',  data:saidas,  backgroundColor:'rgba(216,90,48,.7)', borderRadius:4},
-        {type:'line',label:'Saldo',data:saldos,borderColor:'#2E3486',backgroundColor:'transparent',tension:.3,pointRadius:3,borderWidth:2},
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{font:{size:11},padding:12}}},
-      scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$ '+v.toLocaleString('pt-BR')}}}
-    }
-  });
-}
-
-// Modal nova movimentação
 function openModalMovimentacao() {
   editMovId = null;
   document.getElementById('mov-titulo').textContent = 'Nova Movimentação';
@@ -2470,7 +2299,7 @@ function openModalMovimentacao() {
   document.getElementById('mov-categoria').value = '';
   const btnEx = document.getElementById('btn-excluir-mov');
   if (btnEx) btnEx.style.display = 'none';
-  document.getElementById('mo-mov').style.display = 'flex';
+  document.getElementById('mo-mov').classList.add('open');
 }
 
 function editarMovimentacao(id) {
@@ -2487,7 +2316,7 @@ function editarMovimentacao(id) {
   document.getElementById('mov-categoria').value = m.categoria || '';
   const btnEx = document.getElementById('btn-excluir-mov');
   if (btnEx) btnEx.style.display = 'block';
-  document.getElementById('mo-mov').style.display = 'flex';
+  document.getElementById('mo-mov').classList.add('open');
 }
 
 async function salvarMovimentacao() {
@@ -2496,7 +2325,11 @@ async function salvarMovimentacao() {
   const tipo = g('mov-tipo');
   const valor = parseFloat(g('mov-valor')) || 0;
   const desc = g('mov-desc');
-  if (!data || !tipo || !desc) { toast('Preencha data, tipo e descrição.','er'); return; }
+  
+  if (!data || !tipo || !desc || valor === 0) { 
+    toast('Preencha data, tipo, descrição e valor.','er'); 
+    return; 
+  }
 
   const obj = {
     data, tipo, valor, desc,
@@ -2522,14 +2355,55 @@ async function salvarMovimentacao() {
 
 async function excluirMovimentacao() {
   if (!editMovId) return;
-  if (!confirm('Excluir esta movimentação?')) return;
+  if (!confirm('Tem certeza que deseja excluir esta movimentação?')) return;
   try {
     await db.collection('movimentacoes').doc(editMovId).delete();
-    toast('✅ Excluído.', 'ok');
+    toast('✅ Movimentação excluída.', 'ok');
     closeMo('mo-mov');
   } catch(e) {
     toast('Erro: ' + e.message, 'er');
   }
+}
+
+async function importarMovimentacoes() {
+  if (!confirm('Importar ' + DADOS_IMPORTACAO.length + ' movimentações? Isso pode levar alguns segundos.')) return;
+  
+  const btn = document.getElementById('btn-importar-fin');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Importando...'; }
+  
+  let importadas = 0;
+  let erros = 0;
+  
+  for (const mov of DADOS_IMPORTACAO) {
+    try {
+      const existente = MOVIMENTACOES.find(m => 
+        m.data === mov.data && 
+        m.tipo === mov.tipo && 
+        m.valor === mov.valor && 
+        m.desc === mov.desc
+      );
+      
+      if (!existente) {
+        await db.collection('movimentacoes').add({
+          ...mov,
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        importadas++;
+      }
+    } catch(e) {
+      erros++;
+      console.error('Erro ao importar:', e);
+    }
+  }
+  
+  if (btn) { 
+    btn.disabled = false; 
+    btn.textContent = '⬆ Importar'; 
+  }
+  
+  toast(`✅ ${importadas} importadas, ${erros} erros`, importadas > 0 ? 'ok' : 'er');
+}
+
 }
 
 // ══ IMPORTAR MOVIMENTAÇÕES DA PLANILHA ══
