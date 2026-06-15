@@ -276,6 +276,27 @@ tr:hover td{background:#faf9f5}
       <button class="mcl" onclick="document.getElementById('mo-tabela').style.display='none'">✕</button>
     </div>
     <div style="padding:20px">
+      <div style="background:#f0f4ff;border:1px solid #c5d0f5;border-radius:8px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#2E3486;margin-bottom:10px">⚙️ Configurações Globais do Kit</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10.5px;color:#5a5b6e;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Inversor</label>
+            <input type="text" id="cfg-inversor" placeholder="Ex: SOLPLANET" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10.5px;color:#5a5b6e;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Módulo FV</label>
+            <input type="text" id="cfg-modulo" placeholder="Ex: RENEPV" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10.5px;color:#5a5b6e;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Potência Módulo (Wp)</label>
+            <input type="number" id="cfg-wp" placeholder="Ex: 710" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10.5px;color:#5a5b6e;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Distância de Teresina (km)</label>
+            <input type="number" id="cfg-dist" placeholder="Ex: 400" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">
+          </div>
+        </div>
+      </div>
       <div style="background:#fff8e0;border:1px solid #fac775;border-radius:8px;padding:10px 14px;font-size:12px;color:#633806;margin-bottom:14px">
         ⚠ Edite os valores abaixo e clique em <strong>Salvar no Firebase</strong>. A tabela fica disponível para todos os usuários automaticamente.
       </div>
@@ -1802,7 +1823,13 @@ function mostrarCardResponsavel(){
 
 // ══ TABELA PREÇOS ══
 async function carregarTabelaFirestore(){
-  try{const doc=await db.collection('config').doc('tabela_precos').get();if(doc.exists&&doc.data().itens?.length)window.TABELA_SOLAR=[...doc.data().itens];}catch(e){}
+  try{
+    const doc=await db.collection('config').doc('tabela_precos').get();
+    if(doc.exists){
+      if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
+      if(doc.data().config) window.TABELA_CONFIG = doc.data().config;
+    }
+  }catch(e){}
 }
 function buscarTabelaPreview(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
@@ -1837,10 +1864,16 @@ function aplicarKitTabela(){
   const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
   if(isNaN(idx)||!comp[idx]){toast('Selecione um kit.','er');return;}
   const k=comp[idx];
+  const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', wpModulo: k.wpMod};
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
-  set('pp-modulos',k.nMod);set('pp-wpmod',k.wpMod);set('pp-inv','SOLPLANET');set('pp-pinv',k.potInv);set('pp-valor',k.total);set('pp-consumo',consumo||k.kwh);
+  set('pp-modulos', k.nMod);
+  set('pp-wpmod', k.wpMod || cfg.wpModulo);
+  set('pp-inv', cfg.inversor || 'SOLPLANET');
+  set('pp-pinv', k.potInv);
+  set('pp-valor', k.total);
+  set('pp-consumo', consumo||k.kwh);
   calcularProposta();
-  toast('✅ Kit aplicado! '+k.nMod+'x '+k.wpMod+'Wp · R$ '+k.total.toLocaleString('pt-BR'),'ok');
+  toast('✅ Kit aplicado! '+k.nMod+'x '+(k.wpMod||cfg.wpModulo)+'Wp · '+cfg.inversor+' · R$ '+k.total.toLocaleString('pt-BR'),'ok');
 }
 
 // ══ PROPOSTAS ══
@@ -2048,7 +2081,19 @@ async function migrarLocalizacoes(){if(!db){toast('Firebase não conectado.','er
 async function migrarEtapas(){if(!db){toast('Firebase não conectado.','er');return;}const mapa={'Visita':'Proposta','Ligação':'Vistoria'};let ok=0;for(const p of PROJETOS){if(mapa[p.etapa]){try{await db.collection('projetos').doc(String(p.id)).set({etapa:mapa[p.etapa]},{merge:true});ok++;}catch(e){}}}toast(ok>0?'✅ '+ok+' etapas migradas!':'Nenhuma etapa antiga.','ok');}
 
 // ══ TABELA ADMIN ══
-function abrirEditarTabela(){const modal=document.getElementById('mo-tabela');if(!modal)return;renderEditarTabela();modal.style.display='flex';}
+function abrirEditarTabela(){
+  const modal=document.getElementById('mo-tabela');if(!modal)return;
+  renderEditarTabela();
+  // Preencher campos de config com valores salvos
+  const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', modulo:'RENEPV', wpModulo:710, distancia:400};
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  s('cfg-inversor', cfg.inversor);
+  s('cfg-modulo', cfg.modulo);
+  s('cfg-wp', cfg.wpModulo);
+  s('cfg-dist', cfg.distancia);
+  s('cfg-cidade', cfg.cidade || '');
+  modal.style.display='flex';
+}
 function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_SOLAR||TABELA_SOLAR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
 function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,total:0,baixarAte:0});renderEditarTabela();}
 function removerLinhaTabela(i){(window.TABELA_SOLAR||TABELA_SOLAR).splice(i,1);renderEditarTabela();}
@@ -2367,6 +2412,58 @@ async function importarMovimentacoes() {
   // Esconder botão após importar
   const btnImp = document.getElementById('btn-importar-fin');
   if (btnImp) btnImp.style.display = 'none';
+}
+
+// ══ CÁLCULO DE DISTÂNCIA DE TERESINA ══
+const TERESINA_LAT = -5.0892;
+const TERESINA_LNG = -42.8019;
+
+function limparDistancia() {
+  const info = document.getElementById('cfg-dist-info');
+  if (info) info.textContent = '';
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Raio da Terra em km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+async function calcularDistanciaTeresina() {
+  const cidade = document.getElementById('cfg-cidade')?.value?.trim();
+  const info = document.getElementById('cfg-dist-info');
+  const distEl = document.getElementById('cfg-dist');
+  if (!cidade) { toast('Digite o nome da cidade.', 'er'); return; }
+  if (info) info.textContent = '⏳ Buscando...';
+
+  try {
+    // Usar OpenStreetMap Nominatim (gratuito, sem chave)
+    const query = encodeURIComponent(cidade + ', Brasil');
+    const res = await fetch('https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1&countrycodes=br', {
+      headers: {'Accept-Language': 'pt-BR', 'User-Agent': 'SolarMachado/1.0'}
+    });
+    const data = await res.json();
+    
+    if (!data.length) {
+      if (info) info.textContent = '❌ Cidade não encontrada';
+      return;
+    }
+    
+    const lat = parseFloat(data[0].lat);
+    const lng = parseFloat(data[0].lon);
+    const dist = haversine(TERESINA_LAT, TERESINA_LNG, lat, lng);
+    
+    if (distEl) distEl.value = dist;
+    if (info) info.textContent = '✅ ' + data[0].display_name.split(',')[0] + ' → ' + dist + ' km de Teresina';
+    toast('✅ Distância calculada: ' + dist + ' km', 'ok');
+  } catch(e) {
+    if (info) info.textContent = '❌ Erro: ' + e.message;
+    toast('Erro ao calcular distância.', 'er');
+  }
 }
 </script>
 </body>
