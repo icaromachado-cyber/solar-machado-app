@@ -650,6 +650,10 @@ tr:hover td{background:#faf9f5}
                 <label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Consumo mensal (kWh)</label>
                 <input type="number" id="pp-tab-consumo" placeholder="Ex: 600" oninput="buscarTabelaPreview()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
               </div>
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:110px">
+                <label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">📍 Distância (km)</label>
+                <input type="number" id="pp-tab-dist" placeholder="0" min="0" value="0" oninput="atualizarDistanciaProposta()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:100%">
+              </div>
               <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px">
                 <label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Kit sugerido</label>
                 <select id="pp-tab-sugestao" onchange="selecionarKitTabela()" style="padding:8px 11px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
@@ -1829,7 +1833,14 @@ async function carregarTabelaFirestore(){
     const doc=await db.collection('config').doc('tabela_precos').get();
     if(doc.exists){
       if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
-      if(doc.data().config) window.TABELA_CONFIG = doc.data().config;
+      if(doc.data().config) {
+      window.TABELA_CONFIG = doc.data().config;
+      // Atualizar campo de distância na proposta se estiver visível
+      const ppDist = document.getElementById('pp-tab-dist');
+      if (ppDist && doc.data().config.distancia !== undefined) {
+        ppDist.value = doc.data().config.distancia || 0;
+      }
+    }
     }
   }catch(e){}
 }
@@ -2113,7 +2124,7 @@ function abrirEditarTabela(){
   const modal=document.getElementById('mo-tabela');if(!modal)return;
   renderEditarTabela();
   // Preencher campos de config com valores salvos
-  const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', modulo:'RENEPV', wpModulo:710, distancia:400};
+  const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', modulo:'RENEPV', wpModulo:710, distancia:0};
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
   s('cfg-inversor', cfg.inversor);
   s('cfg-modulo', cfg.modulo);
@@ -2126,9 +2137,26 @@ function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody'
 function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,total:0,baixarAte:0});renderEditarTabela();}
 function removerLinhaTabela(i){(window.TABELA_SOLAR||TABELA_SOLAR).splice(i,1);renderEditarTabela();}
 async function salvarEFecharTabela(){
-  const tab=window.TABELA_SOLAR||TABELA_SOLAR;tab.sort((a,b)=>a.kwh-b.kwh);
-  try{await db.collection('config').doc('tabela_precos').set({itens:tab,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()});toast('✅ Tabela salva!','ok');}catch(e){toast('Erro: '+e.message,'er');}
-  document.getElementById('mo-tabela').style.display='none';
+  const tab = window.TABELA_SOLAR || TABELA_SOLAR;
+  tab.sort((a,b) => a.kwh - b.kwh);
+  const cfg = {
+    inversor:  document.getElementById('cfg-inversor')?.value  || 'SOLPLANET',
+    modulo:    document.getElementById('cfg-modulo')?.value    || 'RENEPV',
+    wpModulo:  parseFloat(document.getElementById('cfg-wp')?.value)   || 710,
+    distancia: parseFloat(document.getElementById('cfg-dist')?.value) || 0
+  };
+  window.TABELA_CONFIG = cfg;
+  try {
+    await db.collection('config').doc('tabela_precos').set({
+      itens: tab,
+      config: cfg,
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('✅ Tabela e configurações salvas!', 'ok');
+  } catch(e) {
+    toast('Erro ao salvar: ' + e.message, 'er');
+  }
+  document.getElementById('mo-tabela').style.display = 'none';
 }
 
 // ══ BENEFICIÁRIOS ══
@@ -2492,6 +2520,16 @@ async function calcularDistanciaTeresina() {
     if (info) info.textContent = '❌ Erro: ' + e.message;
     toast('Erro ao calcular distância.', 'er');
   }
+}
+
+// Atualizar distância diretamente na proposta
+function atualizarDistanciaProposta() {
+  const dist = parseFloat(document.getElementById('pp-tab-dist')?.value) || 0;
+  // Atualizar TABELA_CONFIG com a nova distância
+  if (!window.TABELA_CONFIG) window.TABELA_CONFIG = {};
+  window.TABELA_CONFIG.distancia = dist;
+  // Refazer preview do kit selecionado
+  selecionarKitTabela();
 }
 </script>
 </body>
