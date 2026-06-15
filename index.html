@@ -1788,7 +1788,7 @@ const TABELA_SOLAR = [
   {kwh:3000,wpMod:585, nMod:41, potInv:20,  kwp:24.0, totalBase:46280, total:46280, baixarAteBase:45280, baixarAte:45280},
   {kwh:3500,wpMod:585, nMod:47, potInv:20,  kwp:27.5, totalBase:50180, total:50180, baixarAteBase:49180, baixarAte:49180}
 ];
-const TABELA_DIST_REF = 400;
+const TABELA_DIST_REF = 0; // Distância de referência (0 km = preço base)
 
 // ══ KANBAN CHAMADOS ══
 let _chDragging = false, _chDragId = null;
@@ -1871,23 +1871,26 @@ function abrirEditarChamado(id){
   set('mc-pri',c.prioridade||'Normal');set('mc-st',c.status||'Aberto');
   set('mc-desc',c.desc);set('mc-data',c.data);set('mc-res',c.res);
   const rspSel=document.getElementById('mc-responsavel');
-  function calcularPrecoComDistancia(k) {
-  const cfg = window.TABELA_CONFIG || {};
-  const dist = parseFloat(cfg.distancia) || 0;
-
-  // Fórmula da tabela: Lucro = 4000 + 2.88 * distância
-  const lucroPorDistancia = 4000 + (2.88 * dist);
-  
-  // Total = KIT + Mão de Obra + Material + Projeto + ART + Lucro
-  const totalBase = k.total || 0;
-  const totalComDistancia = totalBase + (lucroPorDistancia - 4000);
-  
-  return {
-    total: Math.round(totalComDistancia),
-    baixarAte: Math.round(totalComDistancia - 1000)
-  };
+  if(rspSel){
+    const lista=window._usuariosCache||EQUIPE_SOLAR;
+    rspSel.innerHTML='<option value="">Selecionar responsável</option>'+lista.map(u=>'<option value="'+u.nome+'"'+(u.nome===c.responsavel?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
+    if(c.responsavel)setTimeout(mostrarCardResponsavel,0);
+    else {const card=document.getElementById('mc-resp-card');if(card)card.style.display='none';}
+  }
+  // Mostrar botão excluir ao editar
+  const btnEx = document.getElementById('btn-excluir-ch');
+  if (btnEx) btnEx.style.display = 'block';
+  document.getElementById('mo-ch').classList.add('open');
 }
 
+// ══ RESPONSÁVEIS ══
+function popularResponsaveis(valorInicial){
+  const sel=document.getElementById('mc-responsavel');if(!sel)return;
+  const cur=valorInicial!==undefined?valorInicial:sel.value;
+  function renderOpts(lista){
+    sel.innerHTML='<option value="">Selecionar responsável</option>'+lista.map(u=>'<option value="'+u.nome+'"'+(u.nome===cur?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
+    if(cur)setTimeout(mostrarCardResponsavel,0);
+  }
   renderOpts(window._usuariosCache||EQUIPE_SOLAR);
   if(typeof db!=='undefined'){
     db.collection('usuarios').get().then(snap=>{
@@ -1966,21 +1969,15 @@ function mostrarInfoKit(k){
 function calcularPrecoComDistancia(k) {
   const cfg = window.TABELA_CONFIG || {};
   const dist = parseFloat(cfg.distancia) || 0;
-  const distRef = TABELA_DIST_REF || 400;
 
-  // Interpolar entre preço base (0km) e preço de referência (400km)
-  const totalBase = k.totalBase || k.total;
-  const totalRef  = k.total;
-  const baixarBase = k.baixarAteBase || k.baixarAte;
-  const baixarRef  = k.baixarAte;
+  // Fórmula correta: Lucro = 4000 + 2.88 * distância
+  const precoBase = k.total || 0;
+  const lucroPorDistancia = 2.88 * dist; // R$ 2.88 por km
+  const precoComDistancia = precoBase + lucroPorDistancia;
 
-  if (dist <= 0) return { total: totalBase, baixarAte: baixarBase };
-  if (dist >= distRef) return { total: totalRef, baixarAte: baixarRef };
-
-  const fator = dist / distRef;
   return {
-    total:     Math.round(totalBase + fator * (totalRef - totalBase)),
-    baixarAte: Math.round(baixarBase + fator * (baixarRef - baixarBase))
+    total: Math.round(precoComDistancia),
+    baixarAte: Math.round(precoComDistancia - 1000)
   };
 }
 
