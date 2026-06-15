@@ -1675,23 +1675,23 @@ auth.onAuthStateChanged(async user=>{
 });
 // ══ TABELA DE PREÇOS ══
 const TABELA_SOLAR = [
-  // totalBase=Teresina(0km) | total=400km | Fonte: tabela teste app.xlsx 09/06/2026
-  {kwh:450, wpMod:710, nMod:5,  potInv:3,   kwp:3.6,  totalBase:11410, total:13062, baixarAteBase:10410, baixarAte:12062},
-  {kwh:500, wpMod:615, nMod:7,  potInv:3,   kwp:4.3,  totalBase:12000, total:13352, baixarAteBase:11000, baixarAte:12352},
-  {kwh:600, wpMod:625, nMod:8,  potInv:4,   kwp:5.0,  totalBase:13500, total:14662, baixarAteBase:12500, baixarAte:13662},
-  {kwh:700, wpMod:710, nMod:8,  potInv:5,   kwp:5.7,  totalBase:14500, total:15352, baixarAteBase:13500, baixarAte:14352},
-  {kwh:800, wpMod:615, nMod:11, potInv:6,   kwp:6.8,  totalBase:15000, total:16772, baixarAteBase:14000, baixarAte:15772},
-  {kwh:900, wpMod:615, nMod:12, potInv:6,   kwp:7.4,  totalBase:16500, total:17372, baixarAteBase:15500, baixarAte:16372},
-  {kwh:1000,wpMod:620, nMod:13, potInv:6,   kwp:8.1,  totalBase:19000, total:20142, baixarAteBase:18000, baixarAte:19142},
-  {kwh:1200,wpMod:620, nMod:16, potInv:7.5, kwp:9.9,  totalBase:21500, total:22652, baixarAteBase:20500, baixarAte:21652},
-  {kwh:1300,wpMod:615, nMod:17, potInv:7.5, kwp:10.5, totalBase:24000, total:25152, baixarAteBase:23000, baixarAte:24152},
-  {kwh:1500,wpMod:710, nMod:17, potInv:9.1, kwp:12.1, totalBase:25000, total:26152, baixarAteBase:24000, baixarAte:25152},
-  {kwh:1800,wpMod:615, nMod:23, potInv:9.1, kwp:14.1, totalBase:27000, total:28152, baixarAteBase:26000, baixarAte:27152},
-  {kwh:2000,wpMod:710, nMod:23, potInv:9.1, kwp:16.3, totalBase:30500, total:31652, baixarAteBase:29500, baixarAte:30652},
-  {kwh:2200,wpMod:615, nMod:28, potInv:15,  kwp:17.2, totalBase:33500, total:34652, baixarAteBase:32500, baixarAte:33652},
-  {kwh:2500,wpMod:615, nMod:32, potInv:15,  kwp:19.7, totalBase:36500, total:37652, baixarAteBase:35500, baixarAte:36652},
-  {kwh:3000,wpMod:615, nMod:39, potInv:20,  kwp:24.0, totalBase:49000, total:50152, baixarAteBase:48000, baixarAte:49152},
-  {kwh:3500,wpMod:615, nMod:45, potInv:20,  kwp:27.7, totalBase:55052, total:55052, baixarAteBase:54052, baixarAte:54052}
+  // Sincronizado em 15/06/2026 — SOLPLANET + RENEPV 585Wp | Fonte: tabela teste app.xlsx
+  {kwh:450, wpMod:585, nMod:7,  potInv:3,   kwp:4.1,  totalBase:12500, total:12500, baixarAteBase:11500, baixarAte:11500},
+  {kwh:500, wpMod:585, nMod:7,  potInv:3,   kwp:4.1,  totalBase:12500, total:12500, baixarAteBase:11500, baixarAte:11500},
+  {kwh:600, wpMod:585, nMod:9,  potInv:4,   kwp:5.3,  totalBase:14000, total:14000, baixarAteBase:13000, baixarAte:13000},
+  {kwh:700, wpMod:585, nMod:10, potInv:5,   kwp:5.9,  totalBase:14500, total:14500, baixarAteBase:13500, baixarAte:13500},
+  {kwh:800, wpMod:585, nMod:11, potInv:6,   kwp:6.4,  totalBase:15500, total:15500, baixarAteBase:14500, baixarAte:14500},
+  {kwh:900, wpMod:585, nMod:13, potInv:6,   kwp:7.6,  totalBase:17000, total:17000, baixarAteBase:16000, baixarAte:16000},
+  {kwh:1000,wpMod:585, nMod:14, potInv:6,   kwp:8.2,  totalBase:19000, total:19000, baixarAteBase:18000, baixarAte:18000},
+  {kwh:1200,wpMod:585, nMod:17, potInv:7.5, kwp:9.9,  totalBase:22000, total:22000, baixarAteBase:21000, baixarAte:21000},
+  {kwh:1300,wpMod:585, nMod:18, potInv:7.5, kwp:10.5, totalBase:22500, total:22500, baixarAteBase:21500, baixarAte:21500},
+  {kwh:1500,wpMod:585, nMod:21, potInv:9.1, kwp:12.3, totalBase:24500, total:24500, baixarAteBase:23500, baixarAte:23500},
+  {kwh:1800,wpMod:585, nMod:25, potInv:9.1, kwp:14.6, totalBase:27000, total:27000, baixarAteBase:26000, baixarAte:26000},
+  {kwh:2000,wpMod:585, nMod:27, potInv:9.1, kwp:15.8, totalBase:29060, total:29060, baixarAteBase:28060, baixarAte:28060},
+  {kwh:2200,wpMod:585, nMod:30, potInv:15,  kwp:17.6, totalBase:32080, total:32080, baixarAteBase:31080, baixarAte:31080},
+  {kwh:2500,wpMod:585, nMod:34, potInv:15,  kwp:19.9, totalBase:34680, total:34680, baixarAteBase:33680, baixarAte:33680},
+  {kwh:3000,wpMod:585, nMod:41, potInv:20,  kwp:24.0, totalBase:46280, total:46280, baixarAteBase:45280, baixarAte:45280},
+  {kwh:3500,wpMod:585, nMod:47, potInv:20,  kwp:27.5, totalBase:50180, total:50180, baixarAteBase:49180, baixarAte:49180}
 ];
 const TABELA_DIST_REF = 400;
 
