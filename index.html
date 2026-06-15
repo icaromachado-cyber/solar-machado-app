@@ -1858,6 +1858,27 @@ function mostrarInfoKit(k){
     +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Valor</div><div style="font-size:13px;font-weight:700;color:#1D9E75">R$ '+k.total.toLocaleString('pt-BR')+'</div></div>'
     +'</div><div style="font-size:10.5px;color:#5a5b6e;margin-top:5px">💰 Baixar até: <strong>R$ '+k.baixarAte.toLocaleString('pt-BR')+'</strong> · Geração: <strong>'+k.kwh+' kWh/mês</strong></div>';
 }
+function calcularPrecoComDistancia(k) {
+  const cfg = window.TABELA_CONFIG || {};
+  const dist = parseFloat(cfg.distancia) || 0;
+  const distRef = TABELA_DIST_REF || 400;
+
+  // Interpolar entre preço base (0km) e preço de referência (400km)
+  const totalBase = k.totalBase || k.total;
+  const totalRef  = k.total;
+  const baixarBase = k.baixarAteBase || k.baixarAte;
+  const baixarRef  = k.baixarAte;
+
+  if (dist <= 0) return { total: totalBase, baixarAte: baixarBase };
+  if (dist >= distRef) return { total: totalRef, baixarAte: baixarRef };
+
+  const fator = dist / distRef;
+  return {
+    total:     Math.round(totalBase + fator * (totalRef - totalBase)),
+    baixarAte: Math.round(baixarBase + fator * (baixarRef - baixarBase))
+  };
+}
+
 function aplicarKitTabela(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
   const idx=parseInt(document.getElementById('pp-tab-sugestao')?.value);
@@ -1865,15 +1886,20 @@ function aplicarKitTabela(){
   if(isNaN(idx)||!comp[idx]){toast('Selecione um kit.','er');return;}
   const k=comp[idx];
   const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', wpModulo: k.wpMod};
+  const precos = calcularPrecoComDistancia(k);
+  const dist = parseFloat(cfg.distancia) || 0;
+
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   set('pp-modulos', k.nMod);
   set('pp-wpmod', k.wpMod || cfg.wpModulo);
   set('pp-inv', cfg.inversor || 'SOLPLANET');
   set('pp-pinv', k.potInv);
-  set('pp-valor', k.total);
+  set('pp-valor', precos.total);
   set('pp-consumo', consumo||k.kwh);
   calcularProposta();
-  toast('✅ Kit aplicado! '+k.nMod+'x '+(k.wpMod||cfg.wpModulo)+'Wp · '+cfg.inversor+' · R$ '+k.total.toLocaleString('pt-BR'),'ok');
+
+  const distInfo = dist > 0 ? ' · 📍 '+dist+'km de Teresina' : '';
+  toast('✅ Kit aplicado! '+k.nMod+'x '+(k.wpMod||cfg.wpModulo)+'Wp · R$ '+precos.total.toLocaleString('pt-BR')+distInfo,'ok');
 }
 
 // ══ PROPOSTAS ══
