@@ -1871,26 +1871,23 @@ function abrirEditarChamado(id){
   set('mc-pri',c.prioridade||'Normal');set('mc-st',c.status||'Aberto');
   set('mc-desc',c.desc);set('mc-data',c.data);set('mc-res',c.res);
   const rspSel=document.getElementById('mc-responsavel');
-  if(rspSel){
-    const lista=window._usuariosCache||EQUIPE_SOLAR;
-    rspSel.innerHTML='<option value="">Selecionar responsável</option>'+lista.map(u=>'<option value="'+u.nome+'"'+(u.nome===c.responsavel?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
-    if(c.responsavel)setTimeout(mostrarCardResponsavel,0);
-    else {const card=document.getElementById('mc-resp-card');if(card)card.style.display='none';}
-  }
-  // Mostrar botão excluir ao editar
-  const btnEx = document.getElementById('btn-excluir-ch');
-  if (btnEx) btnEx.style.display = 'block';
-  document.getElementById('mo-ch').classList.add('open');
+  function calcularPrecoComDistancia(k) {
+  const cfg = window.TABELA_CONFIG || {};
+  const dist = parseFloat(cfg.distancia) || 0;
+
+  // Fórmula da tabela: Lucro = 4000 + 2.88 * distância
+  const lucroPorDistancia = 4000 + (2.88 * dist);
+  
+  // Total = KIT + Mão de Obra + Material + Projeto + ART + Lucro
+  const totalBase = k.total || 0;
+  const totalComDistancia = totalBase + (lucroPorDistancia - 4000);
+  
+  return {
+    total: Math.round(totalComDistancia),
+    baixarAte: Math.round(totalComDistancia - 1000)
+  };
 }
 
-// ══ RESPONSÁVEIS ══
-function popularResponsaveis(valorInicial){
-  const sel=document.getElementById('mc-responsavel');if(!sel)return;
-  const cur=valorInicial!==undefined?valorInicial:sel.value;
-  function renderOpts(lista){
-    sel.innerHTML='<option value="">Selecionar responsável</option>'+lista.map(u=>'<option value="'+u.nome+'"'+(u.nome===cur?' selected':'')+'>'+u.nome+(u.competencia?' — '+u.competencia:'')+'</option>').join('');
-    if(cur)setTimeout(mostrarCardResponsavel,0);
-  }
   renderOpts(window._usuariosCache||EQUIPE_SOLAR);
   if(typeof db!=='undefined'){
     db.collection('usuarios').get().then(snap=>{
