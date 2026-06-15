@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1336,7 +1336,7 @@ function renderLeituras() {
     const isben = l.ucBeneficiario ? true : false;
     const mesFormatado = l.mes ? l.mes.slice(0,7).split('-').reverse().join('/') : '—';
 
-    return `<div style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px;margin-bottom:10px">
+    return `<div onclick="openEditLeitura(${l.id})" style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s;box-shadow:0 2px 4px rgba(0,0,0,0.02)" onmouseover="this.style.borderColor='var(--az3)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e4e3dc';this.style.transform='none'">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:14px;font-weight:600">${p?.cliente || '—'}
@@ -1345,7 +1345,7 @@ function renderLeituras() {
           </div>
         </div>
         <div style="display:flex;gap:6px">
-          ${l.linkFatura ? `<a href="${l.linkFatura}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">📄 Ver Fatura</a>` : ''}
+          ${l.linkFatura ? `<a href="${l.linkFatura}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:7px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">📄 Ver Fatura</a>` : ''}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
@@ -1532,18 +1532,113 @@ function saveChamado(){
   fbWrite('chamados',id,obj).then(()=>{toast('Chamado salvo!','ok');closeMo('mo-ch');});
 }
 
+let editLeituraId = null;
+
 function openModalLeitura() {
+  editLeituraId = null;
+  document.getElementById('ml-title').textContent = 'Registrar Leitura de Geração';
+  
   const sel=document.getElementById('ml-proj');
   sel.innerHTML=PROJETOS.map(p=>`<option value="${p.id}">${p.cliente}</option>`).join('');
+  
   document.getElementById('ml-mes').value=new Date().toISOString().slice(0,7);
   document.getElementById('ml-kwh').value='';
+  document.getElementById('ml-consumida').value='';
+  document.getElementById('ml-injetada').value='';
+  document.getElementById('ml-valor-fatura').value='';
+  document.getElementById('ml-link-fatura').value='';
+  document.getElementById('ml-obs').value='';
+  
+  document.getElementById('ml-uc-ben-wrap').style.display='none';
+  
+  // Adicionar botão excluir (escondido)
+  let btnExcluir = document.getElementById('btn-excluir-leit');
+  if(btnExcluir) btnExcluir.style.display = 'none';
+  
+  popularUcBeneficiarios();
   document.getElementById('mo-leit').classList.add('open');
 }
 
+function openEditLeitura(id) {
+  const l = LEITURAS.find(x => x.id === id);
+  if(!l) return;
+  
+  editLeituraId = id;
+  document.getElementById('ml-title').textContent = 'Editar Leitura';
+  
+  const sel=document.getElementById('ml-proj');
+  sel.innerHTML=PROJETOS.map(p=>`<option value="${p.id}" ${p.id===l.projetoId?'selected':''}>${p.cliente}</option>`).join('');
+  
+  popularUcBeneficiarios();
+  setTimeout(() => {
+    if(l.ucBeneficiario) {
+      const ucSel = document.getElementById('ml-uc-ben');
+      if(ucSel) ucSel.value = l.ucBeneficiario;
+    }
+  }, 100);
+  
+  document.getElementById('ml-mes').value=l.mes || '';
+  document.getElementById('ml-kwh').value=l.kwh || '';
+  document.getElementById('ml-consumida').value=l.consumida || '';
+  document.getElementById('ml-injetada').value=l.injetada || '';
+  document.getElementById('ml-valor-fatura').value=l.valorFatura || '';
+  document.getElementById('ml-link-fatura').value=l.linkFatura || '';
+  document.getElementById('ml-obs').value=l.obs || '';
+  
+  // Mostrar botão excluir
+  let btnExcluir = document.getElementById('btn-excluir-leit');
+  if(!btnExcluir) {
+    const mftr = document.querySelector('#mo-leit .mftr');
+    if(mftr) {
+      mftr.style.justifyContent = 'space-between';
+      mftr.innerHTML = `
+        <button id="btn-excluir-leit" onclick="excluirLeitura()" style="background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir</button>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button class="btn btn-g" onclick="closeMo('mo-leit')">Cancelar</button>
+          <button class="btn btn-p" onclick="saveLeitura()">Salvar</button>
+        </div>
+      `;
+    }
+  } else {
+    btnExcluir.style.display = 'block';
+  }
+  
+  document.getElementById('mo-leit').classList.add('open');
+}
+
+function excluirLeitura() {
+  if(!editLeituraId) return;
+  if(confirm('Tem certeza que deseja excluir esta leitura? Esta ação não pode ser desfeita.')) {
+    fbDelete('leituras', editLeituraId).then(() => {
+      toast('Leitura excluída!', 'ok');
+      closeMo('mo-leit');
+    });
+  }
+}
+
 function saveLeitura() {
-  const id = LEITURAS.length?Math.max(...LEITURAS.map(x=>x.id))+1:1;
-  const obj = { id, projetoId: parseInt(document.getElementById('ml-proj').value), mes: document.getElementById('ml-mes').value, kwh: parseFloat(document.getElementById('ml-kwh').value) };
-  fbWrite('leituras', id, obj).then(() => { toast('Leitura Salva!', 'ok'); closeMo('mo-leit'); });
+  const id = editLeituraId || (LEITURAS.length ? Math.max(...LEITURAS.map(x=>x.id))+1 : 1);
+  
+  const projId = parseInt(document.getElementById('ml-proj').value);
+  if(!projId) { toast('Selecione um projeto', 'er'); return; }
+  
+  const obj = { 
+    id: id, 
+    projetoId: projId, 
+    mes: document.getElementById('ml-mes').value, 
+    kwh: parseFloat(document.getElementById('ml-kwh').value) || 0,
+    consumida: parseFloat(document.getElementById('ml-consumida').value) || 0,
+    injetada: parseFloat(document.getElementById('ml-injetada').value) || 0,
+    valorFatura: parseFloat(document.getElementById('ml-valor-fatura').value) || 0,
+    linkFatura: document.getElementById('ml-link-fatura').value || '',
+    obs: document.getElementById('ml-obs').value || '',
+    ucBeneficiario: document.getElementById('ml-uc-ben-wrap').style.display !== 'none' ? document.getElementById('ml-uc-ben').value : ''
+  };
+  
+  fbWrite('leituras', id, obj).then(() => { 
+    toast(editLeituraId ? 'Leitura Atualizada!' : 'Leitura Salva!', 'ok'); 
+    closeMo('mo-leit'); 
+  });
 }
 
 function setTab(i) {
