@@ -1489,13 +1489,11 @@ function openEditProj(id) {
   document.getElementById('p-tel').value = p.tel || '';
   document.getElementById('p-uc').value = p.uc || '';
   document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
-  document.getElementById('p-mod').value = p.modulos || '';
-  document.getElementById('p-wpmod').value = p.wpMod || '';
-  document.getElementById('p-kwp').value = p.kwp || '';
-  document.getElementById('p-val').value = p.valor || '';
-  document.getElementById('p-ben').value = p.possuiBeneficiario || 'Não';
+  const el_kwp=document.getElementById('p-kwp'); if(el_kwp) el_kwp.value=p.kwp||'';
+  const el_val=document.getElementById('p-val'); if(el_val) el_val.value=p.valor||'';
+  const el_ben=document.getElementById('p-ben'); if(el_ben) el_ben.value=p.possuiBeneficiario||'Não';
   const sf=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||'';};
-  sf('p-est',p.estado); sf('p-inv',p.inversor); sf('p-pinv',p.potInv); sf('p-mont',p.montador); sf('p-tensao',p.tensao);
+  sf('p-est',p.estado); sf('p-mont',p.montador); sf('p-tensao',p.tensao);
   sf('p-prot-med',p.protMedidor); sf('p-prot-ca-disj',p.protCaDisj); sf('p-prot-ca-dps',p.protCaDps);
   sf('p-dini',p.dataInicio); sf('p-dlig',p.dataLigacao); sf('p-obs',p.obs);
   sf('p-end',p.end); sf('p-lat',p.lat); sf('p-lng',p.lng);
@@ -1525,9 +1523,8 @@ function saveProjeto(){
     id, cliente:g('p-cli'), nome:g('p-nome'), dataNascimento:g('p-nasc'),
     cpf:g('p-cpf'), tel:g('p-tel'), uc:g('p-uc'), estado:g('p-est'),
     etapa:g('p-etapa'), possuiBeneficiario:g('p-ben'),
-    modulos:parseInt(g('p-mod'))||0, wpMod:parseInt(g('p-wpmod'))||0,
     kwp:parseFloat(g('p-kwp'))||0, valor:parseFloat(g('p-val'))||0,
-    inversor:g('p-inv'), potInv:g('p-pinv'), montador:g('p-mont'), tensao:g('p-tensao'),
+    montador:g('p-mont'), tensao:g('p-tensao'),
     protMedidor:g('p-prot-med'), protCaDisj:g('p-prot-ca-disj'), protCaDps:g('p-prot-ca-dps'),
     dataInicio:g('p-dini'), dataLigacao:g('p-dlig'), obs:g('p-obs'),
     end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'),
