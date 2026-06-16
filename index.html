@@ -2755,14 +2755,48 @@ function atualizarDistanciaProposta() {
       ENDPOINT_LAST_DATA: '/getLastTsDataPro'
     };
 
-    // Mapeamento de nomes das plantas
-    const NOMES_PLANTAS = [
-      "Renê Primo", "Jackson", "Fabiano", "Jeferson Bebidas", "Édson",
-      "Djames", "Valdinar", "Samuel Maia", "Jorge", "Irvayne",
-      "R1", "Grazi", "Inácio", "Eliana", "Renê",
-      "Dailton", "Roberto", "Raquel", "James", "Osmir",
-      "Calisto", "Crispim", "Marilene", "Maria do Socorro", "Raimunda",
-      "Filho", "Maria do Socorro (2)", "Eugenio", "Regina"
+    // Mapeamento de plantas com SN (Número de Série do Inversor)
+    const PLANTAS_SN = [
+      {id: 1, nome: "Renê Primo", sn: "SA500087G2512168"},
+      {id: 2, nome: "Jackson", sn: "SP001587G2580002"},
+      {id: 3, nome: "Fabiano", sn: "SA500087G2510260"},
+      {id: 4, nome: "Jeferson Bebidas", sn: "SP002087G2540007"},
+      {id: 5, nome: "Édson", sn: "AP730087P24C0166"},
+      {id: 6, nome: "Djames", sn: "SA500087G2510007"},
+      {id: 7, nome: "Valdinar", sn: "SP00158722450039"},
+      {id: 8, nome: "Samuel Maia", sn: "AP75008782540864"},
+      {id: 9, nome: "Jorge", sn: "SA500087G2550237"},
+      {id: 10, nome: "Irvayne", sn: "AP75008782580573"},
+      {id: 11, nome: "R1", sn: "AP910087P2520314"},
+      {id: 12, nome: "Grazi", sn: "SP00158722430898"},
+      {id: 13, nome: "Inácio", sn: "AP910087P2530455"},
+      {id: 14, nome: "Eliana", sn: "SP001587G2580347"},
+      {id: 15, nome: "Renê", sn: "SA600087G2510217"},
+      {id: 16, nome: "Dailton", sn: "AP75008782540416"},
+      {id: 17, nome: "Roberto", sn: "SA600087S2590825"},
+      {id: 18, nome: "Raquel", sn: "AP75008782540383"},
+      {id: 19, nome: "James", sn: "SC006087G2560092"},
+      {id: 20, nome: "Osmir", sn: "SA600087S2591878"},
+      {id: 21, nome: "Calisto", sn: "AP910087P2520209"},
+      {id: 22, nome: "Crispim", sn: "SP00258722270708"},
+      {id: 23, nome: "Marilene", sn: "AP910087P2590160"},
+      {id: 24, nome: "Maria do Socorro", sn: "AP75008782570321"},
+      {id: 25, nome: "Raimunda", sn: "AP910087P2510188"},
+      {id: 26, nome: "Filho", sn: "SA600087S2570349"},
+      {id: 27, nome: "Maria do Socorro", sn: "SA600087G2550240"},
+      {id: 28, nome: "Eugenio", sn: "SP001287G2510126"},
+      {id: 29, nome: "Regina", sn: "SA600087S2580817"},
+      {id: 30, nome: "Marcio", sn: "AP910087P2540186"},
+      {id: 31, nome: "Wallison", sn: "SA400087S2590418"},
+      {id: 32, nome: "Gabriel", sn: "AP75008782570433"},
+      {id: 33, nome: "Enileide", sn: "SA600087S2570364"},
+      {id: 34, nome: "Fabiana", sn: "SA300087G2550148"},
+      {id: 35, nome: "Layo", sn: "AP91008722431227"},
+      {id: 36, nome: "Matilde", sn: "AP75008782570318"},
+      {id: 37, nome: "Ediane", sn: "SA600087S2580496"},
+      {id: 38, nome: "José Alberto", sn: "SA600087S2570125"},
+      {id: 39, nome: "Maria de Fátima", sn: "SA600087S2580664"},
+      {id: 40, nome: "Roberta", sn: "AP910087P2540119"}
     ];
 
     let plantasMonitoramento = [];
@@ -2802,34 +2836,58 @@ function atualizarDistanciaProposta() {
 
     async function buscarPlantasSolplanet() {
       try {
-        const response = await requisicaoSolplanet(SOLPLANET_CONFIG.ENDPOINT_PLANTS);
+        // Buscar dados de cada planta pelo SN (Número de Série)
+        const plantas = [];
         
-        if (response.success && response.data) {
-          return response.data.map((planta, idx) => ({
-            id: planta.id,
-            name: NOMES_PLANTAS[idx] || planta.name || `Planta ${planta.id}`,
-            potencia: 0,
-            energiaHoje: 0,
-            energiaTotal: 0,
-            status: 'Loading'
-          }));
+        for (const planta of PLANTAS_SN) {
+          try {
+            // Buscar dados da planta pelo SN
+            const params = new URLSearchParams({
+              id: SOLPLANET_CONFIG.API_ID,
+              token: SOLPLANET_CONFIG.API_TOKEN,
+              sn: planta.sn
+            });
+            
+            const url = `${SOLPLANET_CONFIG.API_URL}/getLastTsDataPro?${params}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            plantas.push({
+              id: planta.id,
+              name: planta.nome,
+              sn: planta.sn,
+              potencia: data.power || 0,
+              energiaHoje: data.eToday || 0,
+              energiaTotal: data.eTotal || 0,
+              status: data.status === 1 ? 'Online' : 'Offline'
+            });
+          } catch (err) {
+            // Se falhar para uma planta, continua com as outras
+            plantas.push({
+              id: planta.id,
+              name: planta.nome,
+              sn: planta.sn,
+              potencia: 0,
+              energiaHoje: 0,
+              energiaTotal: 0,
+              status: 'Erro'
+            });
+          }
         }
         
-        return [];
+        return plantas;
       } catch (error) {
         console.error('Erro ao buscar plantas:', error);
-        const plantas = [];
-        for (let i = 0; i < 29; i++) {
-          plantas.push({
-            id: i + 1,
-            name: NOMES_PLANTAS[i] || `Planta ${i + 1}`,
-            potencia: 0,
-            energiaHoje: 0,
-            energiaTotal: 0,
-            status: 'Offline'
-          });
-        }
-        return plantas;
+        // Retornar plantas com dados vazios se falhar
+        return PLANTAS_SN.map(p => ({
+          id: p.id,
+          name: p.nome,
+          sn: p.sn,
+          potencia: 0,
+          energiaHoje: 0,
+          energiaTotal: 0,
+          status: 'Offline'
+        }));
       }
     }
 
