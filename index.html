@@ -1725,11 +1725,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ══ AUTH ══
 let usuarioAtual=null;
+let isAdmin=false;
 const auth=firebase.auth();
 function fazerLogout(){if(confirm('Deseja sair?'))auth.signOut();}
 auth.onAuthStateChanged(async user=>{
   if(user){
     usuarioAtual=user;
+    isAdmin=false;
     document.getElementById('login-screen').style.display='none';
     // Resolver nome IMEDIATAMENTE via EQUIPE_SOLAR (antes de qualquer await)
     const eqImediato = EQUIPE_SOLAR.find(e => e.email === user.email);
@@ -1809,6 +1811,7 @@ auth.onAuthStateChanged(async user=>{
   } else {
     // Sem usuário — garantir que tela de login está visível
     usuarioAtual = null;
+    isAdmin = false;
     const ls = document.getElementById('login-screen');
     if (ls) ls.style.display = 'flex';
     const btn = document.getElementById('login-btn');
