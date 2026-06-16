@@ -1880,8 +1880,9 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 // ══ TABELA DE PREÇOS ══
+const TABELA_SOLAR_VERSAO = '2026-06-16';
 const TABELA_SOLAR = [
-  // Sincronizado em 15/06/2026 — SOLPLANET + RENEPV 585Wp | Fonte: tabela teste app.xlsx
+  // Sincronizado 16/06/2026 — SOLPLANET + GOKIN 585Wp | tabela teste app.xlsx
   {kwh:450, wpMod:585, nMod:7,  potInv:3,   kwp:4.1,  totalBase:12500, total:12500, baixarAteBase:11500, baixarAte:11500},
   {kwh:500, wpMod:585, nMod:7,  potInv:3,   kwp:4.1,  totalBase:12500, total:12500, baixarAteBase:11500, baixarAte:11500},
   {kwh:600, wpMod:585, nMod:9,  potInv:4,   kwp:5.3,  totalBase:14000, total:14000, baixarAteBase:13000, baixarAte:13000},
@@ -1893,11 +1894,11 @@ const TABELA_SOLAR = [
   {kwh:1300,wpMod:585, nMod:18, potInv:7.5, kwp:10.5, totalBase:22500, total:22500, baixarAteBase:21500, baixarAte:21500},
   {kwh:1500,wpMod:585, nMod:21, potInv:9.1, kwp:12.3, totalBase:24500, total:24500, baixarAteBase:23500, baixarAte:23500},
   {kwh:1800,wpMod:585, nMod:25, potInv:9.1, kwp:14.6, totalBase:27000, total:27000, baixarAteBase:26000, baixarAte:26000},
-  {kwh:2000,wpMod:585, nMod:27, potInv:9.1, kwp:15.8, totalBase:29060, total:29060, baixarAteBase:28060, baixarAte:28060},
-  {kwh:2200,wpMod:585, nMod:30, potInv:15,  kwp:17.6, totalBase:32080, total:32080, baixarAteBase:31080, baixarAte:31080},
-  {kwh:2500,wpMod:585, nMod:34, potInv:15,  kwp:19.9, totalBase:34680, total:34680, baixarAteBase:33680, baixarAte:33680},
-  {kwh:3000,wpMod:585, nMod:41, potInv:20,  kwp:24.0, totalBase:46280, total:46280, baixarAteBase:45280, baixarAte:45280},
-  {kwh:3500,wpMod:585, nMod:47, potInv:20,  kwp:27.5, totalBase:50180, total:50180, baixarAteBase:49180, baixarAte:49180}
+  {kwh:2000,wpMod:585, nMod:27, potInv:9.1, kwp:15.8, totalBase:29000, total:29000, baixarAteBase:28000, baixarAte:28000},
+  {kwh:2200,wpMod:585, nMod:30, potInv:15,  kwp:17.6, totalBase:32000, total:32000, baixarAteBase:31000, baixarAte:31000},
+  {kwh:2500,wpMod:585, nMod:34, potInv:15,  kwp:19.9, totalBase:34500, total:34500, baixarAteBase:33500, baixarAte:33500},
+  {kwh:3000,wpMod:585, nMod:41, potInv:20,  kwp:24.0, totalBase:46500, total:46500, baixarAteBase:45500, baixarAte:45500},
+  {kwh:3500,wpMod:585, nMod:47, potInv:20,  kwp:27.5, totalBase:50000, total:50000, baixarAteBase:49000, baixarAte:49000}
 ];
 const TABELA_DIST_REF = 0; // Distância de referência (0 km = preço base)
 
@@ -2036,19 +2037,23 @@ function mostrarCardResponsavel(){
 // ══ TABELA PREÇOS ══
 async function carregarTabelaFirestore(){
   try{
-    const doc=await db.collection('config').doc('tabela_precos').get();
-    if(doc.exists){
-      if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
-      if(doc.data().config) {
+    const doc = await db.collection('config').doc('tabela_precos').get();
+    // Sempre salva a versão hardcoded no Firebase (garante sincronismo)
+    db.collection('config').doc('tabela_precos').set({
+      itens: TABELA_SOLAR,
+      versao: TABELA_SOLAR_VERSAO,
+      config: window.TABELA_CONFIG || {inversor:'SOLPLANET',modulo:'GOKIN',wpModulo:585,distancia:0},
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e => console.log('Erro ao salvar tabela:', e));
+    // Carregar config salvo (distância, inversor, etc.) se existir
+    if(doc.exists && doc.data().config){
       window.TABELA_CONFIG = doc.data().config;
-      // Atualizar campo de distância na proposta se estiver visível
       const ppDist = document.getElementById('pp-tab-dist');
-      if (ppDist && doc.data().config.distancia !== undefined) {
+      if(ppDist && doc.data().config.distancia !== undefined){
         ppDist.value = doc.data().config.distancia || 0;
       }
     }
-    }
-  }catch(e){}
+  }catch(e){ console.log('Erro carregarTabelaFirestore:', e); }
 }
 function buscarTabelaPreview(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
