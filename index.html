@@ -485,9 +485,6 @@ tr:hover td{background:#faf9f5}
     <div class="ni" id="nav-financeiro" onclick="go('financeiro');toggleMenu(false)" style="display:none">
       <div class="ic">💰</div><span>Financeiro</span>
     </div>
-    <div class="ni" id="nav-monitoramento" onclick="go('monitoramento');toggleMenu(false)" style="display:none">
-      <div class="ic">☀️</div><span>Monitoramento</span>
-    </div>
   </nav>
   <div class="sb-foot">
     <div id="fb-status" style="font-size:9.5px;margin-bottom:6px;color:rgba(255,255,255,.3)">⚪ Conectando…</div>
@@ -1852,10 +1849,6 @@ auth.onAuthStateChanged(async user=>{
       if (FIN_USERS.includes(user.email)) {
         const navFin = document.getElementById('nav-financeiro');
         const sepFin = document.getElementById('sep-financeiro');
-        const navMon = document.getElementById('nav-monitoramento');
-        if (navFin) navFin.style.display = 'flex';
-        if (sepFin) sepFin.style.display = 'block';
-        if (navMon) navMon.style.display = 'flex';
         // Botão importar só para admin (Ícaro)
         if (isAdmin) {
           const btnImp = document.getElementById('btn-importar-fin');
@@ -1863,8 +1856,6 @@ auth.onAuthStateChanged(async user=>{
         }
       } else {
         // Mostrar monitoramento para todos os usuários
-        const navMon = document.getElementById('nav-monitoramento');
-        if (navMon) navMon.style.display = 'flex';
       }
     } catch(e) {
       const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
@@ -2742,10 +2733,6 @@ function atualizarDistanciaProposta() {
 }
 </script>
 <script>
-    // ══════════════════════════════════════════════════════════════
-    // INTEGRAÇÃO API SOLPLANET - MONITORAMENTO DE PLANTAS SOLARES
-    // ══════════════════════════════════════════════════════════════
-
     const SOLPLANET_CONFIG = {
       API_ID: '205018507',
       API_TOKEN: 'JcVM9CajObFVSXTw4XADlxHT8Ssv0Zgl',
