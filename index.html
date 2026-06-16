@@ -1451,6 +1451,10 @@ function openModalProj() {
   document.getElementById('mo-proj').classList.add('open');
   document.querySelectorAll('#mo-proj input, #mo-proj select, #mo-proj textarea').forEach(i=>i.value='');
   document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option>${e}</option>`).join('');
+  // Limpar beneficiários ao abrir novo projeto
+  beneficiarios = [];
+  renderListaBeneficiarios();
+  toggleTabBen();
   setTab(0);
 }
 
@@ -1474,6 +1478,10 @@ function openEditProj(id) {
   sf('p-prot-med',p.protMedidor); sf('p-prot-ca-disj',p.protCaDisj); sf('p-prot-ca-dps',p.protCaDps);
   sf('p-dini',p.dataInicio); sf('p-dlig',p.dataLigacao); sf('p-obs',p.obs);
   sf('p-end',p.end); sf('p-lat',p.lat); sf('p-lng',p.lng);
+  // Carregar beneficiários do projeto (fix: cada projeto tem seu próprio array)
+  beneficiarios = (p.beneficiarios||[]).map(b=>({...b, id:b.id||Date.now()+Math.random()}));
+  toggleTabBen();
+  renderListaBeneficiarios();
   closeDet(); document.getElementById('mo-proj').classList.add('open'); setTab(0);
 }
 
@@ -1489,7 +1497,8 @@ function saveProjeto(){
     inversor:g('p-inv'), potInv:g('p-pinv'), montador:g('p-mont'), tensao:g('p-tensao'),
     protMedidor:g('p-prot-med'), protCaDisj:g('p-prot-ca-disj'), protCaDps:g('p-prot-ca-dps'),
     dataInicio:g('p-dini'), dataLigacao:g('p-dlig'), obs:g('p-obs'),
-    end:g('p-end'), lat:g('p-lat'), lng:g('p-lng')
+    end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'),
+    beneficiarios: g('p-ben')==='Sim' ? beneficiarios : []
   };
   fbWrite('projetos',id,obj).then(()=>{toast('Salvo!','ok');closeMo('mo-proj');});
 }
@@ -2252,9 +2261,9 @@ async function salvarEFecharTabela(){
 // ══ BENEFICIÁRIOS ══
 let beneficiarios=[];
 function toggleTabBen(){const val=document.getElementById('p-ben')?.value;const btn=document.getElementById('tab-ben-btn');if(btn)btn.style.display=val==='Sim'?'inline-flex':'none';if(val!=='Sim')beneficiarios=[];}
-function adicionarBeneficiario(){beneficiarios.push({id:Date.now(),uc:'',nome:'',cpf:''});renderListaBeneficiarios();}
+function adicionarBeneficiario(){beneficiarios.push({id:Date.now(),uc:'',endereco:'',porcentagem:''});renderListaBeneficiarios();}
 function removerBeneficiario(id){beneficiarios=beneficiarios.filter(b=>b.id!==id);renderListaBeneficiarios();}
-function renderListaBeneficiarios(){const lista=document.getElementById('lista-beneficiarios');const semMsg=document.getElementById('sem-beneficiarios');if(!lista)return;if(!beneficiarios.length){lista.innerHTML='';if(semMsg)semMsg.style.display='block';return;}if(semMsg)semMsg.style.display='none';lista.innerHTML=beneficiarios.map((b,i)=>`<div style="background:var(--cz);border-radius:10px;padding:12px 14px;border:1px solid #e4e3dc"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--az)">Beneficiário ${i+1}</div><button type="button" onclick="removerBeneficiario(${b.id})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px">✕</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">Nome</label><input type="text" value="${b.nome}" oninput="beneficiarios[${i}].nome=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">CPF</label><input type="text" value="${b.cpf}" oninput="beneficiarios[${i}].cpf=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1"><label style="font-size:10.5px;color:var(--txts);font-weight:500">UC</label><input type="text" value="${b.uc}" oninput="beneficiarios[${i}].uc=this.value" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div></div></div>`).join('');}
+function renderListaBeneficiarios(){const lista=document.getElementById('lista-beneficiarios');const semMsg=document.getElementById('sem-beneficiarios');if(!lista)return;if(!beneficiarios.length){lista.innerHTML='';if(semMsg)semMsg.style.display='block';return;}if(semMsg)semMsg.style.display='none';lista.innerHTML=beneficiarios.map((b,i)=>`<div style="background:var(--cz);border-radius:10px;padding:12px 14px;border:1px solid #e4e3dc"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--az)">Beneficiário ${i+1}</div><button type="button" onclick="removerBeneficiario(${b.id})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px">✕</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1"><label style="font-size:10.5px;color:var(--txts);font-weight:500">Endereço</label><input type="text" value="${b.endereco||''}" oninput="beneficiarios[${i}].endereco=this.value" placeholder="Ex: Rua das Flores, 123 — Teresina/PI" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">UC</label><input type="text" value="${b.uc||''}" oninput="beneficiarios[${i}].uc=this.value" placeholder="Ex: 1234567-8" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div><div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10.5px;color:var(--txts);font-weight:500">Porcentagem (%)</label><input type="number" min="0" max="100" step="0.1" value="${b.porcentagem||''}" oninput="beneficiarios[${i}].porcentagem=this.value" placeholder="Ex: 50" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div></div></div>`).join('');}
 function popularUcBeneficiarios(){const projId=parseInt(document.getElementById('ml-proj')?.value);const proj=PROJETOS.find(p=>p.id===projId);const wrap=document.getElementById('ml-uc-ben-wrap');const sel=document.getElementById('ml-uc-ben');if(!wrap||!sel)return;if(proj&&proj.beneficiarios?.length){wrap.style.display='block';sel.innerHTML='<option value="">UC principal ('+( proj.uc||'—')+')</option>'+proj.beneficiarios.map((b,i)=>'<option value="'+b.uc+'">UC Ben. '+(i+1)+': '+b.uc+' — '+(b.nome||'—')+'</option>').join('');}else{wrap.style.display='none';sel.innerHTML='<option value="">UC principal do titular</option>';}}
 
 // ══ EXCLUIR CHAMADO ══
