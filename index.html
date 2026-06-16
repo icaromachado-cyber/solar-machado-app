@@ -1852,13 +1852,19 @@ auth.onAuthStateChanged(async user=>{
       if (FIN_USERS.includes(user.email)) {
         const navFin = document.getElementById('nav-financeiro');
         const sepFin = document.getElementById('sep-financeiro');
+        const navMon = document.getElementById('nav-monitoramento');
         if (navFin) navFin.style.display = 'flex';
         if (sepFin) sepFin.style.display = 'block';
+        if (navMon) navMon.style.display = 'flex';
         // Botão importar só para admin (Ícaro)
         if (isAdmin) {
           const btnImp = document.getElementById('btn-importar-fin');
           if (btnImp) btnImp.style.display = 'block';
         }
+      } else {
+        // Mostrar monitoramento para todos os usuários
+        const navMon = document.getElementById('nav-monitoramento');
+        if (navMon) navMon.style.display = 'flex';
       }
     } catch(e) {
       const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
