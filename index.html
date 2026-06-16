@@ -2755,6 +2755,16 @@ function atualizarDistanciaProposta() {
       ENDPOINT_LAST_DATA: '/getLastTsDataPro'
     };
 
+    // Mapeamento de nomes das plantas
+    const NOMES_PLANTAS = [
+      "Renê Primo", "Jackson", "Fabiano", "Jeferson Bebidas", "Édson",
+      "Djames", "Valdinar", "Samuel Maia", "Jorge", "Irvayne",
+      "R1", "Grazi", "Inácio", "Eliana", "Renê",
+      "Dailton", "Roberto", "Raquel", "James", "Osmir",
+      "Calisto", "Crispim", "Marilene", "Maria do Socorro", "Raimunda",
+      "Filho", "Maria do Socorro (2)", "Eugenio", "Regina"
+    ];
+
     let plantasMonitoramento = [];
     let autoAtualizarIntervalo = null;
     let autoAtualizarAtivo = true;
@@ -2795,9 +2805,9 @@ function atualizarDistanciaProposta() {
         const response = await requisicaoSolplanet(SOLPLANET_CONFIG.ENDPOINT_PLANTS);
         
         if (response.success && response.data) {
-          return response.data.map(planta => ({
+          return response.data.map((planta, idx) => ({
             id: planta.id,
-            name: planta.name || `Planta ${planta.id}`,
+            name: NOMES_PLANTAS[idx] || planta.name || `Planta ${planta.id}`,
             potencia: 0,
             energiaHoje: 0,
             energiaTotal: 0,
@@ -2809,10 +2819,10 @@ function atualizarDistanciaProposta() {
       } catch (error) {
         console.error('Erro ao buscar plantas:', error);
         const plantas = [];
-        for (let i = 1; i <= 30; i++) {
+        for (let i = 0; i < 29; i++) {
           plantas.push({
-            id: i,
-            name: `Planta Solar ${i}`,
+            id: i + 1,
+            name: NOMES_PLANTAS[i] || `Planta ${i + 1}`,
             potencia: 0,
             energiaHoje: 0,
             energiaTotal: 0,
