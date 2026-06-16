@@ -876,115 +876,6 @@ tr:hover td{background:#faf9f5}
       </div>
     </div>
 
-    <div id="page-monitoramento" class="page">
-      <div class="ph">
-        <h2>☀️ Monitoramento SOLPLANET</h2>
-        <div class="ph-acts">
-          <button class="btn btn-p" onclick="atualizarMonitoramento()">🔄 Atualizar Agora</button>
-          <button class="btn btn-g" id="btn-auto-atualizar" onclick="toggleAutoAtualizar()">⏸ Pausar Auto-Atualização</button>
-        </div>
-      </div>
-
-      <div id="mon-status" style="background:#fff8e0;border:1px solid #fac775;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span id="mon-status-icon">⏳</span>
-          <span id="mon-status-text" style="font-size:13px;color:#633806">Carregando dados...</span>
-        </div>
-        <span id="mon-ultima-atualizacao" style="font-size:11px;color:#888">Última atualização: —</span>
-      </div>
-
-      <div class="kpi-grid" style="margin-bottom:20px">
-        <div class="kpi">
-          <div class="ki ib">☀️</div>
-          <div class="kl">Potência Total</div>
-          <div class="kv" id="mon-potencia-total">0 kW</div>
-          <div class="ks">Todas as plantas</div>
-        </div>
-        <div class="kpi">
-          <div class="ki ig">⚡</div>
-          <div class="kl">Energia Hoje</div>
-          <div class="kv" id="mon-energia-hoje">0 kWh</div>
-          <div class="ks">Geração do dia</div>
-        </div>
-        <div class="kpi">
-          <div class="ki iy">📊</div>
-          <div class="kl">Energia Total</div>
-          <div class="kv" id="mon-energia-total">0 kWh</div>
-          <div class="ks">Acumulado</div>
-        </div>
-        <div class="kpi">
-          <div class="ki ir">🌐</div>
-          <div class="kl">Plantas Online</div>
-          <div class="kv" id="mon-plantas-online">0/30</div>
-          <div class="ks">Status</div>
-        </div>
-      </div>
-
-      <div class="tw">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:5%">#</th>
-              <th style="width:25%">Nome da Planta</th>
-              <th style="width:15%">Potência Atual</th>
-              <th style="width:15%">Energia Hoje</th>
-              <th style="width:15%">Energia Total</th>
-              <th style="width:15%">Status</th>
-              <th style="width:10%">Ação</th>
-            </tr>
-          </thead>
-          <tbody id="mon-tabela-plantas">
-            <tr>
-              <td colspan="7" style="text-align:center;padding:40px;color:#aaa">
-                ⏳ Carregando dados das plantas...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="mo" id="mo-planta-detalhes">
-      <div class="mbox" style="max-width:600px">
-        <div class="mhdr">
-          <h3 id="det-planta-nome">Detalhes da Planta</h3>
-          <button class="mcls" onclick="closeMo('mo-planta-detalhes')">✕</button>
-        </div>
-        <div class="mbdy">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div>
-              <div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px">Potência Atual</div>
-              <div style="font-size:24px;font-weight:700;color:#2E3486" id="det-potencia">0 kW</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px">Status</div>
-              <div style="font-size:18px;font-weight:700" id="det-status">●</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px">Energia Hoje</div>
-              <div style="font-size:20px;font-weight:700;color:#1D9E75" id="det-energia-hoje">0 kWh</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:#888;text-transform:uppercase;margin-bottom:4px">Energia Total</div>
-              <div style="font-size:20px;font-weight:700;color:#2E3486" id="det-energia-total">0 kWh</div>
-            </div>
-          </div>
-          <div style="margin-top:20px;padding-top:20px;border-top:1px solid #e4e3dc">
-            <div style="font-size:11px;color:#888;text-transform:uppercase;margin-bottom:8px;font-weight:600">Informações Adicionais</div>
-            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
-              <div style="display:flex;justify-content:space-between">
-                <span style="color:#888">ID da Planta:</span>
-                <span style="font-weight:600" id="det-id">—</span>
-              </div>
-              <div style="display:flex;justify-content:space-between">
-                <span style="color:#888">Última Atualização:</span>
-                <span style="font-weight:600" id="det-ultima-atualizacao">—</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
 </main>
 
@@ -1855,7 +1746,6 @@ auth.onAuthStateChanged(async user=>{
           if (btnImp) btnImp.style.display = 'block';
         }
       } else {
-        // Mostrar monitoramento para todos os usuários
       }
     } catch(e) {
       const eq = EQUIPE_SOLAR.find(e => e.email === user.email);
@@ -1880,9 +1770,8 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 // ══ TABELA DE PREÇOS ══
-const TABELA_SOLAR_VERSAO = '2026-06-16';
 const TABELA_SOLAR = [
-  // Sincronizado 16/06/2026 — SOLPLANET + GOKIN 585Wp | tabela teste app.xlsx
+  // Sincronizado em 15/06/2026 — SOLPLANET + RENEPV 585Wp | Fonte: tabela teste app.xlsx
   {kwh:450, wpMod:585, nMod:7,  potInv:3,   kwp:4.1,  totalBase:12500, total:12500, baixarAteBase:11500, baixarAte:11500},
   {kwh:500, wpMod:585, nMod:7,  potInv:3,   kwp:4.1,  totalBase:12500, total:12500, baixarAteBase:11500, baixarAte:11500},
   {kwh:600, wpMod:585, nMod:9,  potInv:4,   kwp:5.3,  totalBase:14000, total:14000, baixarAteBase:13000, baixarAte:13000},
@@ -1894,11 +1783,11 @@ const TABELA_SOLAR = [
   {kwh:1300,wpMod:585, nMod:18, potInv:7.5, kwp:10.5, totalBase:22500, total:22500, baixarAteBase:21500, baixarAte:21500},
   {kwh:1500,wpMod:585, nMod:21, potInv:9.1, kwp:12.3, totalBase:24500, total:24500, baixarAteBase:23500, baixarAte:23500},
   {kwh:1800,wpMod:585, nMod:25, potInv:9.1, kwp:14.6, totalBase:27000, total:27000, baixarAteBase:26000, baixarAte:26000},
-  {kwh:2000,wpMod:585, nMod:27, potInv:9.1, kwp:15.8, totalBase:29000, total:29000, baixarAteBase:28000, baixarAte:28000},
-  {kwh:2200,wpMod:585, nMod:30, potInv:15,  kwp:17.6, totalBase:32000, total:32000, baixarAteBase:31000, baixarAte:31000},
-  {kwh:2500,wpMod:585, nMod:34, potInv:15,  kwp:19.9, totalBase:34500, total:34500, baixarAteBase:33500, baixarAte:33500},
-  {kwh:3000,wpMod:585, nMod:41, potInv:20,  kwp:24.0, totalBase:46500, total:46500, baixarAteBase:45500, baixarAte:45500},
-  {kwh:3500,wpMod:585, nMod:47, potInv:20,  kwp:27.5, totalBase:50000, total:50000, baixarAteBase:49000, baixarAte:49000}
+  {kwh:2000,wpMod:585, nMod:27, potInv:9.1, kwp:15.8, totalBase:29060, total:29060, baixarAteBase:28060, baixarAte:28060},
+  {kwh:2200,wpMod:585, nMod:30, potInv:15,  kwp:17.6, totalBase:32080, total:32080, baixarAteBase:31080, baixarAte:31080},
+  {kwh:2500,wpMod:585, nMod:34, potInv:15,  kwp:19.9, totalBase:34680, total:34680, baixarAteBase:33680, baixarAte:33680},
+  {kwh:3000,wpMod:585, nMod:41, potInv:20,  kwp:24.0, totalBase:46280, total:46280, baixarAteBase:45280, baixarAte:45280},
+  {kwh:3500,wpMod:585, nMod:47, potInv:20,  kwp:27.5, totalBase:50180, total:50180, baixarAteBase:49180, baixarAte:49180}
 ];
 const TABELA_DIST_REF = 0; // Distância de referência (0 km = preço base)
 
@@ -2037,23 +1926,19 @@ function mostrarCardResponsavel(){
 // ══ TABELA PREÇOS ══
 async function carregarTabelaFirestore(){
   try{
-    const doc = await db.collection('config').doc('tabela_precos').get();
-    // Sempre salva a versão hardcoded no Firebase (garante sincronismo)
-    db.collection('config').doc('tabela_precos').set({
-      itens: TABELA_SOLAR,
-      versao: TABELA_SOLAR_VERSAO,
-      config: window.TABELA_CONFIG || {inversor:'SOLPLANET',modulo:'GOKIN',wpModulo:585,distancia:0},
-      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(e => console.log('Erro ao salvar tabela:', e));
-    // Carregar config salvo (distância, inversor, etc.) se existir
-    if(doc.exists && doc.data().config){
+    const doc=await db.collection('config').doc('tabela_precos').get();
+    if(doc.exists){
+      if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
+      if(doc.data().config) {
       window.TABELA_CONFIG = doc.data().config;
+      // Atualizar campo de distância na proposta se estiver visível
       const ppDist = document.getElementById('pp-tab-dist');
-      if(ppDist && doc.data().config.distancia !== undefined){
+      if (ppDist && doc.data().config.distancia !== undefined) {
         ppDist.value = doc.data().config.distancia || 0;
       }
     }
-  }catch(e){ console.log('Erro carregarTabelaFirestore:', e); }
+    }
+  }catch(e){}
 }
 function buscarTabelaPreview(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
@@ -2736,341 +2621,6 @@ function atualizarDistanciaProposta() {
   // Refazer preview do kit selecionado
   selecionarKitTabela();
 }
-</script>
-<script>
-    const SOLPLANET_CONFIG = {
-      API_ID: '205018507',
-      API_TOKEN: 'JcVM9CajObFVSXTw4XADlxHT8Ssv0Zgl',
-      API_URL: 'https://internation-pro-cloud.solplanet.net/api',
-      ENDPOINT_PLANTS: '/getPlanListPro',
-      ENDPOINT_OVERVIEW: '/getPlantOverviewPro',
-      ENDPOINT_LAST_DATA: '/getLastTsDataPro'
-    };
-
-    // Mapeamento de plantas com SN (Número de Série do Inversor)
-    const PLANTAS_SN = [
-      {id: 1, nome: "Renê Primo", sn: "SA500087G2512168"},
-      {id: 2, nome: "Jackson", sn: "SP001587G2580002"},
-      {id: 3, nome: "Fabiano", sn: "SA500087G2510260"},
-      {id: 4, nome: "Jeferson Bebidas", sn: "SP002087G2540007"},
-      {id: 5, nome: "Édson", sn: "AP730087P24C0166"},
-      {id: 6, nome: "Djames", sn: "SA500087G2510007"},
-      {id: 7, nome: "Valdinar", sn: "SP00158722450039"},
-      {id: 8, nome: "Samuel Maia", sn: "AP75008782540864"},
-      {id: 9, nome: "Jorge", sn: "SA500087G2550237"},
-      {id: 10, nome: "Irvayne", sn: "AP75008782580573"},
-      {id: 11, nome: "R1", sn: "AP910087P2520314"},
-      {id: 12, nome: "Grazi", sn: "SP00158722430898"},
-      {id: 13, nome: "Inácio", sn: "AP910087P2530455"},
-      {id: 14, nome: "Eliana", sn: "SP001587G2580347"},
-      {id: 15, nome: "Renê", sn: "SA600087G2510217"},
-      {id: 16, nome: "Dailton", sn: "AP75008782540416"},
-      {id: 17, nome: "Roberto", sn: "SA600087S2590825"},
-      {id: 18, nome: "Raquel", sn: "AP75008782540383"},
-      {id: 19, nome: "James", sn: "SC006087G2560092"},
-      {id: 20, nome: "Osmir", sn: "SA600087S2591878"},
-      {id: 21, nome: "Calisto", sn: "AP910087P2520209"},
-      {id: 22, nome: "Crispim", sn: "SP00258722270708"},
-      {id: 23, nome: "Marilene", sn: "AP910087P2590160"},
-      {id: 24, nome: "Maria do Socorro", sn: "AP75008782570321"},
-      {id: 25, nome: "Raimunda", sn: "AP910087P2510188"},
-      {id: 26, nome: "Filho", sn: "SA600087S2570349"},
-      {id: 27, nome: "Maria do Socorro", sn: "SA600087G2550240"},
-      {id: 28, nome: "Eugenio", sn: "SP001287G2510126"},
-      {id: 29, nome: "Regina", sn: "SA600087S2580817"},
-      {id: 30, nome: "Marcio", sn: "AP910087P2540186"},
-      {id: 31, nome: "Wallison", sn: "SA400087S2590418"},
-      {id: 32, nome: "Gabriel", sn: "AP75008782570433"},
-      {id: 33, nome: "Enileide", sn: "SA600087S2570364"},
-      {id: 34, nome: "Fabiana", sn: "SA300087G2550148"},
-      {id: 35, nome: "Layo", sn: "AP91008722431227"},
-      {id: 36, nome: "Matilde", sn: "AP75008782570318"},
-      {id: 37, nome: "Ediane", sn: "SA600087S2580496"},
-      {id: 38, nome: "José Alberto", sn: "SA600087S2570125"},
-      {id: 39, nome: "Maria de Fátima", sn: "SA600087S2580664"},
-      {id: 40, nome: "Roberta", sn: "AP910087P2540119"}
-    ];
-
-    let plantasMonitoramento = [];
-    let autoAtualizarIntervalo = null;
-    let autoAtualizarAtivo = true;
-
-    async function requisicaoSolplanet(endpoint, params = {}) {
-      try {
-        const timestamp = Math.floor(Date.now() / 1000);
-        const url = new URL(SOLPLANET_CONFIG.API_URL + endpoint);
-        url.searchParams.append('id', SOLPLANET_CONFIG.API_ID);
-        url.searchParams.append('token', SOLPLANET_CONFIG.API_TOKEN);
-        url.searchParams.append('timestamp', timestamp);
-        
-        Object.keys(params).forEach(key => {
-          url.searchParams.append(key, params[key]);
-        });
-        
-        const response = await fetch(url.toString(), {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        return await response.json();
-      } catch (error) {
-        console.error('Erro na requisição SOLPLANET:', error);
-        throw error;
-      }
-    }
-
-    async function buscarPlantasSolplanet() {
-      try {
-        // Buscar dados de cada planta pelo SN (Número de Série)
-        const plantas = [];
-        
-        for (const planta of PLANTAS_SN) {
-          try {
-            // Buscar dados da planta pelo SN
-            const params = new URLSearchParams({
-              id: SOLPLANET_CONFIG.API_ID,
-              token: SOLPLANET_CONFIG.API_TOKEN,
-              sn: planta.sn
-            });
-            
-            const url = `${SOLPLANET_CONFIG.API_URL}/getLastTsDataPro?${params}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            plantas.push({
-              id: planta.id,
-              name: planta.nome,
-              sn: planta.sn,
-              potencia: data.power || 0,
-              energiaHoje: data.eToday || 0,
-              energiaTotal: data.eTotal || 0,
-              status: data.status === 1 ? 'Online' : 'Offline'
-            });
-          } catch (err) {
-            // Se falhar para uma planta, continua com as outras
-            plantas.push({
-              id: planta.id,
-              name: planta.nome,
-              sn: planta.sn,
-              potencia: 0,
-              energiaHoje: 0,
-              energiaTotal: 0,
-              status: 'Erro'
-            });
-          }
-        }
-        
-        return plantas;
-      } catch (error) {
-        console.error('Erro ao buscar plantas:', error);
-        // Retornar plantas com dados vazios se falhar
-        return PLANTAS_SN.map(p => ({
-          id: p.id,
-          name: p.nome,
-          sn: p.sn,
-          potencia: 0,
-          energiaHoje: 0,
-          energiaTotal: 0,
-          status: 'Offline'
-        }));
-      }
-    }
-
-    async function buscarDadosPlanta(plantaId) {
-      try {
-        const response = await requisicaoSolplanet(
-          SOLPLANET_CONFIG.ENDPOINT_OVERVIEW,
-          { plantId: plantaId }
-        );
-        
-        if (response.success && response.data) {
-          const data = response.data;
-          return {
-            success: true,
-            data: {
-              power: data.power || 0,
-              etoday: data.etoday || 0,
-              etotal: data.etotal || 0,
-              status: data.status || 'Unknown'
-            }
-          };
-        }
-        
-        return {
-          success: false,
-          data: {
-            power: 0,
-            etoday: 0,
-            etotal: 0,
-            status: 'Offline'
-          }
-        };
-      } catch (error) {
-        console.error('Erro ao buscar dados da planta:', error);
-        return {
-          success: true,
-          data: {
-            power: Math.random() * 10,
-            etoday: Math.random() * 50,
-            etotal: Math.random() * 10000,
-            status: Math.random() > 0.2 ? 'Normal' : 'Offline'
-          }
-        };
-      }
-    }
-
-    function initMonitoramento() {
-      console.log('🌞 Inicializando monitoramento SOLPLANET...');
-      atualizarMonitoramento();
-      
-      if (autoAtualizarIntervalo) clearInterval(autoAtualizarIntervalo);
-      autoAtualizarIntervalo = setInterval(() => {
-        if (autoAtualizarAtivo && document.getElementById('page-monitoramento')?.classList.contains('on')) {
-          atualizarMonitoramento();
-        }
-      }, 60000);
-    }
-
-    async function atualizarMonitoramento() {
-      const statusEl = document.getElementById('mon-status-text');
-      const statusIcon = document.getElementById('mon-status-icon');
-      
-      if (!statusEl || !statusIcon) return;
-      
-      statusIcon.textContent = '⏳';
-      statusEl.textContent = 'Atualizando dados...';
-      
-      try {
-        const plantas = await buscarPlantasSolplanet();
-        
-        if (!plantas || plantas.length === 0) {
-          statusIcon.textContent = '❌';
-          statusEl.textContent = 'Nenhuma planta encontrada';
-          return;
-        }
-        
-        plantasMonitoramento = plantas;
-        
-        let potenciaTotal = 0;
-        let energiaHoje = 0;
-        let energiaTotal = 0;
-        let plantasOnline = 0;
-        
-        for (let i = 0; i < plantas.length; i++) {
-          const planta = plantas[i];
-          const dados = await buscarDadosPlanta(planta.id);
-          
-          if (dados && dados.success) {
-            const data = dados.data;
-            planta.potencia = parseFloat(data.power) || 0;
-            planta.energiaHoje = parseFloat(data.etoday) || 0;
-            planta.energiaTotal = parseFloat(data.etotal) || 0;
-            planta.status = data.status || 'Unknown';
-            
-            potenciaTotal += planta.potencia;
-            energiaHoje += planta.energiaHoje;
-            energiaTotal += planta.energiaTotal;
-            
-            if (planta.status === 'Normal' || planta.status === 'Online') {
-              plantasOnline++;
-            }
-          }
-        }
-        
-        const kpiPotencia = document.getElementById('mon-potencia-total');
-        const kpiEnergia = document.getElementById('mon-energia-hoje');
-        const kpiTotal = document.getElementById('mon-energia-total');
-        const kpiOnline = document.getElementById('mon-plantas-online');
-        
-        if (kpiPotencia) kpiPotencia.textContent = potenciaTotal.toFixed(2) + ' kW';
-        if (kpiEnergia) kpiEnergia.textContent = energiaHoje.toFixed(2) + ' kWh';
-        if (kpiTotal) kpiTotal.textContent = energiaTotal.toFixed(0) + ' kWh';
-        if (kpiOnline) kpiOnline.textContent = plantasOnline + '/30';
-        
-        renderizarTabelaPlantas(plantas);
-        
-        statusIcon.textContent = '✅';
-        statusEl.textContent = 'Dados atualizados com sucesso';
-        const ultimaAtualizacao = document.getElementById('mon-ultima-atualizacao');
-        if (ultimaAtualizacao) {
-          ultimaAtualizacao.textContent = 'Última atualização: ' + new Date().toLocaleTimeString('pt-BR');
-        }
-        
-      } catch (error) {
-        console.error('Erro ao atualizar monitoramento:', error);
-        statusIcon.textContent = '❌';
-        statusEl.textContent = 'Erro ao carregar dados: ' + error.message;
-      }
-    }
-
-    function renderizarTabelaPlantas(plantas) {
-      const tbody = document.getElementById('mon-tabela-plantas');
-      if (!tbody) return;
-      
-      tbody.innerHTML = plantas.map((planta, idx) => {
-        const statusCor = planta.status === 'Normal' || planta.status === 'Online' ? '#1D9E75' : '#D85A30';
-        const statusTexto = planta.status === 'Normal' || planta.status === 'Online' ? '🟢 Online' : '🔴 Offline';
-        
-        return `
-          <tr>
-            <td style="font-weight:600;color:#2E3486">${idx + 1}</td>
-            <td style="font-weight:500">${planta.name}</td>
-            <td style="color:#2E3486;font-weight:600">${planta.potencia.toFixed(2)} kW</td>
-            <td style="color:#1D9E75;font-weight:600">${planta.energiaHoje.toFixed(2)} kWh</td>
-            <td style="color:#2E3486;font-weight:600">${planta.energiaTotal.toFixed(0)} kWh</td>
-            <td><span style="color:${statusCor};font-weight:600">${statusTexto}</span></td>
-            <td>
-              <button class="bi e" onclick="abrirDetalhesPlanta(${idx})" title="Ver detalhes">📊</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function abrirDetalhesPlanta(idx) {
-      const planta = plantasMonitoramento[idx];
-      if (!planta) return;
-      
-      const statusTexto = planta.status === 'Normal' || planta.status === 'Online' ? '🟢 Online' : '🔴 Offline';
-      
-      document.getElementById('det-planta-nome').textContent = planta.name;
-      document.getElementById('det-potencia').textContent = planta.potencia.toFixed(2) + ' kW';
-      document.getElementById('det-energia-hoje').textContent = planta.energiaHoje.toFixed(2) + ' kWh';
-      document.getElementById('det-energia-total').textContent = planta.energiaTotal.toFixed(0) + ' kWh';
-      document.getElementById('det-status').textContent = statusTexto;
-      document.getElementById('det-id').textContent = planta.id;
-      document.getElementById('det-ultima-atualizacao').textContent = new Date().toLocaleString('pt-BR');
-      
-      document.getElementById('mo-planta-detalhes').classList.add('open');
-    }
-
-    function toggleAutoAtualizar() {
-      autoAtualizarAtivo = !autoAtualizarAtivo;
-      const btn = document.getElementById('btn-auto-atualizar');
-      if (!btn) return;
-      
-      if (autoAtualizarAtivo) {
-        btn.textContent = '⏸ Pausar Auto-Atualização';
-        btn.classList.remove('btn-d');
-        btn.classList.add('btn-g');
-      } else {
-        btn.textContent = '▶ Retomar Auto-Atualização';
-        btn.classList.remove('btn-g');
-        btn.classList.add('btn-d');
-      }
-    }
-
-    window.initMonitoramento = initMonitoramento;
-    window.atualizarMonitoramento = atualizarMonitoramento;
-    window.abrirDetalhesPlanta = abrirDetalhesPlanta;
-    window.toggleAutoAtualizar = toggleAutoAtualizar;
 </script>
 </body>
 </html>
