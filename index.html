@@ -219,6 +219,8 @@ tr:hover td{background:#faf9f5}
 .ch-card-ttl{font-size:13px;font-weight:600;margin-bottom:4px}
 .det-panel{display:none;position:fixed;right:0;top:0;width:440px;height:100vh;max-height:100vh;background:var(--br);border-left:1px solid #e4e3dc;z-index:150;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.08);overflow:hidden}
 .det-panel.open{display:flex}
+#det-backdrop{display:none;position:fixed;inset:0;z-index:149;cursor:pointer}
+#det-backdrop.on{display:block}
 .det-body{padding:20px 22px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;height:0}
 
 
@@ -880,6 +882,7 @@ tr:hover td{background:#faf9f5}
 </main>
 
 <!-- DETAIL PANEL -->
+<div id="det-backdrop" onclick="closeDet()"></div>
 <div class="det-panel" id="det-panel">
   <div class="det-hdr">
     <h3 id="det-title">Detalhes do Projeto</h3>
@@ -1450,8 +1453,9 @@ function openDet(id){
     +'<button class="btn btn-y" onclick="openModalChamado('+p.id+')">🛠 Chamado</button>'
     +'</div>';
   document.getElementById('det-panel').classList.add('open');
+  document.getElementById('det-backdrop').classList.add('on');
 }
-function closeDet(){document.getElementById('det-panel').classList.remove('open');}
+function closeDet(){document.getElementById('det-panel').classList.remove('open');document.getElementById('det-backdrop').classList.remove('on');}
 
 // ══════════════════════════════════════════
 // MODAIS
