@@ -425,7 +425,7 @@ tr:hover td{background:#faf9f5}
     <!-- PAGE FINANCEIRO -->
 
 <!-- MODAL NOTIFICAÇÃO CHAMADOS -->
-<div id="mo-notif-chamados" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:flex-start;justify-content:center;padding-top:60px">
+<div id="mo-notif-chamados" onclick="if(event.target===this)fecharNotifChamados()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:flex-start;justify-content:center;padding-top:60px;cursor:pointer">
   <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;animation:slideDown .25s ease">
     <div style="background:#2E3486;padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;gap:10px">
@@ -2761,6 +2761,14 @@ async function importarMovimentacoes() {
   const btnImp = document.getElementById('btn-importar-fin');
   if (btnImp) btnImp.style.display = 'none';
 }
+
+// Fechar modais ao clicar no backdrop
+document.addEventListener('click', function(e){
+  if(e.target.classList.contains('mo') && (e.target.classList.contains('open') || e.target.style.display==='flex')){
+    e.target.classList.remove('open');
+    e.target.style.display='none';
+  }
+});
 
 // ══ CÁLCULO DE DISTÂNCIA DE TERESINA ══
 const TERESINA_LAT = -5.0892;
