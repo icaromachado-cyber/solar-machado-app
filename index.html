@@ -388,7 +388,7 @@ tr:hover td{background:#faf9f5}
 <!-- MODAL USUÁRIOS -->
 <div id="mo-usuarios" class="mo" style="display:none">
   <div class="mbox" style="max-width:520px">
-    <div class="mhdr"><span>👥 Gerenciar Usuários</span><button class="mcl" onclick="closeMo('mo-usuarios')">✕</button></div>
+    <div class="mhdr"><span>👥 Gerenciar Usuários</span><button class="mcls" onclick="document.getElementById('mo-usuarios').style.display='none'">✕</button></div>
     <div style="padding:20px">
       <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:12px">Criar novo usuário</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -2142,19 +2142,25 @@ async function carregarListaUsuarios(){
   const nomesFb=new Set(fbUsers.map(u=>u.nome));
   const extras=EQUIPE_SOLAR.filter(e=>!nomesFb.has(e.nome)).map(e=>{return{nome:e.nome,competencia:e.competencia,emoji:e.emoji,perfil:'usuario',email:'—',uid:'_'+e.nome,_fixo:true};});
   const todos=[...fbUsers,...extras];
+  window._usuariosCache=todos;
   if(!todos.length){lista.innerHTML='<div style="font-size:13px;color:var(--txts);text-align:center;padding:16px">Nenhum usuário.</div>';return;}
   lista.innerHTML=todos.map(u=>{
     const isMe=u.uid===usuarioAtual?.uid;
     const eq=EQUIPE_SOLAR.find(e=>e.nome===u.nome);
     const comp=u.competencia||eq?.competencia||'';const emoji=u.emoji||eq?.emoji||'👤';
     const primeiroNome=(u.nome||'').split(' ')[0];
-    return '<div style="background:var(--cz);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px">'
+    return '<div id="usr-card-'+u.uid+'" style="background:var(--cz);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:0">'
+      +'<div style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:44px;height:44px;border-radius:50%;background:#2E3486;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;line-height:1.2"><span>'+emoji+'</span><span style="font-size:8px;font-weight:700;letter-spacing:0">'+primeiroNome+'</span></div>'
       +'<div style="flex:1"><div style="font-size:13px;font-weight:600">'+u.nome+(isMe?' <span style="font-size:10px;color:var(--az)">(você)</span>':'')+'</div>'
       +'<div style="font-size:11px;color:var(--txts);margin-top:2px">'+(u._fixo?'':'<span style="background:#e8f8ef;color:#1D9E75;padding:1px 5px;border-radius:3px;font-size:10px">'+u.perfil+'</span> ')+(comp?'<span style="background:#eef0ff;color:#2E3486;padding:1px 5px;border-radius:3px;font-size:10px">'+comp+'</span>':'')+'</div>'
       +(u._fixo?'':'<div style="font-size:10.5px;color:#aaa;margin-top:2px">'+u.email+'</div>')
       +'</div>'
+      +'<div style="display:flex;gap:5px;flex-shrink:0">'
+      +(!u._fixo?'<button onclick="editarUsuario(\''+u.uid+'\')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px">✎</button>':'')
       +(!isMe&&!u._fixo?'<button data-uid="'+u.uid+'" data-nome="'+u.nome.replace(/"/g,"&quot;")+'" onclick="desativarUsuarioBt(this)" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px">Remover</button>':'')
+      +'</div>'
+      +'</div>'
       +'</div>';
   }).join('');
 }
@@ -2174,6 +2180,55 @@ async function criarUsuario(){
   }catch(e){const msgs={'auth/email-already-in-use':'Email já cadastrado.'};toast('Erro: '+(msgs[e.code]||e.message),'er');}
 }
 function desativarUsuarioBt(btn){const uid=btn.getAttribute('data-uid');const nome=btn.getAttribute('data-nome');if(confirm('Remover acesso de '+nome+'?'))db.collection('usuarios').doc(uid).update({desativado:true}).then(()=>{toast('Acesso removido.','ok');carregarListaUsuarios();});}
+
+function editarUsuario(uid){
+  const u=(window._usuariosCache||[]).find(x=>x.uid===uid);
+  if(!u||u._fixo)return;
+  const card=document.getElementById('usr-card-'+uid);
+  if(!card)return;
+  const existing=card.querySelector('.usr-edit-form');
+  if(existing){existing.remove();return;}
+  const AREAS=['','Equipe Técnica','Técnico Elétrico','Engenharia / Projetos','Comercial / Vendas','Comercial e Gestão','Administrativo','Suporte / Atendimento'];
+  const optAreas=AREAS.map(a=>'<option value="'+a+'"'+(u.competencia===a?' selected':'')+'>'+( a||'Sem área definida')+'</option>').join('');
+  const form=document.createElement('div');
+  form.className='usr-edit-form';
+  form.style.cssText='margin-top:10px;background:#fff;border-radius:8px;padding:12px 14px;border:1px solid #c5d0f5;display:flex;flex-direction:column;gap:8px';
+  form.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--az);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Editar Usuário</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="grid-column:1/-1;display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Nome</label><input id="eu-nome-'+uid+'" type="text" value="'+u.nome.replace(/"/g,'&quot;')+'" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"></div>'
+    +'<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Perfil</label><select id="eu-perfil-'+uid+'" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px"><option value="usuario"'+(u.perfil==='usuario'?' selected':'')+'>Usuário</option><option value="admin"'+(u.perfil==='admin'?' selected':'')+'>Admin</option></select></div>'
+    +'<div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;font-weight:600;color:var(--txts);text-transform:uppercase;letter-spacing:.4px">Área</label><select id="eu-comp-'+uid+'" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">'+optAreas+'</select></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+    +'<button onclick="salvarEdicaoUsuario(\''+uid+'\')" style="background:#2E3486;border:none;color:#fff;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px;font-weight:600">💾 Salvar</button>'
+    +'<button onclick="enviarResetSenha(\''+u.email+'\')" style="background:#fff8e0;border:1px solid #fac775;color:#633806;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px">📧 Redefinir senha</button>'
+    +'<button onclick="this.closest(\'.usr-edit-form\').remove()" style="background:var(--cz);border:none;color:var(--txts);border-radius:7px;padding:7px 14px;cursor:pointer;font-size:12px">Cancelar</button>'
+    +'</div>';
+  card.appendChild(form);
+}
+
+async function salvarEdicaoUsuario(uid){
+  const nome=document.getElementById('eu-nome-'+uid)?.value?.trim();
+  const perfil=document.getElementById('eu-perfil-'+uid)?.value;
+  const comp=document.getElementById('eu-comp-'+uid)?.value;
+  if(!nome){toast('Nome é obrigatório.','er');return;}
+  try{
+    await db.collection('usuarios').doc(uid).update({nome,perfil,competencia:comp});
+    toast('✅ Usuário atualizado!','ok');
+    carregarListaUsuarios();
+  }catch(e){toast('Erro: '+e.message,'er');}
+}
+
+async function enviarResetSenha(email){
+  if(!email||email==='—'){toast('Email inválido.','er');return;}
+  try{
+    await firebase.auth().sendPasswordResetEmail(email);
+    toast('✅ Email de redefinição enviado para '+email,'ok');
+  }catch(e){
+    const msgs={'auth/user-not-found':'Email não cadastrado.'};
+    toast('Erro: '+(msgs[e.code]||e.message),'er');
+  }
+}
 
 // ══ DASHBOARD CHAMADOS POR RESPONSÁVEL ══
 function renderDashChamadosEquipe(nomeParam){
