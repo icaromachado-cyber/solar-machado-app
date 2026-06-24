@@ -810,6 +810,22 @@ tr:hover td{background:#faf9f5}
           </div>
         </div>
       </div>
+
+      <!-- HISTÓRICO DE ORÇAMENTOS -->
+      <div style="margin-top:28px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <h2 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--az)">📋 Histórico de Orçamentos</h2>
+          <div id="orc-filtros" style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="orc-filtro-status" onchange="renderOrcamentos()" style="padding:6px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:12px">
+              <option value="">Todos os status</option>
+              <option>Enviada</option><option>Aprovada</option><option>Recusada</option><option>Em negociação</option>
+            </select>
+          </div>
+        </div>
+        <div id="orc-lista" style="display:flex;flex-direction:column;gap:10px">
+          <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
+        </div>
+      </div>
     </div>
 
 
@@ -1251,6 +1267,7 @@ function initFirebaseListeners() {
   // Iniciar listener financeiro
   initFinanceiroListener();
   initAgendaListener();
+  initOrcamentosListener();
   // Limpar chamados resolvidos com mais de 2 dias
   setTimeout(limparChamadosAntigos, 5000);
 
@@ -2236,7 +2253,37 @@ function atualizarPreview(){
   if(ecoDiv&&tarifa>0&&geracao>0){ecoDiv.style.display='block';const ecoMes=geracao*tarifa;const ret=valor>0?(valor/(ecoMes*12)).toFixed(1):'—';document.getElementById('pc-eco-val').textContent='R$ '+ecoMes.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês';document.getElementById('pc-eco-sub').textContent='Retorno estimado em '+ret+' anos';}
   else if(ecoDiv)ecoDiv.style.display='none';
 }
-async function gerarPNG(){const card=document.getElementById('prop-card');if(!card)return;const nome=document.getElementById('pp-nome')?.value||'cliente';toast('Gerando imagem...','');try{const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});const link=document.createElement('a');link.href=canvas.toDataURL('image/png');link.download='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';link.click();toast('✅ Imagem baixada!','ok');}catch(e){toast('Erro: '+e.message,'er');}}
+async function gerarPNG(){
+  const card=document.getElementById('prop-card');
+  if(!card)return;
+  const nome=document.getElementById('pp-nome')?.value||'cliente';
+  toast('Gerando imagem...','');
+  try{
+    const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+    const link=document.createElement('a');
+    link.href=canvas.toDataURL('image/png');
+    link.download='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';
+    link.click();
+    toast('✅ Imagem baixada!','ok');
+    const orc={
+      nome, cidade:document.getElementById('pp-cidade')?.value||'',
+      consumo:parseFloat(document.getElementById('pp-consumo')?.value)||0,
+      modulos:parseInt(document.getElementById('pp-modulos')?.value)||0,
+      wpMod:parseInt(document.getElementById('pp-wpmod')?.value)||0,
+      inversor:document.getElementById('pp-inv')?.value||'',
+      potInv:parseFloat(document.getElementById('pp-pinv')?.value)||0,
+      geracao:parseFloat(document.getElementById('pp-geracao')?.value)||0,
+      tarifa:parseFloat(document.getElementById('pp-tarifa')?.value)||0,
+      valor:parseFloat(document.getElementById('pp-valor')?.value)||0,
+      distancia:parseFloat(document.getElementById('pp-tab-dist')?.value)||0,
+      status:'Enviada',
+      geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
+      geradoPor:usuarioAtual?.displayName||usuarioAtual?.email||'desconhecido',
+      geradoPorUid:usuarioAtual?.uid||''
+    };
+    await db.collection('orcamentos').add(orc);
+  }catch(e){toast('Erro: '+e.message,'er');}
+}
 function limparProposta(){['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
 
 // ══ MAPA ══
@@ -2880,6 +2927,49 @@ async function importarMovimentacoes() {
 let VISITAS = [];
 let _editVisitaId = null;
 
+// ── ORÇAMENTOS ──────────────────────────────────────────
+let ORCAMENTOS = [];
+function initOrcamentosListener(){
+  db.collection('orcamentos').orderBy('geradoEm','desc').limit(100).onSnapshot(snap=>{
+    ORCAMENTOS = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderOrcamentos();
+  });
+}
+function renderOrcamentos(){
+  const el=document.getElementById('orc-lista');
+  if(!el)return;
+  const filtroStatus=document.getElementById('orc-filtro-status')?.value||'';
+  let lista=ORCAMENTOS;
+  if(filtroStatus) lista=lista.filter(o=>o.status===filtroStatus);
+  if(!lista.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Nenhum orçamento encontrado</div>';
+    return;
+  }
+  const COR_STATUS={'Enviada':'#2E3486','Aprovada':'#1D9E75','Recusada':'#e74c3c','Em negociação':'#f39c12'};
+  el.innerHTML=lista.map(o=>{
+    const dt=o.geradoEm?.toDate?o.geradoEm.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+    const val=o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:0}):'—';
+    const cor=COR_STATUS[o.status]||'#888';
+    const opts=['Enviada','Aprovada','Recusada','Em negociação'].map(s=>`<option value="${s}"${s===o.status?' selected':''}>${s}</option>`).join('');
+    return `<div style="background:var(--br);border:1px solid #e4e3dc;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:700;font-size:14px;color:var(--az)">${o.nome||'—'}</div>
+        <div style="font-size:12px;color:var(--txts);margin-top:2px">${o.cidade||'—'} · ${o.consumo||0} kWh · ${o.modulos||0} módulos · ${o.inversor||''}</div>
+        <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${o.geradoPor||'—'} · ${dt}</div>
+      </div>
+      <div style="font-weight:700;font-size:15px;color:var(--az);white-space:nowrap">${val}</div>
+      <select onchange="atualizarStatusOrc('${o.id}',this.value)" style="padding:6px 10px;border:2px solid ${cor};border-radius:7px;font-size:12px;font-weight:600;color:${cor};background:#fff;cursor:pointer">
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+}
+async function atualizarStatusOrc(id,status){
+  try{await db.collection('orcamentos').doc(id).update({status});toast('Status atualizado','ok');}
+  catch(e){toast('Erro ao atualizar','er');}
+}
+
+// ── AGENDA ──────────────────────────────────────────────
 function initAgendaListener() {
   if (typeof db === 'undefined') return;
   db.collection('visitas').orderBy('data','asc').orderBy('hora','asc').onSnapshot(snap => {
