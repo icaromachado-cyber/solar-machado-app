@@ -1590,7 +1590,8 @@ function openDet(id){
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">'
     +'<button class="btn btn-p" onclick="openEditProj('+p.id+')">✎ Editar</button>'
     +'<button class="btn btn-y" onclick="openModalChamado('+p.id+')">🛠 Chamado</button>'
-    +'</div>';
+    +'</div>'
+    +(isAdmin?'<button onclick="excluirProjeto('+p.id+')" style="width:100%;margin-top:8px;background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir Projeto</button>':'');
   document.getElementById('det-panel').classList.add('open');
   document.getElementById('det-backdrop').classList.add('on');
 }
@@ -1815,6 +1816,17 @@ function openEditLeitura(id) {
   }
   
   document.getElementById('mo-leit').classList.add('open');
+}
+
+async function excluirProjeto(id) {
+  const p = PROJETOS.find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm('Excluir o projeto de '+p.cliente+'? Esta ação não pode ser desfeita.')) return;
+  try {
+    await db.collection('projetos').doc(String(id)).delete();
+    closeDet();
+    toast('Projeto excluído!', 'ok');
+  } catch(e) { toast('Erro ao excluir: '+e.message, 'er'); }
 }
 
 function excluirLeitura() {
