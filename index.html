@@ -1302,6 +1302,7 @@ function go(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
+  window.scrollTo(0,0);
   const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',financeiro:'Financeiro'};
   document.getElementById('tb-title').textContent = titles[p]||p;
   // Destacar item ativo na sidebar
