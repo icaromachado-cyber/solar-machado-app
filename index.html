@@ -2973,6 +2973,9 @@ function renderOrcamentos(){
     const val=o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:0}):'—';
     const cor=COR_STATUS[o.status]||'#888';
     const opts=['Enviada','Aprovada','Recusada','Em negociação'].map(s=>`<option value="${s}"${s===o.status?' selected':''}>${s}</option>`).join('');
+    const btnDel=usuarioAtual?.email==='icarocaio18@gmail.com'
+      ?`<button onclick="deletarOrc('${o.id}')" title="Deletar" style="background:none;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1">🗑</button>`
+      :'';
     return `<div style="background:var(--br);border:1px solid #e4e3dc;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
       <div style="flex:1;min-width:180px">
         <div style="font-weight:700;font-size:14px;color:var(--az)">${o.nome||'—'}</div>
@@ -2983,12 +2986,18 @@ function renderOrcamentos(){
       <select onchange="atualizarStatusOrc('${o.id}',this.value)" style="padding:6px 10px;border:2px solid ${cor};border-radius:7px;font-size:12px;font-weight:600;color:${cor};background:#fff;cursor:pointer">
         ${opts}
       </select>
+      ${btnDel}
     </div>`;
   }).join('');
 }
 async function atualizarStatusOrc(id,status){
   try{await db.collection('orcamentos').doc(id).update({status});toast('Status atualizado','ok');}
   catch(e){toast('Erro ao atualizar','er');}
+}
+async function deletarOrc(id){
+  if(!confirm('Deletar este orçamento?'))return;
+  try{await db.collection('orcamentos').doc(id).delete();toast('Orçamento deletado','ok');}
+  catch(e){toast('Erro ao deletar','er');}
 }
 
 // ── AGENDA ──────────────────────────────────────────────
