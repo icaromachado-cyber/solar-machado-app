@@ -1342,6 +1342,7 @@ function go(p) {
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
   if(p==='agenda') setTimeout(renderAgenda, 50);
   if(p==='historico') renderOrcamentos();
+  atualizarBtnNovo(p);
 }
 
 // ══════════════════════════════════════════
@@ -1601,10 +1602,30 @@ function closeDet(){document.getElementById('det-panel').classList.remove('open'
 let editProjId = null; let editChId = null;
 
 function openNovo() {
-  const p = document.querySelector('.page.on').id;
+  const p = document.querySelector('.page.on')?.id||'';
   if(p==='page-chamados') openModalChamado();
   else if(p==='page-leituras') openModalLeitura();
-  else openModalProj();
+  else if(p==='page-agenda') openModalVisita();
+  else if(p==='page-projetos') openModalProj();
+}
+
+function atualizarBtnNovo(pagina) {
+  const btn = document.getElementById('btn-novo');
+  if(!btn) return;
+  const config = {
+    projetos:  '+ Projeto',
+    chamados:  '+ Chamado',
+    leituras:  '+ Leitura',
+    agenda:    '+ Visita',
+  };
+  const label = config[pagina];
+  if(label) {
+    btn.style.display = '';
+    btn.querySelector('.btn-txt').textContent = label.replace('+ ','');
+    btn.querySelector('span:first-child').textContent = '+';
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 function openModalProj() {
