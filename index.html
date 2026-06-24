@@ -487,6 +487,9 @@ tr:hover td{background:#faf9f5}
     <div class="ni" onclick="go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
     </div>
+    <div class="ni" onclick="go('historico');toggleMenu(false)">
+      <div class="ic">🗂</div><span>Histórico</span>
+    </div>
     <div class="nav-sec" id="sep-financeiro" style="display:none">Financeiro</div>
     <div class="ni" id="nav-financeiro" onclick="go('financeiro');toggleMenu(false)" style="display:none">
       <div class="ic">💰</div><span>Financeiro</span>
@@ -811,23 +814,27 @@ tr:hover td{background:#faf9f5}
         </div>
       </div>
 
-      <!-- HISTÓRICO DE ORÇAMENTOS -->
-      <div style="margin-top:28px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-          <h2 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--az)">📋 Histórico de Orçamentos</h2>
-          <div id="orc-filtros" style="display:flex;gap:8px;flex-wrap:wrap">
-            <select id="orc-filtro-status" onchange="renderOrcamentos()" style="padding:6px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:12px">
-              <option value="">Todos os status</option>
-              <option>Enviada</option><option>Aprovada</option><option>Recusada</option><option>Em negociação</option>
-            </select>
-          </div>
-        </div>
-        <div id="orc-lista" style="display:flex;flex-direction:column;gap:10px">
-          <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
-        </div>
-      </div>
     </div>
 
+    <!-- PAGE HISTÓRICO -->
+    <div id="page-historico" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--az)">🗂 Histórico de Orçamentos</h1>
+          <div style="font-size:13px;color:var(--txts);margin-top:4px">Todas as propostas geradas</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="orc-filtro-status" onchange="renderOrcamentos()" style="padding:8px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            <option value="">Todos os status</option>
+            <option>Enviada</option><option>Aprovada</option><option>Recusada</option><option>Em negociação</option>
+          </select>
+          <div id="orc-kpis" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+      <div id="orc-lista" style="display:flex;flex-direction:column;gap:10px">
+        <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
+      </div>
+    </div>
 
     <!-- PAGE FINANCEIRO -->
     <div id="page-financeiro" class="page">
@@ -1319,7 +1326,7 @@ function go(p) {
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
   window.scrollTo(0,0);
-  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',financeiro:'Financeiro'};
+  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',historico:'Histórico',financeiro:'Financeiro',agenda:'Agenda'};
   document.getElementById('tb-title').textContent = titles[p]||p;
   // Destacar item ativo na sidebar
   document.querySelectorAll('.ni').forEach(n => {
@@ -1334,6 +1341,7 @@ function go(p) {
   if(p==='propostas') atualizarPreview();
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
   if(p==='agenda') setTimeout(renderAgenda, 50);
+  if(p==='historico') renderOrcamentos();
 }
 
 // ══════════════════════════════════════════
@@ -2940,6 +2948,20 @@ function renderOrcamentos(){
   if(!el)return;
   const filtroStatus=document.getElementById('orc-filtro-status')?.value||'';
   let lista=ORCAMENTOS;
+  // KPIs
+  const kpiEl=document.getElementById('orc-kpis');
+  if(kpiEl){
+    const total=ORCAMENTOS.length;
+    const aprovadas=ORCAMENTOS.filter(o=>o.status==='Aprovada').length;
+    const taxa=total?Math.round(aprovadas/total*100):0;
+    const vlAprov=ORCAMENTOS.filter(o=>o.status==='Aprovada').reduce((s,o)=>s+(o.valor||0),0);
+    kpiEl.innerHTML=[
+      ['Total',total,'#2E3486'],
+      ['Aprovadas',aprovadas,'#1D9E75'],
+      ['Taxa',taxa+'%','#1D9E75'],
+      ['Volume Aprov.','R$ '+vlAprov.toLocaleString('pt-BR'),'#f39c12']
+    ].map(([l,v,c])=>`<div style="background:#fff;border:1px solid #e4e3dc;border-radius:8px;padding:6px 12px;font-size:12px;text-align:center"><div style="font-weight:700;color:${c};font-size:15px">${v}</div><div style="color:#888;margin-top:1px">${l}</div></div>`).join('');
+  }
   if(filtroStatus) lista=lista.filter(o=>o.status===filtroStatus);
   if(!lista.length){
     el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Nenhum orçamento encontrado</div>';
