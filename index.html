@@ -474,6 +474,9 @@ tr:hover td{background:#faf9f5}
     <div class="ni" onclick="go('chamados');toggleMenu(false)">
       <div class="ic">🛠</div><span>Chamados</span>
     </div>
+    <div class="ni" onclick="go('agenda');toggleMenu(false)">
+      <div class="ic">📅</div><span>Agenda</span>
+    </div>
     <div class="ni" onclick="go('leituras');toggleMenu(false)">
       <div class="ic">⚡</div><span>Leituras</span>
     </div>
@@ -539,6 +542,14 @@ tr:hover td{background:#faf9f5}
           <button class="btn btn-g" onclick="go('chamados')">Ver Todos</button>
         </div>
         <div id="dash-chamados"></div>
+      </div>
+
+      <div class="card">
+        <div class="ph">
+          <h2>📅 Próximas Visitas</h2>
+          <button class="btn btn-g" onclick="go('agenda')">Ver Agenda</button>
+        </div>
+        <div id="dash-visitas-hoje"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
       </div>
     </div>
 
@@ -871,6 +882,38 @@ tr:hover td{background:#faf9f5}
     </div>
 
 
+    <!-- PAGE AGENDA -->
+    <div class="page" id="page-agenda">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-size:20px;font-weight:800;color:#2E3486;margin:0">📅 Agenda de Visitas</h2>
+        <button onclick="openModalVisita()" style="background:#FDC300;border:none;color:#1a1200;font-weight:700;border-radius:9px;padding:9px 18px;cursor:pointer;font-size:13px">+ Nova Visita</button>
+      </div>
+      <!-- KPIs -->
+      <div id="agenda-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px"></div>
+      <!-- Filtros -->
+      <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;border:1px solid #e4e3dc;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+        <select id="ag-f-tipo" onchange="renderAgenda()" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          <option value="">Todos os tipos</option>
+          <option value="Técnica">Técnica</option>
+          <option value="Comercial">Comercial</option>
+        </select>
+        <select id="ag-f-status" onchange="renderAgenda()" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          <option value="">Todos os status</option>
+          <option value="Agendada">Agendada</option>
+          <option value="Realizada">Realizada</option>
+          <option value="Cancelada">Cancelada</option>
+          <option value="Reagendada">Reagendada</option>
+        </select>
+        <select id="ag-f-resp" onchange="renderAgenda()" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+          <option value="">Todos os responsáveis</option>
+        </select>
+        <input type="date" id="ag-f-data" onchange="renderAgenda()" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
+        <button onclick="document.getElementById('ag-f-tipo').value='';document.getElementById('ag-f-status').value='';document.getElementById('ag-f-resp').value='';document.getElementById('ag-f-data').value='';renderAgenda()" style="background:#f0efe8;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#888">✕ Limpar</button>
+      </div>
+      <!-- Lista -->
+      <div id="agenda-lista" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
 </main>
 
 <!-- DETAIL PANEL -->
@@ -881,6 +924,82 @@ tr:hover td{background:#faf9f5}
     <button class="mcls" onclick="closeDet()">✕</button>
   </div>
   <div class="det-body" id="det-content"></div>
+</div>
+
+<!-- MODAL VISITA -->
+<div class="mo" id="mo-visita">
+  <div class="mbox" style="max-width:540px">
+    <div class="mhdr"><span id="visita-titulo">Nova Visita</span><button class="mcls" onclick="closeMo('mo-visita')">✕</button></div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:13px;overflow-y:auto;max-height:calc(90vh - 60px)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tipo de Visita</label>
+          <div style="display:flex;gap:8px">
+            <label style="flex:1;cursor:pointer"><input type="radio" name="visita-tipo" value="Técnica" onchange="toggleVisitaTipo()" style="margin-right:5px">🔧 Técnica (cliente)</label>
+            <label style="flex:1;cursor:pointer"><input type="radio" name="visita-tipo" value="Comercial" onchange="toggleVisitaTipo()" style="margin-right:5px">💼 Comercial (prospecto)</label>
+          </div>
+        </div>
+        <!-- Campos técnica -->
+        <div id="vf-tecnica" style="grid-column:1/-1;display:none;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Projeto / Cliente</label>
+          <select id="v-projeto" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></select>
+        </div>
+        <!-- Campos comercial -->
+        <div id="vf-comercial" style="grid-column:1/-1;display:none;flex-direction:column;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Nome do Prospecto</label>
+            <input id="v-nome" type="text" placeholder="Nome completo" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Telefone</label>
+              <input id="v-tel" type="text" placeholder="(86) 9 0000-0000" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Endereço</label>
+              <input id="v-end" type="text" placeholder="Rua, número, bairro" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            </div>
+          </div>
+        </div>
+        <!-- Data e hora -->
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Data</label>
+          <input id="v-data" type="date" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Hora</label>
+          <input id="v-hora" type="time" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+        </div>
+        <!-- Responsável -->
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Responsável</label>
+          <select id="v-resp" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <!-- Status -->
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Status</label>
+          <select id="v-status" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            <option value="Agendada">Agendada</option>
+            <option value="Realizada">Realizada</option>
+            <option value="Cancelada">Cancelada</option>
+            <option value="Reagendada">Reagendada</option>
+          </select>
+        </div>
+        <!-- Obs -->
+        <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Observações</label>
+          <textarea id="v-obs" rows="3" placeholder="Detalhes, equipamentos necessários, horário preferido..." style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;resize:vertical"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">
+        <button id="btn-excluir-visita" onclick="excluirVisita()" style="display:none;background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;margin-right:auto">🗑 Excluir</button>
+        <button onclick="closeMo('mo-visita')" style="background:#f0efe8;border:none;color:#666;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px">Cancelar</button>
+        <button onclick="saveVisita()" style="background:#2E3486;border:none;color:#fff;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL PROJETO -->
@@ -1132,6 +1251,7 @@ function initFirebaseListeners() {
   carregarTabelaFirestore();
   // Iniciar listener financeiro
   initFinanceiroListener();
+  initAgendaListener();
   // Limpar chamados resolvidos com mais de 2 dias
   setTimeout(limparChamadosAntigos, 5000);
 
@@ -1196,6 +1316,7 @@ function go(p) {
   if(p==='mapa') setTimeout(()=>{iniciarLeafletMap();renderMapa();},50);
   if(p==='propostas') atualizarPreview();
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
+  if(p==='agenda') setTimeout(renderAgenda, 50);
 }
 
 // ══════════════════════════════════════════
@@ -2751,6 +2872,202 @@ async function importarMovimentacoes() {
   // Esconder botão após importar
   const btnImp = document.getElementById('btn-importar-fin');
   if (btnImp) btnImp.style.display = 'none';
+}
+
+// ══════════════════════════════════
+// MÓDULO AGENDA
+// ══════════════════════════════════
+let VISITAS = [];
+let _editVisitaId = null;
+
+function initAgendaListener() {
+  if (typeof db === 'undefined') return;
+  db.collection('visitas').orderBy('data','asc').orderBy('hora','asc').onSnapshot(snap => {
+    VISITAS = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    if (document.getElementById('page-agenda')?.classList.contains('on')) renderAgenda();
+    renderDashVisitas();
+  });
+}
+
+function renderAgenda() {
+  const fTipo   = document.getElementById('ag-f-tipo')?.value   || '';
+  const fStatus = document.getElementById('ag-f-status')?.value || '';
+  const fResp   = document.getElementById('ag-f-resp')?.value   || '';
+  const fData   = document.getElementById('ag-f-data')?.value   || '';
+
+  // Preenche select de responsáveis
+  const respSel = document.getElementById('ag-f-resp');
+  if (respSel && respSel.options.length <= 1) {
+    EQUIPE_SOLAR.forEach(e => { const o = document.createElement('option'); o.value = e.nome; o.textContent = e.nome; respSel.appendChild(o); });
+  }
+
+  let lista = [...VISITAS];
+  if (fTipo)   lista = lista.filter(v => v.tipo === fTipo);
+  if (fStatus) lista = lista.filter(v => v.status === fStatus);
+  if (fResp)   lista = lista.filter(v => v.responsavel === fResp);
+  if (fData)   lista = lista.filter(v => v.data === fData);
+
+  // KPIs
+  const hoje = new Date().toISOString().slice(0,10);
+  const semana = new Date(Date.now() + 7*864e5).toISOString().slice(0,10);
+  const kpiEl = document.getElementById('agenda-kpis');
+  if (kpiEl) {
+    const agendadas = VISITAS.filter(v => v.status === 'Agendada').length;
+    const realizadas = VISITAS.filter(v => v.status === 'Realizada').length;
+    const hoje_cnt = VISITAS.filter(v => v.data === hoje && v.status === 'Agendada').length;
+    const semana_cnt = VISITAS.filter(v => v.data >= hoje && v.data <= semana && v.status === 'Agendada').length;
+    kpiEl.innerHTML = [
+      {label:'Agendadas',   valor:agendadas,  cor:'#2E3486', icon:'📅'},
+      {label:'Hoje',        valor:hoje_cnt,   cor:'#FDC300', icon:'⏰'},
+      {label:'Esta semana', valor:semana_cnt, cor:'#1D9E75', icon:'📆'},
+      {label:'Realizadas',  valor:realizadas, cor:'#888',    icon:'✅'},
+    ].map(k=>`<div style="background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #e4e3dc">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:5px">${k.icon} ${k.label}</div>
+      <div style="font-size:24px;font-weight:800;color:${k.cor}">${k.valor}</div>
+    </div>`).join('');
+  }
+
+  const listaEl = document.getElementById('agenda-lista');
+  if (!listaEl) return;
+  if (!lista.length) { listaEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txts);font-size:14px">Nenhuma visita encontrada.</div>'; return; }
+
+  const STATUS_COR = { Agendada:'#2E3486', Realizada:'#1D9E75', Cancelada:'#D85A30', Reagendada:'#f59e0b' };
+  const STATUS_BG  = { Agendada:'#eef0ff', Realizada:'#e8f8ef', Cancelada:'#fdecea', Reagendada:'#fff8e0' };
+  const TIPO_COR   = { 'Técnica':'#1D9E75', 'Comercial':'#f59e0b' };
+  const TIPO_BG    = { 'Técnica':'#e8f8ef', 'Comercial':'#fff8e0' };
+
+  listaEl.innerHTML = lista.map(v => {
+    const eq = EQUIPE_SOLAR.find(e => e.nome === v.responsavel);
+    const dataFmt = v.data ? v.data.split('-').reverse().join('/') : '—';
+    const wppNum = (v.tel||'').replace(/[^0-9]/g,'');
+    const wppBtn = wppNum ? `<a href="https://wa.me/${wppNum}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;background:#e8f8ef;color:#1a8045;border:1px solid #b2e0c4;text-decoration:none;cursor:pointer">💬 WhatsApp</a>` : '';
+    return `<div style="background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #e4e3dc;display:flex;gap:14px;align-items:flex-start">
+      <div style="width:50px;text-align:center;flex-shrink:0">
+        <div style="font-size:11px;font-weight:700;color:#2E3486">${dataFmt}</div>
+        <div style="font-size:18px;font-weight:800;color:#2E3486;margin-top:2px">${v.hora||'—'}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px">
+          <span style="background:${TIPO_BG[v.tipo]||'#f0f0f0'};color:${TIPO_COR[v.tipo]||'#888'};padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700">${v.tipo||'—'}</span>
+          <span style="background:${STATUS_BG[v.status]||'#f0f0f0'};color:${STATUS_COR[v.status]||'#888'};padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600">${v.status||'—'}</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:3px">${v.clienteNome||v.projetoNome||'—'}</div>
+        ${v.clienteEnd||v.projetoEnd ? `<div style="font-size:12px;color:var(--txts)">📍 ${v.clienteEnd||v.projetoEnd}</div>` : ''}
+        <div style="font-size:12px;color:var(--txts);margin-top:2px">👤 ${v.responsavel||'—'} ${eq?eq.emoji:''}</div>
+        ${v.obs ? `<div style="font-size:11.5px;color:#888;margin-top:4px;font-style:italic">${v.obs}</div>` : ''}
+        ${wppBtn ? `<div style="margin-top:8px">${wppBtn}</div>` : ''}
+      </div>
+      <button onclick="openModalVisita('${v.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;flex-shrink:0">✎</button>
+    </div>`;
+  }).join('');
+}
+
+function renderDashVisitas() {
+  const cont = document.getElementById('dash-visitas-hoje');
+  if (!cont) return;
+  const hoje = new Date().toISOString().slice(0,10);
+  const proximas = VISITAS.filter(v => v.data >= hoje && v.status === 'Agendada').slice(0, 5);
+  if (!proximas.length) { cont.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Nenhuma visita agendada.</div>'; return; }
+  const STATUS_COR = { Agendada:'#2E3486', Realizada:'#1D9E75', Cancelada:'#D85A30', Reagendada:'#f59e0b' };
+  cont.innerHTML = proximas.map(v => {
+    const dataFmt = v.data ? v.data.split('-').reverse().join('/') : '—';
+    const isHoje = v.data === hoje;
+    return `<div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #f0efe8">
+      <div style="width:44px;text-align:center;flex-shrink:0">
+        <div style="font-size:10px;color:${isHoje?'#D85A30':'var(--txts)'};font-weight:${isHoje?'700':'400'}">${isHoje?'HOJE':dataFmt}</div>
+        <div style="font-size:13px;font-weight:700;color:#2E3486">${v.hora||'—'}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.clienteNome||v.projetoNome||'—'}</div>
+        <div style="font-size:11px;color:var(--txts)">${v.tipo} · ${v.responsavel||'—'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModalVisita(id) {
+  _editVisitaId = id || null;
+  const v = id ? VISITAS.find(x => x.id === id) : null;
+  document.getElementById('visita-titulo').textContent = v ? 'Editar Visita' : 'Nova Visita';
+  document.getElementById('btn-excluir-visita').style.display = v ? 'block' : 'none';
+
+  // Preenche select responsável
+  const respSel = document.getElementById('v-resp');
+  respSel.innerHTML = '<option value="">Selecione...</option>' + EQUIPE_SOLAR.map(e => `<option value="${e.nome}" ${v?.responsavel===e.nome?'selected':''}>${e.emoji} ${e.nome}</option>`).join('');
+
+  // Preenche select projeto
+  const projSel = document.getElementById('v-projeto');
+  projSel.innerHTML = '<option value="">Selecione o projeto...</option>' + PROJETOS.map(p => `<option value="${p.id}" ${v?.projetoId==p.id?'selected':''}>${p.cliente||'#'+p.id} — ${p.etapa||''}</option>`).join('');
+
+  // Tipo
+  const tipo = v?.tipo || 'Técnica';
+  document.querySelectorAll('input[name="visita-tipo"]').forEach(r => { r.checked = r.value === tipo; });
+
+  document.getElementById('v-data').value   = v?.data       || new Date().toISOString().slice(0,10);
+  document.getElementById('v-hora').value   = v?.hora       || '09:00';
+  document.getElementById('v-status').value = v?.status     || 'Agendada';
+  document.getElementById('v-obs').value    = v?.obs        || '';
+  document.getElementById('v-nome').value   = v?.clienteNome|| '';
+  document.getElementById('v-tel').value    = v?.tel        || '';
+  document.getElementById('v-end').value    = v?.clienteEnd || '';
+
+  toggleVisitaTipo();
+  document.getElementById('mo-visita').classList.add('open');
+}
+
+function toggleVisitaTipo() {
+  const tipo = document.querySelector('input[name="visita-tipo"]:checked')?.value || 'Técnica';
+  document.getElementById('vf-tecnica').style.display  = tipo === 'Técnica'  ? 'flex' : 'none';
+  document.getElementById('vf-comercial').style.display = tipo === 'Comercial' ? 'flex' : 'none';
+}
+
+async function saveVisita() {
+  const tipo   = document.querySelector('input[name="visita-tipo"]:checked')?.value;
+  const data   = document.getElementById('v-data').value;
+  const hora   = document.getElementById('v-hora').value;
+  const resp   = document.getElementById('v-resp').value;
+  const status = document.getElementById('v-status').value;
+  const obs    = document.getElementById('v-obs').value.trim();
+
+  if (!tipo || !data || !resp) { toast('Preencha tipo, data e responsável.', 'er'); return; }
+
+  let obj = { tipo, data, hora, responsavel: resp, status, obs, criadoEm: firebase.firestore.FieldValue.serverTimestamp() };
+
+  if (tipo === 'Técnica') {
+    const projId = document.getElementById('v-projeto').value;
+    if (!projId) { toast('Selecione o projeto.', 'er'); return; }
+    const proj = PROJETOS.find(p => String(p.id) === String(projId));
+    obj.projetoId   = projId;
+    obj.projetoNome = proj?.cliente || '';
+    obj.projetoEnd  = proj?.end || '';
+  } else {
+    const nome = document.getElementById('v-nome').value.trim();
+    if (!nome) { toast('Informe o nome do prospecto.', 'er'); return; }
+    obj.clienteNome = nome;
+    obj.tel         = document.getElementById('v-tel').value.trim();
+    obj.clienteEnd  = document.getElementById('v-end').value.trim();
+  }
+
+  try {
+    if (_editVisitaId) {
+      await db.collection('visitas').doc(_editVisitaId).update(obj);
+      toast('✅ Visita atualizada!', 'ok');
+    } else {
+      await db.collection('visitas').add(obj);
+      toast('✅ Visita agendada!', 'ok');
+    }
+    closeMo('mo-visita');
+  } catch(e) { toast('Erro: ' + e.message, 'er'); }
+}
+
+async function excluirVisita() {
+  if (!_editVisitaId) return;
+  if (!confirm('Excluir esta visita?')) return;
+  try {
+    await db.collection('visitas').doc(_editVisitaId).delete();
+    toast('✅ Visita excluída.', 'ok');
+    closeMo('mo-visita');
+  } catch(e) { toast('Erro: ' + e.message, 'er'); }
 }
 
 // Fechar modais ao clicar no backdrop
