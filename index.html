@@ -3006,17 +3006,49 @@ function renderOrcamentos(){
     const btnDel=usuarioAtual?.email==='icarocaio18@gmail.com'
       ?`<button onclick="deletarOrc('${o.id}')" title="Deletar" style="background:none;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1">🗑</button>`
       :'';
-    return `<div style="background:var(--br);border:1px solid #e4e3dc;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div style="flex:1;min-width:180px">
-        <div style="font-weight:700;font-size:14px;color:var(--az)">${o.nome||'—'}</div>
-        <div style="font-size:12px;color:var(--txts);margin-top:2px">${o.cidade||'—'} · ${o.consumo||0} kWh · ${o.modulos||0} módulos · ${o.inversor||''}</div>
-        <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${o.geradoPor||'—'} · ${dt}</div>
+    const nComent=(o.comentarios||[]).length;
+    const wppNum=(o.telefone||'').replace(/\D/g,'');
+    const wppBtn=wppNum?`<a href="https://wa.me/55${wppNum}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;text-decoration:none">💬 WhatsApp</a>`:'';
+    return `<div id="orc-card-${o.id}" style="background:var(--br);border:1px solid #e4e3dc;border-radius:10px;overflow:hidden">
+      <!-- Linha principal -->
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;font-size:14px;color:var(--az)">${o.nome||'—'}</div>
+          <div style="font-size:12px;color:var(--txts);margin-top:2px">${o.cidade||'—'} · ${o.consumo||0} kWh · ${o.modulos||0} módulos · ${o.inversor||''}</div>
+          <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${o.geradoPor||'—'} · ${dt}</div>
+        </div>
+        <div style="font-weight:700;font-size:15px;color:var(--az);white-space:nowrap">${val}</div>
+        <select onchange="atualizarStatusOrc('${o.id}',this.value)" style="padding:6px 10px;border:2px solid ${cor};border-radius:7px;font-size:12px;font-weight:600;color:${cor};background:#fff;cursor:pointer">${opts}</select>
+        ${btnDel}
       </div>
-      <div style="font-weight:700;font-size:15px;color:var(--az);white-space:nowrap">${val}</div>
-      <select onchange="atualizarStatusOrc('${o.id}',this.value)" style="padding:6px 10px;border:2px solid ${cor};border-radius:7px;font-size:12px;font-weight:600;color:${cor};background:#fff;cursor:pointer">
-        ${opts}
-      </select>
-      ${btnDel}
+      <!-- Ações -->
+      <div style="border-top:1px solid #e4e3dc;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;background:#faf9f5">
+        <button onclick="reabrirProposta('${o.id}')" style="background:none;border:1px solid var(--az);color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">✎ Reabrir Proposta</button>
+        <button onclick="toggleOrcSection('${o.id}','coment')" style="background:none;border:1px solid #888;color:#555;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px">💬 Comentários${nComent?' ('+nComent+')':''}</button>
+        <button onclick="toggleOrcSection('${o.id}','precad')" style="background:none;border:1px solid #888;color:#555;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px">📱 Contato / Projeto</button>
+      </div>
+      <!-- Seção Comentários -->
+      <div id="orc-coment-${o.id}" style="display:none;border-top:1px solid #e4e3dc;padding:14px 16px">
+        <div id="orc-coment-lista-${o.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+          ${(o.comentarios||[]).length?
+            (o.comentarios).map(c=>`<div style="background:#fff;border:1px solid #e4e3dc;border-radius:8px;padding:8px 12px"><div style="font-size:12px;color:#333">${c.texto}</div><div style="font-size:10px;color:#aaa;margin-top:4px">${c.autor} · ${c.data}</div></div>`).join('')
+            :'<div style="font-size:12px;color:var(--txts)">Nenhum comentário ainda.</div>'}
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="orc-coment-input-${o.id}" type="text" placeholder="Escreva um comentário..." style="flex:1;padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+          <button onclick="adicionarComentOrc('${o.id}')" style="background:var(--az);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">Enviar</button>
+        </div>
+      </div>
+      <!-- Seção Pré-cadastro -->
+      <div id="orc-precad-${o.id}" style="display:none;border-top:1px solid #e4e3dc;padding:14px 16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:10px">📋 Pré-cadastro do Cliente</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input id="orc-tel-${o.id}" type="tel" placeholder="Telefone (ex: 86999990000)" value="${o.telefone||''}" style="flex:1;min-width:180px;padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+          <button onclick="salvarTelOrc('${o.id}')" style="background:var(--az);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">Salvar</button>
+          ${wppBtn}
+          <button onclick="criarProjetoDeOrc('${o.id}')" style="background:var(--am);color:#1a1a2e;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700">+ Criar Projeto</button>
+        </div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -3028,6 +3060,60 @@ async function deletarOrc(id){
   if(!confirm('Deletar este orçamento?'))return;
   try{await db.collection('orcamentos').doc(id).delete();toast('Orçamento deletado','ok');}
   catch(e){toast('Erro ao deletar','er');}
+}
+function toggleOrcSection(id,sec){
+  const el=document.getElementById('orc-'+sec+'-'+id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+async function adicionarComentOrc(id){
+  const inp=document.getElementById('orc-coment-input-'+id);
+  const texto=(inp?.value||'').trim();
+  if(!texto)return;
+  const coment={texto,autor:usuarioAtual?.displayName||usuarioAtual?.email||'?',data:new Date().toLocaleString('pt-BR')};
+  const o=ORCAMENTOS.find(x=>x.id===id);
+  const lista=[...(o?.comentarios||[]),coment];
+  try{
+    await db.collection('orcamentos').doc(id).update({comentarios:lista});
+    inp.value='';
+    toast('Comentário adicionado','ok');
+  }catch(e){toast('Erro','er');}
+}
+async function salvarTelOrc(id){
+  const tel=document.getElementById('orc-tel-'+id)?.value||'';
+  try{
+    await db.collection('orcamentos').doc(id).update({telefone:tel});
+    toast('Telefone salvo','ok');
+  }catch(e){toast('Erro','er');}
+}
+function reabrirProposta(id){
+  const o=ORCAMENTOS.find(x=>x.id===id);
+  if(!o)return;
+  go('propostas');
+  setTimeout(()=>{
+    const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+    s('pp-nome',o.nome); s('pp-cidade',o.cidade); s('pp-consumo',o.consumo);
+    s('pp-modulos',o.modulos); s('pp-wpmod',o.wpMod); s('pp-inv',o.inversor);
+    s('pp-pinv',o.potInv); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
+    s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
+    if(typeof atualizarPreview==='function') atualizarPreview();
+    toast('Proposta carregada!','ok');
+  },200);
+}
+function criarProjetoDeOrc(id){
+  const o=ORCAMENTOS.find(x=>x.id===id);
+  if(!o)return;
+  go('projetos');
+  setTimeout(()=>{
+    openModalProj();
+    setTimeout(()=>{
+      const s=(fid,v)=>{const el=document.getElementById(fid);if(el)el.value=v||'';};
+      s('p-cliente',o.nome); s('p-end',o.cidade); s('p-tel',o.telefone||'');
+      s('p-kwp',(o.modulos*(o.wpMod||0)/1000).toFixed(2));
+      s('p-modulos',o.modulos); s('p-wpmod',o.wpMod); s('p-inv',o.inversor);
+      s('p-pinv',o.potInv); s('p-valor',o.valor);
+    },100);
+  },200);
 }
 
 // ── AGENDA ──────────────────────────────────────────────
