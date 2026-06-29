@@ -619,6 +619,28 @@ tr:hover td{background:#faf9f5}
 
     <!-- LEITURAS -->
     <div id="page-leituras" class="page">
+      <!-- Agenda de Leituras -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--az)">📅 Agenda de Leituras</h1>
+            <div style="font-size:13px;color:var(--txts);margin-top:3px">Próximas leituras dos clientes</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="al-filtro" onchange="renderAgendaLeituras()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+              <option value="">Todos</option>
+              <option value="atrasada">🔴 Atrasadas</option>
+              <option value="proxima">🟡 Próximas (7 dias)</option>
+              <option value="ok">🟢 Feitas</option>
+              <option value="sem-data">⚪ Sem data</option>
+            </select>
+            <input id="al-busca" type="text" placeholder="Buscar cliente..." oninput="renderAgendaLeituras()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;width:160px">
+          </div>
+        </div>
+        <div id="al-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px"></div>
+        <div id="al-lista" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
       <div class="ph">
         <h2>Histórico de Leituras</h2>
         <button class="btn btn-p" onclick="openModalLeitura()">+ Registrar Leitura</button>
@@ -1286,6 +1308,7 @@ function initFirebaseListeners() {
   initFinanceiroListener();
   initAgendaListener();
   initOrcamentosListener();
+  initAgendaLeiturasListener();
   // Limpar chamados resolvidos com mais de 2 dias
   setTimeout(limparChamadosAntigos, 5000);
 
@@ -1347,7 +1370,7 @@ function go(p) {
   if(p==='pipeline') renderPipeline();
   if(p==='projetos') renderProjetos();
   if(p==='chamados') renderChamados();
-  if(p==='leituras') renderLeituras();
+  if(p==='leituras'){renderLeituras();renderAgendaLeituras();}
   if(p==='mapa') setTimeout(()=>{iniciarLeafletMap();renderMapa();},50);
   if(p==='propostas') atualizarPreview();
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
@@ -3125,6 +3148,155 @@ function criarProjetoDeOrc(id){
       s('p-pinv',o.potInv); s('p-valor',o.valor);
     },100);
   },200);
+}
+
+// ── AGENDA DE LEITURAS ─────────────────────────────────
+const CLIENTES_UC = [
+  {nome:'Francisco Ricardo Calisto de Morais',cliente:'Paulo Victor',uc:'186481',proxLeitura:'2026-07-08',status:'ok'},
+  {nome:'Raimunda Fabiana Sousa Alvarenga',cliente:'Raimunda Fabiana',uc:'14614340',proxLeitura:'2026-07-06',status:'ok'},
+  {nome:'Paulo Afonso Marques',cliente:'Raquel Marques',uc:'3004756184',proxLeitura:'2026-07-06',status:'ok'},
+  {nome:'Ediane Pereira Barros',cliente:'Ediane Pereira Barros',uc:'3008181810',proxLeitura:'2026-07-06',status:'ok'},
+  {nome:'Rafael Alves Martins',cliente:'Andresa',uc:'3004958860',proxLeitura:'2026-07-20',status:'ok'},
+  {nome:'JESUS JEFFERSON SAMPAIO MESQUITA',cliente:'Jeferson',uc:'3004767313',proxLeitura:'2026-07-09',status:'ok'},
+  {nome:'CLEILDES PEREIRA DA SILVA OTAVIO',cliente:'Rennee Anderson Otavio Silva',uc:'10218580',proxLeitura:'2026-07-13',status:'ok'},
+  {nome:'Isabel Maria Lima',cliente:'Roberta',uc:'6346200',proxLeitura:'2026-07-13',status:'ok'},
+  {nome:'Djames Silva Bona',cliente:'Djames',uc:'5766702',proxLeitura:'2026-07-13',status:'ok'},
+  {nome:'VIVIAN MENDES',cliente:'Jorge Audo',uc:'3001504770',proxLeitura:'2026-07-13',status:'ok'},
+  {nome:'MARIA DO SOCORRO LOPES RODRIGUES',cliente:'MARIA JULIETE LOPES RODRIGUES',uc:'3003096288',proxLeitura:'2026-07-13',status:'ok'},
+  {nome:'WALISSON DE OLIVEIRA SOBRINHO',cliente:'WALISSON',uc:'14124769',proxLeitura:'2026-07-13',status:'ok'},
+  {nome:'José Alberto de Sousa',cliente:'José Alberto',uc:'1918184',proxLeitura:'2026-07-14',status:'ok'},
+  {nome:'Sebastião Pereira Neves Filho',cliente:'Sebastião',uc:'13759043',proxLeitura:'2026-07-14',status:'ok'},
+  {nome:'REGINA LUCIA DA SILVA CRUZ',cliente:'REGINA LUCIA DA SILVA CRUZ',uc:'1085778',proxLeitura:'2026-07-14',status:'ok'},
+  {nome:'Maltide Machado Vieira',cliente:'Maltide Machado Vieira',uc:'200315658',proxLeitura:'2026-07-14',status:'ok'},
+  {nome:'Inácio Rocha Pita Neto',cliente:'Ernandes',uc:'3004710010',proxLeitura:'2026-07-18',status:'ok'},
+  {nome:'ROBERTO BARBOSA DE MIRANDA',cliente:'ROBERTO BARBOSA DE MIRANDA',uc:'3005063387',proxLeitura:'2026-07-18',status:'ok'},
+  {nome:'Dailton da Silva De Castro',cliente:'Dailton Castro',uc:'3019138584',proxLeitura:'2026-07-22',status:'ok'},
+  {nome:'Fabiano de Cristo Pereira da Silva',cliente:'Fabiano',uc:'560340',proxLeitura:'2026-06-25',status:''},
+  {nome:'Edilene Carvalho Santos',cliente:'Edilene',uc:'560332',proxLeitura:'2026-06-25',status:''},
+  {nome:'Maria do Socorro Conrado',cliente:'Maria do Socorro',uc:'544493',proxLeitura:'2026-06-25',status:''},
+  {nome:'Marilene Dantas Amorim da Silva',cliente:'Wanescla',uc:'3003027766',proxLeitura:'2026-07-02',status:'ok'},
+  {nome:'Marcelo-Eugenio Carvalho do Rego Monteiro',cliente:'Marcelo-Eugenio',uc:'3002094435',proxLeitura:'2026-06-26',status:''},
+  {nome:'Maria Nerina Pessoa Castelo Branco',cliente:'Maria de Fatima',uc:'888559',proxLeitura:'2026-06-27',status:''},
+  {nome:'EDILANDO BARROSO DE OLIVEIRA',cliente:'Ediliano',uc:'9917446',proxLeitura:'2026-04-29',status:''},
+  {nome:'GABRIEL ALEXANDRINO CALLADO',cliente:'GABRIEL ALEXANDRINO CALLADO',uc:'3005459558',proxLeitura:'2026-07-09',status:'ok'},
+  {nome:'IRVAYNE MATHEUS DE SOUSA IBIAPINA',cliente:'IRVAYNE MATHEUS',uc:'3004004085',proxLeitura:'2026-06-18',status:'ok'},
+  {nome:'ELIANA SILVA LOUREIRO',cliente:'ELIANA SILVA LOUREIRO',uc:'3005557649',proxLeitura:'2026-06-29',status:''},
+  {nome:'DOMINGOS JAMES DE ARAUJO SOUZA',cliente:'DOMINGOS JAMES',uc:'',proxLeitura:'',status:''},
+  {nome:'OSMIR BATISTA DA SILVA JUNIOR',cliente:'OSMIR BATISTA',uc:'151378',proxLeitura:'2026-07-20',status:'ok'},
+  {nome:'MIRIAN ALVES PEREIRA DE OLIVEIRA',cliente:'MIRIAN ALVES',uc:'3000476896',proxLeitura:'2026-07-14',status:'ok'},
+  {nome:'JOAO BATISTA DE SOUSA',cliente:'JOAO BATISTA',uc:'7069146',proxLeitura:'2026-06-17',status:'ok'},
+  {nome:'FRANCISAURA NERES WAQUIM DE ABREU',cliente:'FRANCISAURA NERES',uc:'15823490',proxLeitura:'2026-07-14',status:'ok'},
+  {nome:'VICTOR EMANUEL JORGE LEJEUNE',cliente:'JARDEL CARVALHO ENNES FONSECA',uc:'3005954532',proxLeitura:'',status:''},
+  {nome:'DENISE MARIA OLIVEIRA DE MORAIS BRIOZO',cliente:'DENISE MARIA',uc:'3006233537',proxLeitura:'',status:''},
+  {nome:'ROSILEIDE NECO SOARES',cliente:'ROSILEIDE NECO',uc:'3006241670',proxLeitura:'',status:''},
+  {nome:'VANDERLANDIO RODRIGUES LEAL',cliente:'VANDERLANDIO',uc:'2586584',proxLeitura:'2026-06-22',status:''},
+  {nome:'JOANA D ARC GOMES DA SILVA',cliente:'JOANA D ARC',uc:'1086120',proxLeitura:'2026-07-14',status:'ok'},
+];
+
+let AGENDA_LEITURAS = [];
+
+function initAgendaLeiturasListener(){
+  db.collection('agenda_leituras').onSnapshot(snap=>{
+    if(snap.empty){
+      // Primeira vez: importa os dados da planilha
+      const batch=db.batch();
+      CLIENTES_UC.forEach(c=>{
+        const ref=db.collection('agenda_leituras').doc(c.uc||c.nome.replace(/\s+/g,'_').slice(0,20));
+        batch.set(ref,{...c,importadoEm:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      });
+      batch.commit();
+    } else {
+      AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderAgendaLeituras();
+    }
+  });
+}
+
+function renderAgendaLeituras(){
+  const el=document.getElementById('al-lista');
+  const kpiEl=document.getElementById('al-kpis');
+  if(!el)return;
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const em7=new Date(hoje); em7.setDate(em7.getDate()+7);
+  const filtro=document.getElementById('al-filtro')?.value||'';
+  const busca=(document.getElementById('al-busca')?.value||'').toLowerCase();
+
+  function classificar(c){
+    if(c.status==='ok') return 'ok';
+    if(!c.proxLeitura) return 'sem-data';
+    const d=new Date(c.proxLeitura+'T00:00:00');
+    if(d<hoje) return 'atrasada';
+    if(d<=em7) return 'proxima';
+    return 'futura';
+  }
+
+  // KPIs
+  if(kpiEl){
+    const atrasadas=AGENDA_LEITURAS.filter(c=>classificar(c)==='atrasada').length;
+    const proximas=AGENDA_LEITURAS.filter(c=>classificar(c)==='proxima').length;
+    const feitas=AGENDA_LEITURAS.filter(c=>classificar(c)==='ok').length;
+    const semData=AGENDA_LEITURAS.filter(c=>classificar(c)==='sem-data').length;
+    kpiEl.innerHTML=[
+      ['🔴 Atrasadas',atrasadas,'#e74c3c'],
+      ['🟡 Próximas',proximas,'#f39c12'],
+      ['🟢 Feitas',feitas,'#1D9E75'],
+      ['⚪ Sem data',semData,'#aaa'],
+    ].map(([l,v,c])=>`<div style="background:#fff;border:1px solid #e4e3dc;border-radius:10px;padding:10px 14px;text-align:center"><div style="font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:11px;color:#888;margin-top:2px">${l}</div></div>`).join('');
+  }
+
+  let lista=[...AGENDA_LEITURAS].sort((a,b)=>{
+    const da=a.proxLeitura||'9999'; const db2=b.proxLeitura||'9999';
+    return da.localeCompare(db2);
+  });
+  if(filtro) lista=lista.filter(c=>classificar(c)===filtro);
+  if(busca) lista=lista.filter(c=>(c.nome+c.cliente+c.uc).toLowerCase().includes(busca));
+
+  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--txts);font-size:13px">Nenhum cliente encontrado</div>';return;}
+
+  const COR={'atrasada':'#fdf0ec','proxima':'#fffbe6','ok':'#f0faf5','futura':'var(--br)','sem-data':'#f9f9f9'};
+  const BORDA={'atrasada':'#f5b8a0','proxima':'#fcd97a','ok':'#a8dfbd','futura':'#e4e3dc','sem-data':'#ddd'};
+  const BADGE={'atrasada':'🔴 Atrasada','proxima':'🟡 Próxima','ok':'🟢 Feita','futura':'📅 Agendada','sem-data':'⚪ Sem data'};
+
+  el.innerHTML=lista.map(c=>{
+    const cls=classificar(c);
+    const dtFmt=c.proxLeitura?new Date(c.proxLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—';
+    const wppNum=(c.telefone||'').replace(/\D/g,'');
+    const wppBtn=wppNum?`<a href="https://wa.me/55${wppNum}" target="_blank" style="font-size:11px;color:#1D9E75;text-decoration:none">💬 WhatsApp</a>`:'';
+    return `<div style="background:${COR[cls]};border:1px solid ${BORDA[cls]};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:700;font-size:13px;color:var(--az)">${c.nome}</div>
+        <div style="font-size:12px;color:var(--txts);margin-top:2px">Contato: ${c.cliente} · UC: ${c.uc||'—'}</div>
+        ${wppBtn}
+      </div>
+      <div style="text-align:center;min-width:90px">
+        <div style="font-size:12px;color:#888">Próx. leitura</div>
+        <div style="font-weight:700;font-size:14px;color:var(--az)">${dtFmt}</div>
+      </div>
+      <span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:#fff;border:1px solid ${BORDA[cls]}">${BADGE[cls]}</span>
+      ${cls!=='ok'?`<button onclick="marcarLeituraFeita('${c.id}')" style="background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600">✓ Feita</button>`:''}
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <input type="date" value="${c.proxLeitura||''}" onchange="atualizarDataLeitura('${c.id}',this.value)" style="padding:5px 8px;border:1px solid #ddd;border-radius:7px;font-size:12px">
+        <input type="tel" placeholder="Telefone" value="${c.telefone||''}" onchange="atualizarTelLeitura('${c.id}',this.value)" style="padding:5px 8px;border:1px solid #ddd;border-radius:7px;font-size:12px;width:130px">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function marcarLeituraFeita(id){
+  const hoje=new Date();
+  // Próxima leitura = daqui a ~30 dias
+  const prox=new Date(hoje); prox.setDate(prox.getDate()+30);
+  const proxStr=prox.toISOString().slice(0,10);
+  try{await db.collection('agenda_leituras').doc(id).update({status:'ok',proxLeitura:proxStr});toast('✅ Leitura marcada como feita!','ok');}
+  catch(e){toast('Erro','er');}
+}
+async function atualizarDataLeitura(id,data){
+  try{await db.collection('agenda_leituras').doc(id).update({proxLeitura:data,status:''});toast('Data atualizada','ok');}
+  catch(e){toast('Erro','er');}
+}
+async function atualizarTelLeitura(id,tel){
+  try{await db.collection('agenda_leituras').doc(id).update({telefone:tel});}
+  catch(e){}
 }
 
 // ── AGENDA ──────────────────────────────────────────────
