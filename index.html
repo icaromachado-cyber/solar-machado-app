@@ -2608,6 +2608,10 @@ function recalcularKwp(){
   const kwp=modulos.reduce((s,m)=>s+(parseInt(m.qtd)||0)*(parseInt(m.wp)||0)/1000,0);
   const el=document.getElementById('p-kwp');
   if(el) el.value=kwp.toFixed(2);
+  modulos.forEach(m=>{
+    const sub=document.getElementById('sub-mod-'+m.id);
+    if(sub) sub.textContent=((parseInt(m.qtd)||0)*(parseInt(m.wp)||0)/1000).toFixed(2)+' kWp';
+  });
 }
 function renderListaModulos(){
   const lista=document.getElementById('lista-modulos');
