@@ -3211,7 +3211,10 @@ function initAgendaLeiturasListener(){
       batch.commit();
     } else {
       AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
-      renderAgendaLeituras();
+      // Só re-renderiza se nenhum input da lista estiver em foco
+      const focused=document.activeElement;
+      const lista=document.getElementById('al-lista');
+      if(!lista||!lista.contains(focused)) renderAgendaLeituras();
     }
   });
 }
