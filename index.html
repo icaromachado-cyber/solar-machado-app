@@ -489,7 +489,7 @@ tr:hover td{background:#faf9f5}
       <div class="ic">📅</div><span>Agenda</span>
     </div>
     <div class="ni" onclick="go('leituras');toggleMenu(false)">
-      <div class="ic">⚡</div><span>Leituras</span>
+      <div class="ic">⚡</div><span>Leituras</span><span id="badge-leituras" style="display:none;margin-left:auto;background:#e74c3c;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700"></span>
     </div>
     <div class="ni" onclick="go('mapa');toggleMenu(false)">
       <div class="ic">🗺</div><span>Mapa de Clientes</span>
@@ -556,6 +556,14 @@ tr:hover td{background:#faf9f5}
           <button class="btn btn-g" onclick="go('chamados')">Ver Todos</button>
         </div>
         <div id="dash-chamados"></div>
+      </div>
+
+      <div class="card">
+        <div class="ph">
+          <h2>⚡ Leituras da Semana</h2>
+          <button class="btn btn-g" onclick="go('leituras')">Ver Agenda</button>
+        </div>
+        <div id="dash-leituras-semana"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
       </div>
 
       <div class="card">
@@ -634,7 +642,8 @@ tr:hover td{background:#faf9f5}
               <option value="ok">🟢 Feitas</option>
               <option value="sem-data">⚪ Sem data</option>
             </select>
-            <input id="al-busca" type="text" placeholder="Buscar cliente..." oninput="renderAgendaLeituras()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;width:160px">
+            <input id="al-busca" type="text" placeholder="Buscar cliente..." oninput="renderAgendaLeituras()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;width:150px">
+            <button onclick="wppMassaLeituras()" style="background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">💬 WhatsApp</button>
           </div>
         </div>
         <div id="al-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px"></div>
@@ -1430,6 +1439,7 @@ function renderDash() {
 
   renderCharts();
   renderDashChamadosEquipe(window._nomeUsuarioLogado);
+  renderDashLeiturasSemana();
 }
 
 function renderCharts() {
@@ -3211,6 +3221,8 @@ function initAgendaLeiturasListener(){
       batch.commit();
     } else {
       AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
+      atualizarBadgeLeituras();
+      renderDashLeiturasSemana();
       // Só re-renderiza se nenhum input da lista estiver em foco
       const focused=document.activeElement;
       const lista=document.getElementById('al-lista');
@@ -3287,6 +3299,71 @@ function renderAgendaLeituras(){
       </div>
     </div>`;
   }).join('');
+}
+
+function atualizarBadgeLeituras(){
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const atrasadas=AGENDA_LEITURAS.filter(c=>{
+    if(c.status==='ok'||!c.proxLeitura)return false;
+    return new Date(c.proxLeitura+'T00:00:00')<hoje;
+  }).length;
+  const badge=document.getElementById('badge-leituras');
+  if(!badge)return;
+  if(atrasadas>0){badge.textContent=atrasadas;badge.style.display='inline';}
+  else badge.style.display='none';
+}
+
+function renderDashLeiturasSemana(){
+  const el=document.getElementById('dash-leituras-semana');
+  if(!el)return;
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const em7=new Date(hoje); em7.setDate(em7.getDate()+7);
+  const lista=AGENDA_LEITURAS.filter(c=>{
+    if(!c.proxLeitura)return false;
+    const d=new Date(c.proxLeitura+'T00:00:00');
+    return d>=hoje && d<=em7;
+  }).sort((a,b)=>a.proxLeitura.localeCompare(b.proxLeitura));
+  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Nenhuma leitura esta semana</div>';return;}
+  el.innerHTML=lista.map(c=>{
+    const dt=new Date(c.proxLeitura+'T00:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'});
+    const wppNum=(c.telefone||'').replace(/\D/g,'');
+    const msg=encodeURIComponent(`Olá ${c.cliente}! 👋 Passando para lembrar que a leitura do seu sistema solar está agendada para *${new Date(c.proxLeitura+'T00:00:00').toLocaleDateString('pt-BR')}*. Qualquer dúvida estamos à disposição! ☀️ Solar Machado`);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe8">
+      <div style="min-width:70px;font-size:11px;font-weight:700;color:var(--az);text-transform:capitalize">${dt}</div>
+      <div style="flex:1;font-size:13px;font-weight:500">${c.cliente}</div>
+      ${wppNum?`<a href="https://wa.me/55${wppNum}?text=${msg}" target="_blank" style="font-size:18px;text-decoration:none">💬</a>`:''}
+    </div>`;
+  }).join('');
+}
+
+function wppMassaLeituras(){
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const em7=new Date(hoje); em7.setDate(em7.getDate()+7);
+  const lista=AGENDA_LEITURAS.filter(c=>{
+    if(c.status==='ok'||!c.proxLeitura)return false;
+    const d=new Date(c.proxLeitura+'T00:00:00');
+    return d<=em7;
+  }).sort((a,b)=>a.proxLeitura.localeCompare(b.proxLeitura));
+  if(!lista.length){toast('Nenhuma leitura pendente nos próximos 7 dias','ok');return;}
+  const comTel=lista.filter(c=>c.telefone);
+  const semTel=lista.filter(c=>!c.telefone);
+  let msg='📋 LEITURAS PENDENTES\n\n';
+  lista.forEach(c=>{
+    const dt=new Date(c.proxLeitura+'T00:00:00').toLocaleDateString('pt-BR');
+    msg+=`• ${c.cliente} — ${dt}${c.telefone?' ('+c.telefone+')':' ⚠️ sem tel'}\n`;
+  });
+  if(semTel.length) msg+=`\n⚠️ ${semTel.length} cliente(s) sem telefone cadastrado.`;
+  const area=document.createElement('textarea');
+  area.value=msg; area.style.position='fixed'; area.style.opacity='0';
+  document.body.appendChild(area); area.select(); document.execCommand('copy');
+  document.body.removeChild(area);
+  toast(`✅ Lista de ${lista.length} clientes copiada! Cole no WhatsApp.`,'ok');
+  // Abre WhatsApp para cada um com telefone
+  comTel.forEach((c,i)=>{
+    const dt=new Date(c.proxLeitura+'T00:00:00').toLocaleDateString('pt-BR');
+    const txt=encodeURIComponent(`Olá ${c.cliente}! 👋 Lembrando que a leitura do seu sistema solar está agendada para *${dt}*. Qualquer dúvida estamos à disposição! ☀️ Solar Machado`);
+    setTimeout(()=>window.open('https://wa.me/55'+c.telefone.replace(/\D/g,'')+`?text=${txt}`,'_blank'),i*800);
+  });
 }
 
 async function marcarLeituraFeita(id){
