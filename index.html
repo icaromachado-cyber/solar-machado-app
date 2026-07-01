@@ -1344,6 +1344,7 @@ function initFirebaseListeners() {
     PROJETOS = snap.docs.map(d => d.data());
     PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
     renderProjetos(); renderDash(); renderPipeline();
+    if(document.getElementById('page-mapa')?.classList.contains('on')) renderMapa();
     setFbStatus(true);
   }, err => { setFbStatus(false); });
 
@@ -2469,11 +2470,16 @@ async function salvarLocalizacao(projId){
     return;
   }
   try{
+    const mapsUrl=`https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
     await db.collection('projetos').doc(String(projId)).update({
-      lat:String(coords.lat), lng:String(coords.lng), mapsUrl:`https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+      lat:String(coords.lat), lng:String(coords.lng), mapsUrl
     });
+    const proj=PROJETOS.find(x=>x.id===projId||x.id===String(projId));
+    if(proj){proj.lat=String(coords.lat);proj.lng=String(coords.lng);proj.mapsUrl=mapsUrl;}
     if(inp) inp.value='';
     toast(`✅ Localização salva! (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`,'ok');
+    await renderMapa();
+    renderLocManager();
   }catch(e){toast('Erro ao salvar: '+e.message,'er');}
 }
 
