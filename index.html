@@ -675,6 +675,25 @@ tr:hover td{background:#faf9f5}
         <div id="mapa-infobar" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(46,52,134,.9);color:#fff;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;z-index:999;white-space:nowrap"></div>
       </div>
       <div id="mapa-lista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px"></div>
+
+      <!-- Gerenciar Localizações -->
+      <div style="margin-top:28px" id="mapa-gerenciar">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <h2 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--az)">📍 Gerenciar Localizações</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="loc-filtro" onchange="renderLocManager()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+              <option value="">Todos os projetos</option>
+              <option value="com">✅ Com localização</option>
+              <option value="sem">❌ Sem localização</option>
+            </select>
+            <input id="loc-busca" type="text" placeholder="Buscar cliente..." oninput="renderLocManager()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;width:160px">
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--txts);margin-bottom:12px;background:#f0f4ff;border:1px solid #c5d0f5;border-radius:8px;padding:8px 12px">
+          💡 Cole o link do Google Maps (curto ou completo) e clique em Salvar para adicionar a localização.
+        </div>
+        <div id="loc-lista" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
     </div>
 
     <!-- PROPOSTAS -->
@@ -1380,7 +1399,7 @@ function go(p) {
   if(p==='projetos') renderProjetos();
   if(p==='chamados') renderChamados();
   if(p==='leituras'){renderLeituras();renderAgendaLeituras();}
-  if(p==='mapa') setTimeout(()=>{iniciarLeafletMap();renderMapa();},50);
+  if(p==='mapa') setTimeout(()=>{iniciarLeafletMap();renderMapa();renderLocManager();},50);
   if(p==='propostas') atualizarPreview();
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
   if(p==='agenda') setTimeout(renderAgenda, 50);
@@ -2373,6 +2392,69 @@ let _leafletMap=null,_mapaMarkers=[];
 const COORDS_FIXAS={1:[-5.0934,-42.7967],2:[-4.874055,-42.138847],3:[-4.9761,-44.7834],4:[-5.162702,-42.786701],5:[-5.162702,-42.786701],6:[-5.0650,-42.8200],7:[-5.0950,-42.8750],8:[-5.0850,-42.8100],9:[-7.2333,-43.0333],10:[-5.1100,-42.8000],11:[-5.0780,-42.8100],12:[-5.0785,-42.8105],13:[-5.1170,-42.7870],14:[-5.1350,-42.7900],15:[-5.1150,-42.7950],16:[-5.1450,-42.7830],17:[-5.0700,-42.8050],18:[-5.0900,-42.8050],19:[-5.0950,-42.8000],20:[-5.1050,-42.8300],21:[-5.1355,-42.7905],22:[-5.1360,-42.7890],23:[-5.1340,-42.7910],24:[-5.0800,-42.8020],25:[-5.0600,-42.7800],26:[-5.1000,-42.8100],27:[-5.1100,-42.8050],28:[-5.1370,-42.7880],29:[-5.0850,-42.8020],31:[-5.0650,-42.8150],33:[-5.1172,-42.7587],34:[-5.1167,-42.4678],35:[-5.5500,-42.6800],36:[-5.0700,-42.8300]};
 function iniciarLeafletMap(){if(_leafletMap)return;if(typeof L==='undefined'){setTimeout(iniciarLeafletMap,400);return;}const el=document.getElementById('mapa-leaflet');if(!el){setTimeout(iniciarLeafletMap,400);return;}_leafletMap=L.map('mapa-leaflet').setView([-5.0892,-42.8019],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(_leafletMap);setTimeout(()=>_leafletMap.invalidateSize(),200);}
 function criarPinSolar(kwp){const k=parseFloat(kwp)||0;const size=k>=20?36:k>=10?30:26;const cor=k>=20?'#FDC300':k>=10?'#2E3486':'#4a52c8';const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+(size+8)+'" viewBox="0 0 28 36"><path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="'+cor+'" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/><circle cx="14" cy="14" r="5" fill="rgba(255,255,255,.9)"/></svg>';return L.divIcon({html:svg,className:'',iconSize:[size,size+8],iconAnchor:[size/2,size+8],popupAnchor:[0,-(size+8)]});}
+function extrairCoordsDoLink(url){
+  // Tenta padrão @lat,lng
+  let m=url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  // Tenta padrão 3d{lat}!4d{lng}
+  m=url.match(/3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  // Tenta padrão ?q=lat,lng
+  m=url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  return null;
+}
+
+function renderLocManager(){
+  const el=document.getElementById('loc-lista');
+  if(!el||!PROJETOS.length)return;
+  const filtro=document.getElementById('loc-filtro')?.value||'';
+  const busca=(document.getElementById('loc-busca')?.value||'').toLowerCase();
+  let lista=[...PROJETOS].sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||''));
+  lista=lista.filter(p=>{
+    const temLoc=!!(p.lat&&p.lng)||!!COORDS_FIXAS[p.id]||!!p.mapsUrl;
+    if(filtro==='com'&&!temLoc)return false;
+    if(filtro==='sem'&&temLoc)return false;
+    if(busca&&!(p.cliente||'').toLowerCase().includes(busca))return false;
+    return true;
+  });
+  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Nenhum projeto encontrado</div>';return;}
+  el.innerHTML=lista.map(p=>{
+    const temLoc=!!(p.lat&&p.lng)||!!COORDS_FIXAS[p.id]||!!p.mapsUrl;
+    const latAtual=p.lat||COORDS_FIXAS[p.id]?.[0]||'';
+    const lngAtual=p.lng||COORDS_FIXAS[p.id]?.[1]||'';
+    const mapsLink=p.mapsUrl||(latAtual?`https://www.google.com/maps?q=${latAtual},${lngAtual}`:null);
+    return `<div style="background:var(--br);border:1px solid ${temLoc?'#a8dfbd':'#f5b8a0'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-size:18px">${temLoc?'✅':'❌'}</div>
+      <div style="flex:1;min-width:140px">
+        <div style="font-weight:700;font-size:13px;color:var(--az)">${p.cliente||'—'}</div>
+        <div style="font-size:11px;color:var(--txts);margin-top:2px">${p.end||'Sem endereço'} ${latAtual?`· ${Number(latAtual).toFixed(4)}, ${Number(lngAtual).toFixed(4)}`:''}</div>
+      </div>
+      ${mapsLink?`<a href="${mapsLink}" target="_blank" style="font-size:12px;color:var(--az);text-decoration:none;white-space:nowrap">🗺 Ver</a>`:''}
+      <input id="loc-inp-${p.id}" type="text" placeholder="Cole o link do Google Maps..." style="flex:2;min-width:200px;padding:7px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:12px">
+      <button onclick="salvarLocalizacao(${p.id})" style="background:var(--az);color:#fff;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap">Salvar</button>
+    </div>`;
+  }).join('');
+}
+
+async function salvarLocalizacao(projId){
+  const inp=document.getElementById('loc-inp-'+projId);
+  const url=(inp?.value||'').trim();
+  if(!url){toast('Cole o link do Google Maps primeiro','er');return;}
+  const coords=extrairCoordsDoLink(url);
+  if(!coords){
+    toast('Não consegui extrair as coordenadas. Abra o link no browser, copie a URL completa e cole aqui.','er');
+    return;
+  }
+  try{
+    await db.collection('projetos').doc(String(projId)).update({
+      lat:String(coords.lat), lng:String(coords.lng), mapsUrl:`https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+    });
+    if(inp) inp.value='';
+    toast(`✅ Localização salva! (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`,'ok');
+  }catch(e){toast('Erro ao salvar: '+e.message,'er');}
+}
+
 async function renderMapa(){iniciarLeafletMap();const comLoc=PROJETOS.filter(p=>p.end||p.mapsUrl||(p.lat&&p.lng)||COORDS_FIXAS[p.id]);const cntEl=document.getElementById('mapa-cnt');if(cntEl)cntEl.textContent=comLoc.length+' cliente(s) com localização';const lista=document.getElementById('mapa-lista');if(lista){lista.innerHTML=comLoc.map(p=>{const wppNum=(p.tel||'').replace(/[^0-9]/g,'');const mapsLink=p.mapsUrl||(p.lat&&p.lng?'https://www.google.com/maps?q='+p.lat+','+p.lng:p.end?'https://www.google.com/maps/search/'+encodeURIComponent(p.end):null);const wppUrl=wppNum?'https://wa.me/'+wppNum:null;const kwp=parseFloat(p.kwp)||0;return '<div style="background:var(--br);border-radius:10px;border:1px solid #e4e3dc;padding:12px 14px;display:flex;align-items:flex-start;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📍</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500">'+(p.cliente||'—')+'</div><div style="font-size:11.5px;color:var(--txts);margin-top:2px">'+(p.end||'—')+'</div><div style="font-size:11px;color:var(--txts);margin-top:2px">'+kwp.toFixed(2)+' kWp · '+(p.etapa||'')+'</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+(mapsLink?'<a href="'+mapsLink+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:var(--azs);color:var(--az);border:1px solid #b5d4f4;text-decoration:none">🗺 Maps</a>':'')+(wppUrl?'<a href="'+wppUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11.5px;background:#e8f8ef;color:#1a8045;border:1px solid #b2e0c4;text-decoration:none">💬 WhatsApp</a>':'')+'</div></div></div>';}
   ).join('')||'<div style="font-size:13px;color:var(--txts);padding:20px 0">Execute a migração no Dashboard.</div>';}
   if(!_leafletMap){setTimeout(renderMapa,500);return;}_mapaMarkers.forEach(m=>_leafletMap.removeLayer(m));_mapaMarkers=[];const bounds=[];const jitter=()=>(Math.random()-0.5)*0.003;
