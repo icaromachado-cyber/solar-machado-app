@@ -3644,8 +3644,14 @@ function renderAgendaLeituras(){
       +'<span style="color:#888">📅 '+(ultima.data?new Date(ultima.data+'T00:00:00').toLocaleDateString('pt-BR'):'—')+'</span>'
       +'</div>':'';
 
-    // UCs beneficiárias do projeto
-    const proj=PROJETOS.find(p=>String(p.uc)===String(c.uc)||p.cliente===c.cliente);
+    // UCs beneficiárias do projeto — busca por UC, nome completo ou nome exibição
+    const _n=s=>(s||'').trim().toLowerCase();
+    const proj=PROJETOS.find(p=>
+      (p.uc&&String(p.uc)===String(c.uc))||
+      (p.cliente&&_n(p.cliente)===_n(c.cliente))||
+      (p.cliente&&_n(p.cliente)===_n(c.nome))||
+      (p.nome&&_n(p.nome)===_n(c.nome))
+    );
     const bens=proj?.beneficiarios?.filter(b=>b.uc)||[];
     let bensHtml='';
     if(bens.length){
@@ -3954,7 +3960,13 @@ function renderHistoricoClienteModal(id){
     <div style="font-size:10px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.4px">${k.label}</div>
   </div>`).join('');
 
-  const proj=c?PROJETOS.find(p=>String(p.uc)===String(c.uc)||p.cliente===c.cliente):null;
+  const _nm=s=>(s||'').trim().toLowerCase();
+  const proj=c?PROJETOS.find(p=>
+    (p.uc&&String(p.uc)===String(c.uc))||
+    (p.cliente&&_nm(p.cliente)===_nm(c.cliente))||
+    (p.cliente&&_nm(p.cliente)===_nm(c.nome))||
+    (p.nome&&_nm(p.nome)===_nm(c.nome))
+  ):null;
   const bens=proj?.beneficiarios?.filter(b=>b.uc)||[];
   const nomeTitular=c?c.nome:'';
 
