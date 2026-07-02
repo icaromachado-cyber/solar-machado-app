@@ -3522,6 +3522,37 @@ function initHistoricoLeiturasListener(){
   }, ()=>{});
 }
 
+async function sincronizarBeneficiarias(){
+  if(!PROJETOS.length) return;
+  const ucsCadastradas=new Set(AGENDA_LEITURAS.map(c=>String(c.uc||c.id)));
+  const batch=db.batch();
+  let adicionou=false;
+  PROJETOS.forEach(p=>{
+    if(!p.beneficiarios?.length) return;
+    p.beneficiarios.forEach(b=>{
+      if(!b.uc) return;
+      const ucStr=String(b.uc);
+      if(ucsCadastradas.has(ucStr)) return;
+      const docId='ben_'+ucStr;
+      if(AGENDA_LEITURAS.find(x=>x.id===docId)) return;
+      const ref=db.collection('agenda_leituras').doc(docId);
+      batch.set(ref,{
+        nome:p.cliente||p.nome||'',
+        cliente:p.cliente||'',
+        uc:ucStr,
+        endereco:b.endereco||'',
+        porcentagem:b.porcentagem||'',
+        tipo:'beneficiaria',
+        projetoId:p.id,
+        proxLeitura:'',
+        status:''
+      },{merge:true});
+      adicionou=true;
+    });
+  });
+  if(adicionou) batch.commit().catch(()=>{});
+}
+
 function initAgendaLeiturasListener(){
   db.collection('agenda_leituras').onSnapshot(snap=>{
     if(snap.empty){
@@ -3534,6 +3565,7 @@ function initAgendaLeiturasListener(){
       batch.commit();
     } else {
       AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
+      sincronizarBeneficiarias();
       atualizarBadgeLeituras();
       renderDashLeiturasSemana();
       // Só re-renderiza se nenhum input da lista estiver em foco
@@ -3629,8 +3661,8 @@ function renderAgendaLeituras(){
     return `<div style="background:${COR[cls]};border:1px solid ${BORDA[cls]};border-radius:10px;padding:12px 16px">
       <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:160px">
-          <div style="font-weight:700;font-size:13px;color:var(--az);cursor:pointer;text-decoration:underline dotted" onclick="abrirHistoricoCliente('${c.id}')">${c.nome}</div>
-          <div style="font-size:12px;color:var(--txts);margin-top:2px">Contato: ${c.cliente} · UC: ${c.uc||'—'}</div>
+          <div style="font-weight:700;font-size:13px;color:var(--az);cursor:pointer;text-decoration:underline dotted" onclick="abrirHistoricoCliente('${c.id}')">${c.nome}${c.tipo==='beneficiaria'?'<span style="margin-left:6px;font-size:10px;font-weight:600;background:#e8f8ef;color:#1D9E75;padding:1px 6px;border-radius:4px;text-decoration:none">UC Ben.</span>':''}</div>
+          <div style="font-size:12px;color:var(--txts);margin-top:2px">${c.tipo==='beneficiaria'?'Beneficiária':'Contato: '+c.cliente} · UC: ${c.uc||'—'}${c.endereco?' · '+c.endereco:''}</div>
           <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">${wppBtn}${hist.length?`<button onclick="abrirHistoricoCliente('${c.id}')" style="background:none;border:1px solid #b5d4f4;color:var(--az);border-radius:5px;padding:2px 8px;cursor:pointer;font-size:11px">📊 ${hist.length} leitura${hist.length>1?'s':''}</button>`:''}</div>
           ${ultimaInfo}
         </div>
