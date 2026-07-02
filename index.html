@@ -3715,19 +3715,28 @@ function wppMassaLeituras(){
   });
 }
 
-let _regLeituraId=null;
-function registrarLeitura(id){
-  const c=AGENDA_LEITURAS.find(x=>x.id===id);
+let _regLeituraData=null; // {agendaId, ucId, nome, cliente, uc, proxLeitura, isBen}
+function registrarLeitura(agendaId){
+  const c=AGENDA_LEITURAS.find(x=>x.id===agendaId);
   if(!c)return;
-  _regLeituraId=id;
+  _regLeituraData={agendaId, ucId:agendaId, nome:c.nome, cliente:c.cliente, uc:c.uc||agendaId, proxLeitura:c.proxLeitura||'', isBen:false};
+  _abrirModalRegistroLeitura();
+}
+function registrarLeituraBen(agendaId, benUc, benEnd, nomeTitular){
+  _regLeituraData={agendaId:null, ucId:benUc, nome:nomeTitular, cliente:'UC Beneficiária · '+benUc, uc:benUc, proxLeitura:'', isBen:true, benEnd};
+  _abrirModalRegistroLeitura();
+}
+function _abrirModalRegistroLeitura(){
+  const d=_regLeituraData;
   document.getElementById('rl-info').innerHTML=
-    `<div style="font-weight:700;font-size:14px">${c.nome}</div>`+
-    `<div style="font-size:12px;color:#555;margin-top:3px">Contato: ${c.cliente} · UC: ${c.uc||'—'}</div>`;
+    `<div style="font-weight:700;font-size:14px">${d.nome}</div>`+
+    `<div style="font-size:12px;color:#555;margin-top:3px">${d.cliente} · UC: ${d.uc||'—'}</div>`+
+    (d.benEnd?`<div style="font-size:12px;color:#888;margin-top:1px">📍 ${d.benEnd}</div>`:'');
   document.getElementById('rl-data').value=new Date().toISOString().slice(0,10);
   document.getElementById('rl-geracao').value='';
   document.getElementById('rl-consumo').value='';
   document.getElementById('rl-valor').value='';
-  document.getElementById('rl-proxima').value=c.proxLeitura||'';
+  document.getElementById('rl-proxima').value=d.proxLeitura||'';
   document.getElementById('rl-obs').value='';
   document.getElementById('mo-reg-leitura').classList.add('open');
 }
@@ -3735,12 +3744,12 @@ function registrarLeitura(id){
 async function salvarRegistroLeitura(){
   const data=document.getElementById('rl-data').value;
   if(!data){toast('Informe a data da leitura','er');return;}
+  const d=_regLeituraData;
+  if(!d)return;
   const geracao=parseFloat(document.getElementById('rl-geracao').value)||null;
   const consumo=parseFloat(document.getElementById('rl-consumo').value)||null;
   const valor=parseFloat(document.getElementById('rl-valor').value)||null;
   const obs=document.getElementById('rl-obs').value.trim();
-  const c=AGENDA_LEITURAS.find(x=>x.id===_regLeituraId);
-  if(!c)return;
   const proximaManual=document.getElementById('rl-proxima').value;
   let proxStr;
   if(proximaManual){
@@ -3751,14 +3760,20 @@ async function salvarRegistroLeitura(){
   }
   try{
     await db.collection('historico_leituras').add({
-      ucId:_regLeituraId, uc:c.uc||'', cliente:c.cliente||c.nome,
-      data, geracao, consumo, valor, obs, proximaLeitura:proxStr,
+      ucId:d.ucId, uc:d.uc||'', cliente:d.cliente||d.nome, nomeTitular:d.nome,
+      data, geracao, consumo, valor, obs, proximaLeitura:proxStr, isBen:d.isBen||false,
       registradoEm:firebase.firestore.FieldValue.serverTimestamp(),
       registradoPor:usuarioAtual?.displayName||usuarioAtual?.email||''
     });
-    await db.collection('agenda_leituras').doc(_regLeituraId).update({status:'ok',proxLeitura:proxStr});
+    if(!d.isBen && d.agendaId){
+      await db.collection('agenda_leituras').doc(d.agendaId).update({status:'ok',proxLeitura:proxStr});
+    }
     toast('✅ Leitura registrada!','ok');
     closeMo('mo-reg-leitura');
+    if(_histClienteId && document.getElementById('mo-hist-cliente')?.classList.contains('open')){
+      document.getElementById('mo-hist-cliente').classList.add('open');
+      renderHistoricoClienteModal(_histClienteId);
+    }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
 
@@ -3779,18 +3794,34 @@ function abrirHistoricoCliente(id){
   document.getElementById('mo-hist-cliente').classList.add('open');
 }
 
+function _tabelaHistoricoUC(hist){
+  if(!hist.length) return '<div style="padding:16px;text-align:center;color:var(--txts);font-size:13px">Nenhuma leitura registrada.</div>';
+  return `<table style="width:100%;border-collapse:collapse;font-size:12.5px">
+    <thead><tr style="background:#f7f6f1">
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Data</th>
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Geração (kWh)</th>
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Consumo (kWh)</th>
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Fatura (R$)</th>
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Próx. leitura</th>
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Obs</th>
+    </tr></thead>
+    <tbody>${hist.map((h,i)=>`<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
+      <td style="padding:7px 10px;font-weight:${i===0?700:400}">${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="padding:7px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>
+      <td style="padding:7px 10px;text-align:center">${h.consumo||'—'}</td>
+      <td style="padding:7px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
+      <td style="padding:7px 10px;color:#888">${h.proximaLeitura?new Date(h.proximaLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="padding:7px 10px;color:#888;font-style:italic;font-size:11.5px">${h.obs||''}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
 function renderHistoricoClienteModal(id){
+  const c=AGENDA_LEITURAS.find(x=>x.id===id);
   const hist=HISTORICO_LEITURAS[id]||[];
-  const cAgenda=AGENDA_LEITURAS.find(x=>x.id===id)||{};
   const kpisEl=document.getElementById('mhc-kpis');
   const tabelaEl=document.getElementById('mhc-tabela');
   if(!kpisEl||!tabelaEl)return;
-
-  if(!hist.length){
-    kpisEl.innerHTML='';
-    tabelaEl.innerHTML='<div style="text-align:center;padding:40px;color:var(--txts);font-size:14px">Nenhuma leitura registrada ainda.<br><span style="font-size:12px">Clique em "+ Registrar" para adicionar a primeira.</span></div>';
-    return;
-  }
 
   const gerList=hist.map(h=>parseFloat(h.geracao)||0).filter(v=>v>0);
   const conList=hist.map(h=>parseFloat(h.consumo)||0).filter(v=>v>0);
@@ -3810,29 +3841,35 @@ function renderHistoricoClienteModal(id){
     <div style="font-size:10px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.4px">${k.label}</div>
   </div>`).join('');
 
-  tabelaEl.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px">
-    <thead><tr style="background:#f7f6f1">
-      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Data</th>
-      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Geração (kWh)</th>
-      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Consumo (kWh)</th>
-      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Fatura (R$)</th>
-      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Próx. leitura</th>
-      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Obs</th>
-    </tr></thead>
-    <tbody>${hist.map((h,i)=>`<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
-      <td style="padding:8px 10px;font-weight:${i===0?700:400}">${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
-      <td style="padding:8px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>
-      <td style="padding:8px 10px;text-align:center">${h.consumo||'—'}</td>
-      <td style="padding:8px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
-      <td style="padding:8px 10px;color:#888">${(()=>{const pl=i===0?(cAgenda.proxLeitura||h.proximaLeitura):h.proximaLeitura;return pl?new Date(pl+'T00:00:00').toLocaleDateString('pt-BR'):'—';})()}</td>
-      <td style="padding:8px 10px;color:#888;font-style:italic;font-size:12px">${h.obs||''}</td>
-    </tr>`).join('')}</tbody>
-  </table>`;
+  const proj=c?PROJETOS.find(p=>String(p.uc)===String(c.uc)||p.cliente===c.cliente):null;
+  const bens=proj?.beneficiarios?.filter(b=>b.uc)||[];
+  const nomeTitular=c?c.nome:'';
+
+  let html=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:8px">🔵 UC Principal · ${c?.uc||id}</div>${_tabelaHistoricoUC(hist)}`;
+
+  bens.forEach((b,i)=>{
+    const histBen=HISTORICO_LEITURAS[b.uc]||[];
+    const escEnd=(b.endereco||'').replace(/'/g,"\'");
+    const escNome=nomeTitular.replace(/'/g,"\'");
+    html+=`<div style="margin-top:18px;padding-top:14px;border-top:2px dashed #e4e3dc">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1D9E75;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <span>🟢 UC Beneficiária ${i+1} · ${b.uc}${b.endereco?' — '+b.endereco:''}</span>
+        <button onclick="abrirRegistroBenDoHistorico('${id}','${b.uc}','${escEnd}','${escNome}');event.stopPropagation()" style="background:#e8f8ef;border:1px solid #b2e0c4;color:#1D9E75;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px;font-weight:600">+ Registrar</button>
+      </div>
+      ${_tabelaHistoricoUC(histBen)}
+    </div>`;
+  });
+
+  tabelaEl.innerHTML=html;
 }
 
 function abrirRegistroDoHistorico(){
   closeMo('mo-hist-cliente');
   registrarLeitura(_histClienteId);
+}
+function abrirRegistroBenDoHistorico(agendaId, benUc, benEnd, nomeTitular){
+  closeMo('mo-hist-cliente');
+  registrarLeituraBen(agendaId, benUc, benEnd, nomeTitular);
 }
 
 async function marcarLeituraFeita(id){
