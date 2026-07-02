@@ -3912,16 +3912,19 @@ function _tabelaHistoricoUC(hist){
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Fatura (R$)</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Próx. leitura</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Obs</th>
-      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc"></th>
     </tr></thead>
     <tbody>${hist.map((h,i)=>`<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
-      <td style="padding:7px 10px;font-weight:${i===0?700:400}">${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="padding:7px 10px;font-weight:${i===0?700:400}">
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="editarLeitura('${h.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:11px;flex-shrink:0">✎</button>
+          ${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}
+        </div>
+      </td>
       <td style="padding:7px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>
       <td style="padding:7px 10px;text-align:center">${h.consumo||'—'}</td>
       <td style="padding:7px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
       <td style="padding:7px 10px;color:#888">${h.proximaLeitura?new Date(h.proximaLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
       <td style="padding:7px 10px;color:#888;font-style:italic;font-size:11.5px">${h.obs||''}</td>
-      <td style="padding:7px 6px;text-align:center"><button onclick="editarLeitura('${h.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px">✎</button></td>
     </tr>`).join('')}</tbody>
   </table>`;
 }
