@@ -968,7 +968,13 @@ tr:hover td{background:#faf9f5}
     <div class="page" id="page-agenda">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
         <h2 style="font-size:20px;font-weight:800;color:#2E3486;margin:0">📅 Agenda de Visitas</h2>
-        <button onclick="openModalVisita()" style="background:#FDC300;border:none;color:#1a1200;font-weight:700;border-radius:9px;padding:9px 18px;cursor:pointer;font-size:13px">+ Nova Visita</button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;border-radius:9px;overflow:hidden;border:1px solid #ddd">
+            <button id="tab-ag-ativas" onclick="setAgendaTab('ativas')" style="background:#2E3486;color:#fff;border:none;padding:8px 15px;cursor:pointer;font-size:13px;font-weight:600">📋 Agendamentos</button>
+            <button id="tab-ag-hist" onclick="setAgendaTab('historico')" style="background:#f0efe8;color:#888;border:none;padding:8px 15px;cursor:pointer;font-size:13px;font-weight:600;border-left:1px solid #ddd">📁 Histórico</button>
+          </div>
+          <button onclick="openModalVisita()" style="background:#FDC300;border:none;color:#1a1200;font-weight:700;border-radius:9px;padding:9px 18px;cursor:pointer;font-size:13px">+ Nova Visita</button>
+        </div>
       </div>
       <!-- KPIs -->
       <div id="agenda-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px"></div>
@@ -1081,6 +1087,26 @@ tr:hover td{background:#faf9f5}
         <button onclick="closeMo('mo-visita')" style="background:#f0efe8;border:none;color:#666;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px">Cancelar</button>
         <button onclick="saveVisita()" style="background:#2E3486;border:none;color:#fff;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700">💾 Salvar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONCLUIR VISITA -->
+<div class="mo" id="mo-concluir-visita">
+  <div class="mbox" style="max-width:480px">
+    <div class="mhdr"><span>✅ Concluir Visita</span><button class="mcls" onclick="closeMo('mo-concluir-visita')">✕</button></div>
+    <div id="cv-info" style="background:#e8f8ef;border:1px solid #b2e0c4;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#1a1200"></div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px">
+      <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Relato da visita *</label>
+      <textarea id="cv-relato" rows="4" placeholder="Descreva o que foi feito, observações técnicas, feedback do cliente..." style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
+      <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Próximo passo (opcional)</label>
+      <input id="cv-proximo" type="text" placeholder="Ex: Enviar proposta, retornar em 15 dias, agendar instalação..." style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeMo('mo-concluir-visita')" style="background:#f0efe8;border:none;color:#666;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px">Cancelar</button>
+      <button onclick="salvarConclusaoVisita()" style="background:#1D9E75;border:none;color:#fff;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700">✅ Confirmar Realizada</button>
     </div>
   </div>
 </div>
@@ -3545,47 +3571,68 @@ function initAgendaListener() {
   }, err => { console.error('visitas listener:', err); });
 }
 
+let _agendaTab = 'ativas';
+function setAgendaTab(tab) {
+  _agendaTab = tab;
+  const btnAtivas = document.getElementById('tab-ag-ativas');
+  const btnHist   = document.getElementById('tab-ag-hist');
+  if(btnAtivas){ btnAtivas.style.background = tab==='ativas'?'#2E3486':'#f0efe8'; btnAtivas.style.color = tab==='ativas'?'#fff':'#888'; }
+  if(btnHist){   btnHist.style.background   = tab==='historico'?'#2E3486':'#f0efe8'; btnHist.style.color = tab==='historico'?'#fff':'#888'; }
+  renderAgenda();
+}
+
 function renderAgenda() {
   const fTipo   = document.getElementById('ag-f-tipo')?.value   || '';
   const fStatus = document.getElementById('ag-f-status')?.value || '';
   const fResp   = document.getElementById('ag-f-resp')?.value   || '';
   const fData   = document.getElementById('ag-f-data')?.value   || '';
 
-  // Preenche select de responsáveis
   const respSel = document.getElementById('ag-f-resp');
   if (respSel && respSel.options.length <= 1) {
     EQUIPE_SOLAR.forEach(e => { const o = document.createElement('option'); o.value = e.nome; o.textContent = e.nome; respSel.appendChild(o); });
   }
 
-  let lista = [...VISITAS];
-  if (fTipo)   lista = lista.filter(v => v.tipo === fTipo);
-  if (fStatus) lista = lista.filter(v => v.status === fStatus);
-  if (fResp)   lista = lista.filter(v => v.responsavel === fResp);
-  if (fData)   lista = lista.filter(v => v.data === fData);
-
-  // KPIs
+  // KPIs sempre pelo total
   const hoje = new Date().toISOString().slice(0,10);
   const semana = new Date(Date.now() + 7*864e5).toISOString().slice(0,10);
   const kpiEl = document.getElementById('agenda-kpis');
   if (kpiEl) {
-    const agendadas = VISITAS.filter(v => v.status === 'Agendada').length;
-    const realizadas = VISITAS.filter(v => v.status === 'Realizada').length;
-    const hoje_cnt = VISITAS.filter(v => v.data === hoje && v.status === 'Agendada').length;
-    const semana_cnt = VISITAS.filter(v => v.data >= hoje && v.data <= semana && v.status === 'Agendada').length;
+    const agendadas   = VISITAS.filter(v => v.status === 'Agendada').length;
+    const realizadas  = VISITAS.filter(v => v.status === 'Realizada').length;
+    const hoje_cnt    = VISITAS.filter(v => v.data === hoje && v.status === 'Agendada').length;
+    const semana_cnt  = VISITAS.filter(v => v.data >= hoje && v.data <= semana && v.status === 'Agendada').length;
     kpiEl.innerHTML = [
-      {label:'Agendadas',   valor:agendadas,  cor:'#2E3486', icon:'📅'},
-      {label:'Hoje',        valor:hoje_cnt,   cor:'#FDC300', icon:'⏰'},
-      {label:'Esta semana', valor:semana_cnt, cor:'#1D9E75', icon:'📆'},
-      {label:'Realizadas',  valor:realizadas, cor:'#888',    icon:'✅'},
+      {label:'Agendadas',  valor:agendadas,  cor:'#2E3486', icon:'📅'},
+      {label:'Hoje',       valor:hoje_cnt,   cor:'#FDC300', icon:'⏰'},
+      {label:'Esta semana',valor:semana_cnt, cor:'#1D9E75', icon:'📆'},
+      {label:'Realizadas', valor:realizadas, cor:'#1D9E75', icon:'✅'},
     ].map(k=>`<div style="background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #e4e3dc">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:5px">${k.icon} ${k.label}</div>
       <div style="font-size:24px;font-weight:800;color:${k.cor}">${k.valor}</div>
     </div>`).join('');
   }
 
+  // Filtra pela aba
+  let lista = [...VISITAS];
+  if (_agendaTab === 'ativas') {
+    lista = lista.filter(v => v.status === 'Agendada' || v.status === 'Reagendada');
+  } else {
+    lista = lista.filter(v => v.status === 'Realizada' || v.status === 'Cancelada');
+    lista.sort((a,b) => a.data < b.data ? 1 : -1);
+  }
+
+  if (fTipo)   lista = lista.filter(v => v.tipo === fTipo);
+  if (fStatus) lista = lista.filter(v => v.status === fStatus);
+  if (fResp)   lista = lista.filter(v => v.responsavel === fResp);
+  if (fData)   lista = lista.filter(v => v.data === fData);
+
   const listaEl = document.getElementById('agenda-lista');
   if (!listaEl) return;
-  if (!lista.length) { listaEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--txts);font-size:14px">Nenhuma visita encontrada.</div>'; return; }
+  if (!lista.length) {
+    const msg = _agendaTab === 'ativas' ? 'Nenhuma visita agendada.' : 'Nenhuma visita no histórico ainda.';
+    listaEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--txts);font-size:14px">${msg}</div>`;
+    return;
+  }
 
   const STATUS_COR = { Agendada:'#2E3486', Realizada:'#1D9E75', Cancelada:'#D85A30', Reagendada:'#f59e0b' };
   const STATUS_BG  = { Agendada:'#eef0ff', Realizada:'#e8f8ef', Cancelada:'#fdecea', Reagendada:'#fff8e0' };
@@ -3597,6 +3644,9 @@ function renderAgenda() {
     const dataFmt = v.data ? v.data.split('-').reverse().join('/') : '—';
     const wppNum = (v.tel||'').replace(/[^0-9]/g,'');
     const wppBtn = wppNum ? `<a href="https://wa.me/${wppNum}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;background:#e8f8ef;color:#1a8045;border:1px solid #b2e0c4;text-decoration:none;cursor:pointer">💬 WhatsApp</a>` : '';
+    const podeFeita = v.status !== 'Realizada' && v.status !== 'Cancelada';
+    const relatoHtml = v.relato ? `<div style="background:#e8f8ef;border-left:3px solid #1D9E75;border-radius:0 6px 6px 0;padding:8px 10px;margin-top:8px;font-size:12px;color:#1a1200"><strong>📋 Relato:</strong> ${v.relato}</div>` : '';
+    const proximoHtml = v.proximoPasso ? `<div style="font-size:11.5px;color:#f59e0b;margin-top:5px">➡ <strong>Próximo:</strong> ${v.proximoPasso}</div>` : '';
     return `<div style="background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #e4e3dc;display:flex;gap:14px;align-items:flex-start">
       <div style="width:50px;text-align:center;flex-shrink:0">
         <div style="font-size:11px;font-weight:700;color:#2E3486">${dataFmt}</div>
@@ -3611,9 +3661,13 @@ function renderAgenda() {
         ${v.clienteEnd||v.projetoEnd ? `<div style="font-size:12px;color:var(--txts)">📍 ${v.clienteEnd||v.projetoEnd}</div>` : ''}
         <div style="font-size:12px;color:var(--txts);margin-top:2px">👤 ${v.responsavel||'—'} ${eq?eq.emoji:''}</div>
         ${v.obs ? `<div style="font-size:11.5px;color:#888;margin-top:4px;font-style:italic">${v.obs}</div>` : ''}
+        ${relatoHtml}${proximoHtml}
         ${wppBtn ? `<div style="margin-top:8px">${wppBtn}</div>` : ''}
       </div>
-      <button onclick="openModalVisita('${v.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;flex-shrink:0">✎</button>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        ${podeFeita ? `<button onclick="concluirVisita('${v.id}')" style="background:#e8f8ef;border:1px solid #b2e0c4;color:#1D9E75;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">✅ Feita</button>` : ''}
+        <button onclick="openModalVisita('${v.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px">✎</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -3723,6 +3777,35 @@ async function excluirVisita() {
     await db.collection('visitas').doc(_editVisitaId).delete();
     toast('✅ Visita excluída.', 'ok');
     closeMo('mo-visita');
+  } catch(e) { toast('Erro: ' + e.message, 'er'); }
+}
+
+let _concluirVisitaId = null;
+function concluirVisita(id) {
+  const v = VISITAS.find(x => x.id === id);
+  if (!v) return;
+  _concluirVisitaId = id;
+  const dataFmt = v.data ? v.data.split('-').reverse().join('/') : '—';
+  document.getElementById('cv-info').innerHTML =
+    `<div style="font-weight:700;font-size:14px;margin-bottom:4px">${v.clienteNome||v.projetoNome||'—'}</div>`+
+    `<div style="font-size:12px;color:#555">📅 ${dataFmt} ${v.hora||''} &nbsp;·&nbsp; 👤 ${v.responsavel||'—'}</div>`+
+    (v.clienteEnd||v.projetoEnd ? `<div style="font-size:12px;color:#555;margin-top:2px">📍 ${v.clienteEnd||v.projetoEnd}</div>` : '');
+  document.getElementById('cv-relato').value  = v.relato || '';
+  document.getElementById('cv-proximo').value = v.proximoPasso || '';
+  document.getElementById('mo-concluir-visita').classList.add('open');
+}
+
+async function salvarConclusaoVisita() {
+  const relato = document.getElementById('cv-relato').value.trim();
+  if (!relato) { toast('Descreva o que foi feito na visita.', 'er'); return; }
+  const proximo = document.getElementById('cv-proximo').value.trim();
+  try {
+    await db.collection('visitas').doc(_concluirVisitaId).update({
+      status: 'Realizada', relato, proximoPasso: proximo,
+      realizadaEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('✅ Visita concluída!', 'ok');
+    closeMo('mo-concluir-visita');
   } catch(e) { toast('Erro: ' + e.message, 'er'); }
 }
 
