@@ -1131,6 +1131,28 @@ tr:hover td{background:#faf9f5}
   </div>
 </div>
 
+<!-- MODAL HISTÓRICO CLIENTE LEITURA -->
+<div class="mo" id="mo-hist-cliente">
+  <div class="mbox" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="mhdr" id="mhc-header" style="background:#2E3486;color:#fff;border-radius:12px 12px 0 0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div id="mhc-nome" style="font-size:15px;font-weight:700"></div>
+        <div id="mhc-sub" style="font-size:11px;opacity:.7;margin-top:2px"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="mhc-btn-reg" onclick="abrirRegistroDoHistorico()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600">+ Registrar</button>
+        <button class="mcls" onclick="closeMo('mo-hist-cliente')" style="background:rgba(255,255,255,.15);border:none;color:#fff">✕</button>
+      </div>
+    </div>
+    <!-- KPIs -->
+    <div id="mhc-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 20px;background:#f7f6f1;border-bottom:1px solid #e4e3dc"></div>
+    <!-- Tabela -->
+    <div style="flex:1;overflow-y:auto;padding:16px 20px">
+      <div id="mhc-tabela"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL REGISTRAR LEITURA -->
 <div class="mo" id="mo-reg-leitura">
   <div class="mbox" style="max-width:500px">
@@ -3496,6 +3518,7 @@ function initHistoricoLeiturasListener(){
       HISTORICO_LEITURAS[h.ucId].push(h);
     });
     if(document.getElementById('page-leituras')?.classList.contains('on')) renderAgendaLeituras();
+    if(_histClienteId && document.getElementById('mo-hist-cliente')?.classList.contains('open')) renderHistoricoClienteModal(_histClienteId);
   }, ()=>{});
 }
 
@@ -3606,9 +3629,9 @@ function renderAgendaLeituras(){
     return `<div style="background:${COR[cls]};border:1px solid ${BORDA[cls]};border-radius:10px;padding:12px 16px">
       <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:160px">
-          <div style="font-weight:700;font-size:13px;color:var(--az)">${c.nome}</div>
+          <div style="font-weight:700;font-size:13px;color:var(--az);cursor:pointer;text-decoration:underline dotted" onclick="abrirHistoricoCliente('${c.id}')">${c.nome}</div>
           <div style="font-size:12px;color:var(--txts);margin-top:2px">Contato: ${c.cliente} · UC: ${c.uc||'—'}</div>
-          <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">${wppBtn}${hist.length?`<button onclick="toggleHistLeitura('${c.id}')" style="background:none;border:1px solid #b5d4f4;color:var(--az);border-radius:5px;padding:2px 8px;cursor:pointer;font-size:11px">📊 ${hist.length} leitura${hist.length>1?'s':''}</button>`:''}</div>
+          <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">${wppBtn}${hist.length?`<button onclick="abrirHistoricoCliente('${c.id}')" style="background:none;border:1px solid #b5d4f4;color:var(--az);border-radius:5px;padding:2px 8px;cursor:pointer;font-size:11px">📊 ${hist.length} leitura${hist.length>1?'s':''}</button>`:''}</div>
           ${ultimaInfo}
         </div>
         <div style="text-align:center;min-width:90px">
@@ -3729,7 +3752,7 @@ async function salvarRegistroLeitura(){
   try{
     await db.collection('historico_leituras').add({
       ucId:_regLeituraId, uc:c.uc||'', cliente:c.cliente||c.nome,
-      data, geracao, consumo, valor, obs,
+      data, geracao, consumo, valor, obs, proximaLeitura:proxStr,
       registradoEm:firebase.firestore.FieldValue.serverTimestamp(),
       registradoPor:usuarioAtual?.displayName||usuarioAtual?.email||''
     });
@@ -3743,6 +3766,72 @@ function toggleHistLeitura(id){
   const el=document.getElementById('hist-'+id);
   if(!el)return;
   el.style.display=el.style.display==='none'?'block':'none';
+}
+
+let _histClienteId=null;
+function abrirHistoricoCliente(id){
+  const c=AGENDA_LEITURAS.find(x=>x.id===id);
+  if(!c)return;
+  _histClienteId=id;
+  document.getElementById('mhc-nome').textContent=c.nome;
+  document.getElementById('mhc-sub').textContent='Contato: '+c.cliente+' · UC: '+(c.uc||'—');
+  renderHistoricoClienteModal(id);
+  document.getElementById('mo-hist-cliente').classList.add('open');
+}
+
+function renderHistoricoClienteModal(id){
+  const hist=HISTORICO_LEITURAS[id]||[];
+  const kpisEl=document.getElementById('mhc-kpis');
+  const tabelaEl=document.getElementById('mhc-tabela');
+  if(!kpisEl||!tabelaEl)return;
+
+  if(!hist.length){
+    kpisEl.innerHTML='';
+    tabelaEl.innerHTML='<div style="text-align:center;padding:40px;color:var(--txts);font-size:14px">Nenhuma leitura registrada ainda.<br><span style="font-size:12px">Clique em "+ Registrar" para adicionar a primeira.</span></div>';
+    return;
+  }
+
+  const gerList=hist.map(h=>parseFloat(h.geracao)||0).filter(v=>v>0);
+  const conList=hist.map(h=>parseFloat(h.consumo)||0).filter(v=>v>0);
+  const valList=hist.map(h=>parseFloat(h.valor)||0).filter(v=>v>0);
+  const avg=arr=>arr.length?(arr.reduce((s,v)=>s+v,0)/arr.length):null;
+  const fmt=v=>v!=null?v.toFixed(1):'—';
+  const fmtR=v=>v!=null?'R$ '+v.toFixed(2):'—';
+
+  kpisEl.innerHTML=[
+    {label:'Leituras',valor:hist.length,cor:'#2E3486',icon:'📊'},
+    {label:'Média geração',valor:fmt(avg(gerList))+' kWh',cor:'#FDC300',icon:'⚡'},
+    {label:'Média consumo',valor:fmt(avg(conList))+' kWh',cor:'#f59e0b',icon:'🔌'},
+    {label:'Média fatura',valor:fmtR(avg(valList)),cor:'#1D9E75',icon:'💰'},
+  ].map(k=>`<div style="background:#fff;border-radius:10px;padding:10px 12px;border:1px solid #e4e3dc;text-align:center">
+    <div style="font-size:18px;margin-bottom:4px">${k.icon}</div>
+    <div style="font-size:15px;font-weight:700;color:${k.cor}">${k.valor}</div>
+    <div style="font-size:10px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.4px">${k.label}</div>
+  </div>`).join('');
+
+  tabelaEl.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:#f7f6f1">
+      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Data</th>
+      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Geração (kWh)</th>
+      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Consumo (kWh)</th>
+      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Fatura (R$)</th>
+      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Próx. leitura</th>
+      <th style="padding:8px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Obs</th>
+    </tr></thead>
+    <tbody>${hist.map((h,i)=>`<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
+      <td style="padding:8px 10px;font-weight:${i===0?700:400}">${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="padding:8px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>
+      <td style="padding:8px 10px;text-align:center">${h.consumo||'—'}</td>
+      <td style="padding:8px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
+      <td style="padding:8px 10px;color:#888">${h.proximaLeitura?new Date(h.proximaLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="padding:8px 10px;color:#888;font-style:italic;font-size:12px">${h.obs||''}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function abrirRegistroDoHistorico(){
+  closeMo('mo-hist-cliente');
+  registrarLeitura(_histClienteId);
 }
 
 async function marcarLeituraFeita(id){
