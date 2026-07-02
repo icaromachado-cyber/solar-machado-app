@@ -1153,6 +1153,10 @@ tr:hover td{background:#faf9f5}
         <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Consumo da UC (kWh)</label>
         <input id="rl-consumo" type="number" step="0.1" min="0" placeholder="Ex: 380" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
       </div>
+      <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Próxima leitura (da fatura)</label>
+        <input id="rl-proxima" type="date" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+      </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
       <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Observações (opcional)</label>
@@ -3700,6 +3704,7 @@ function registrarLeitura(id){
   document.getElementById('rl-geracao').value='';
   document.getElementById('rl-consumo').value='';
   document.getElementById('rl-valor').value='';
+  document.getElementById('rl-proxima').value=c.proxLeitura||'';
   document.getElementById('rl-obs').value='';
   document.getElementById('mo-reg-leitura').classList.add('open');
 }
@@ -3713,8 +3718,14 @@ async function salvarRegistroLeitura(){
   const obs=document.getElementById('rl-obs').value.trim();
   const c=AGENDA_LEITURAS.find(x=>x.id===_regLeituraId);
   if(!c)return;
-  const prox=new Date(data+'T00:00:00'); prox.setDate(prox.getDate()+30);
-  const proxStr=prox.toISOString().slice(0,10);
+  const proximaManual=document.getElementById('rl-proxima').value;
+  let proxStr;
+  if(proximaManual){
+    proxStr=proximaManual;
+  } else {
+    const prox=new Date(data+'T00:00:00'); prox.setDate(prox.getDate()+30);
+    proxStr=prox.toISOString().slice(0,10);
+  }
   try{
     await db.collection('historico_leituras').add({
       ucId:_regLeituraId, uc:c.uc||'', cliente:c.cliente||c.nome,
