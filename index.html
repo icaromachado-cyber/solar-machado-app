@@ -1452,6 +1452,7 @@ function initFirebaseListeners() {
     PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
     renderProjetos(); renderDash(); renderPipeline();
     if(document.getElementById('page-mapa')?.classList.contains('on')) renderMapa();
+    if(AGENDA_LEITURAS.length) sincronizarBeneficiarias();
     setFbStatus(true);
   }, err => { setFbStatus(false); });
 
