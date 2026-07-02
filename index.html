@@ -3781,6 +3781,7 @@ function abrirHistoricoCliente(id){
 
 function renderHistoricoClienteModal(id){
   const hist=HISTORICO_LEITURAS[id]||[];
+  const cAgenda=AGENDA_LEITURAS.find(x=>x.id===id)||{};
   const kpisEl=document.getElementById('mhc-kpis');
   const tabelaEl=document.getElementById('mhc-tabela');
   if(!kpisEl||!tabelaEl)return;
@@ -3823,7 +3824,7 @@ function renderHistoricoClienteModal(id){
       <td style="padding:8px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>
       <td style="padding:8px 10px;text-align:center">${h.consumo||'—'}</td>
       <td style="padding:8px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
-      <td style="padding:8px 10px;color:#888">${h.proximaLeitura?new Date(h.proximaLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+      <td style="padding:8px 10px;color:#888">${(()=>{const pl=i===0?(cAgenda.proxLeitura||h.proximaLeitura):h.proximaLeitura;return pl?new Date(pl+'T00:00:00').toLocaleDateString('pt-BR'):'—';})()}</td>
       <td style="padding:8px 10px;color:#888;font-style:italic;font-size:12px">${h.obs||''}</td>
     </tr>`).join('')}</tbody>
   </table>`;
