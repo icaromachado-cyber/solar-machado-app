@@ -3715,7 +3715,31 @@ function wppMassaLeituras(){
   });
 }
 
-let _regLeituraData=null; // {agendaId, ucId, nome, cliente, uc, proxLeitura, isBen}
+let _regLeituraData=null; // {agendaId, ucId, nome, cliente, uc, proxLeitura, isBen, editId}
+
+function editarLeitura(histId){
+  // Busca em todos os ucIds
+  let h=null;
+  for(const ucId of Object.keys(HISTORICO_LEITURAS)){
+    h=HISTORICO_LEITURAS[ucId].find(x=>x.id===histId);
+    if(h)break;
+  }
+  if(!h)return;
+  const c=AGENDA_LEITURAS.find(x=>x.id===h.ucId)||{};
+  _regLeituraData={agendaId:h.ucId, ucId:h.ucId, nome:h.nomeTitular||c.nome||h.cliente, cliente:h.cliente||'', uc:h.uc||h.ucId, proxLeitura:h.proximaLeitura||'', isBen:h.isBen||false, editId:histId};
+  document.getElementById('rl-info').innerHTML=
+    `<div style="font-weight:700;font-size:14px">${_regLeituraData.nome}</div>`+
+    `<div style="font-size:12px;color:#555;margin-top:3px">${_regLeituraData.cliente} · UC: ${_regLeituraData.uc||'—'}</div>`+
+    `<div style="font-size:11px;color:#f59e0b;margin-top:4px;font-weight:600">✎ Editando leitura de ${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</div>`;
+  document.getElementById('rl-data').value=h.data||'';
+  document.getElementById('rl-geracao').value=h.geracao||'';
+  document.getElementById('rl-consumo').value=h.consumo||'';
+  document.getElementById('rl-valor').value=h.valor||'';
+  document.getElementById('rl-proxima').value=h.proximaLeitura||'';
+  document.getElementById('rl-obs').value=h.obs||'';
+  closeMo('mo-hist-cliente');
+  document.getElementById('mo-reg-leitura').classList.add('open');
+}
 function registrarLeitura(agendaId){
   const c=AGENDA_LEITURAS.find(x=>x.id===agendaId);
   if(!c)return;
@@ -3758,20 +3782,28 @@ async function salvarRegistroLeitura(){
     const prox=new Date(data+'T00:00:00'); prox.setDate(prox.getDate()+30);
     proxStr=prox.toISOString().slice(0,10);
   }
+  const payload={ucId:d.ucId, uc:d.uc||'', cliente:d.cliente||d.nome, nomeTitular:d.nome,
+    data, geracao, consumo, valor, obs, proximaLeitura:proxStr, isBen:d.isBen||false};
   try{
-    await db.collection('historico_leituras').add({
-      ucId:d.ucId, uc:d.uc||'', cliente:d.cliente||d.nome, nomeTitular:d.nome,
-      data, geracao, consumo, valor, obs, proximaLeitura:proxStr, isBen:d.isBen||false,
-      registradoEm:firebase.firestore.FieldValue.serverTimestamp(),
-      registradoPor:usuarioAtual?.displayName||usuarioAtual?.email||''
-    });
-    if(!d.isBen && d.agendaId){
-      await db.collection('agenda_leituras').doc(d.agendaId).update({status:'ok',proxLeitura:proxStr});
+    if(d.editId){
+      await db.collection('historico_leituras').doc(d.editId).update({
+        ...payload, editadoEm:firebase.firestore.FieldValue.serverTimestamp(),
+        editadoPor:usuarioAtual?.displayName||usuarioAtual?.email||''
+      });
+      toast('✅ Leitura atualizada!','ok');
+    } else {
+      await db.collection('historico_leituras').add({
+        ...payload, registradoEm:firebase.firestore.FieldValue.serverTimestamp(),
+        registradoPor:usuarioAtual?.displayName||usuarioAtual?.email||''
+      });
+      if(!d.isBen && d.agendaId){
+        await db.collection('agenda_leituras').doc(d.agendaId).update({status:'ok',proxLeitura:proxStr});
+      }
+      toast('✅ Leitura registrada!','ok');
     }
-    toast('✅ Leitura registrada!','ok');
     closeMo('mo-reg-leitura');
-    if(_histClienteId && document.getElementById('mo-hist-cliente')?.classList.contains('open')){
-      document.getElementById('mo-hist-cliente').classList.add('open');
+    if(_histClienteId){
+      document.getElementById('mo-hist-cliente')?.classList.add('open');
       renderHistoricoClienteModal(_histClienteId);
     }
   }catch(e){toast('Erro: '+e.message,'er');}
@@ -3804,6 +3836,7 @@ function _tabelaHistoricoUC(hist){
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Fatura (R$)</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Próx. leitura</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Obs</th>
+      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc"></th>
     </tr></thead>
     <tbody>${hist.map((h,i)=>`<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
       <td style="padding:7px 10px;font-weight:${i===0?700:400}">${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
@@ -3812,6 +3845,7 @@ function _tabelaHistoricoUC(hist){
       <td style="padding:7px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
       <td style="padding:7px 10px;color:#888">${h.proximaLeitura?new Date(h.proximaLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
       <td style="padding:7px 10px;color:#888;font-style:italic;font-size:11.5px">${h.obs||''}</td>
+      <td style="padding:7px 6px;text-align:center"><button onclick="editarLeitura('${h.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px">✎</button></td>
     </tr>`).join('')}</tbody>
   </table>`;
 }
