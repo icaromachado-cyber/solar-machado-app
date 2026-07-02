@@ -3534,11 +3534,15 @@ async function atualizarTelLeitura(id,tel){
 // ── AGENDA ──────────────────────────────────────────────
 function initAgendaListener() {
   if (typeof db === 'undefined') return;
-  db.collection('visitas').orderBy('data','asc').orderBy('hora','asc').onSnapshot(snap => {
+  db.collection('visitas').orderBy('data','asc').onSnapshot(snap => {
     VISITAS = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    VISITAS.sort((a,b)=>{
+      if(a.data!==b.data) return a.data<b.data?-1:1;
+      return (a.hora||'')>(b.hora||'')?1:-1;
+    });
     if (document.getElementById('page-agenda')?.classList.contains('on')) renderAgenda();
     renderDashVisitas();
-  });
+  }, err => { console.error('visitas listener:', err); });
 }
 
 function renderAgenda() {
