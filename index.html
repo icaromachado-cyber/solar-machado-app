@@ -3846,7 +3846,8 @@ function registrarLeitura(agendaId){
 }
 function registrarLeituraBen(agendaId, benUc, benEnd, nomeTitular){
   const benEntry=AGENDA_LEITURAS.find(x=>String(x.uc)===String(benUc)&&x.tipo==='beneficiaria');
-  _regLeituraData={agendaId:benEntry?.id||null, ucId:benUc, nome:nomeTitular, cliente:'UC Beneficiária · '+benUc, uc:benUc, proxLeitura:benEntry?.proxLeitura||'', isBen:true, benEnd};
+  const benDocId='ben_'+String(benUc);
+  _regLeituraData={agendaId:benDocId, ucId:benUc, nome:nomeTitular, cliente:'UC Beneficiária · '+benUc, uc:benUc, proxLeitura:benEntry?.proxLeitura||'', isBen:true, benEnd};
   _abrirModalRegistroLeitura();
 }
 function _abrirModalRegistroLeitura(){
@@ -3903,7 +3904,9 @@ async function salvarRegistroLeitura(){
         ...payload, registradoEm:firebase.firestore.FieldValue.serverTimestamp(),
         registradoPor:usuarioAtual?.displayName||usuarioAtual?.email||''
       });
-      if(d.agendaId){
+      if(d.isBen && d.agendaId){
+        await db.collection('agenda_leituras').doc(d.agendaId).set({status:'ok',proxLeitura:proxStr,uc:String(d.uc),tipo:'beneficiaria'},{merge:true});
+      } else if(!d.isBen && d.agendaId){
         await db.collection('agenda_leituras').doc(d.agendaId).update({status:'ok',proxLeitura:proxStr});
       }
       toast('✅ Leitura registrada!','ok');
