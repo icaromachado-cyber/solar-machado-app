@@ -1167,7 +1167,7 @@ tr:hover td{background:#faf9f5}
         <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor da fatura (R$)</label>
         <input id="rl-valor" type="number" step="0.01" min="0" placeholder="0,00" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px">
+      <div id="rl-geracao-wrap" style="display:flex;flex-direction:column;gap:4px">
         <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Geração do sistema (kWh)</label>
         <input id="rl-geracao" type="number" step="0.1" min="0" placeholder="Ex: 450" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
       </div>
@@ -3832,6 +3832,7 @@ function editarLeitura(histId){
   document.getElementById('rl-modal-title').textContent='✎ Editar Leitura';
   document.getElementById('rl-btn-salvar').textContent='✎ Atualizar Leitura';
   document.getElementById('rl-ben-fields').style.display=h.isBen?'block':'none';
+  document.getElementById('rl-geracao-wrap').style.display=h.isBen?'none':'flex';
   document.getElementById('rl-compensado').value=h.compensado||'';
   document.getElementById('rl-credito').value=h.credito||'';
   closeMo('mo-hist-cliente');
@@ -3852,6 +3853,7 @@ function _abrirModalRegistroLeitura(){
   document.getElementById('rl-modal-title').textContent='📊 Registrar Leitura';
   document.getElementById('rl-btn-salvar').textContent='💾 Salvar Leitura';
   document.getElementById('rl-ben-fields').style.display=d.isBen?'block':'none';
+  document.getElementById('rl-geracao-wrap').style.display=d.isBen?'none':'flex';
   document.getElementById('rl-compensado').value='';
   document.getElementById('rl-credito').value='';
   document.getElementById('rl-info').innerHTML=
