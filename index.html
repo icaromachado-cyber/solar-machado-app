@@ -1180,6 +1180,20 @@ tr:hover td{background:#faf9f5}
         <input id="rl-proxima" type="date" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
       </div>
     </div>
+    <!-- Campos exclusivos para UC Beneficiária -->
+    <div id="rl-ben-fields" style="display:none;background:#e8f8ef;border:1px solid #b2e0c4;border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1D9E75;margin-bottom:10px">🟢 Dados da UC Beneficiária</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1D9E75">Energia Compensada (kWh)</label>
+          <input id="rl-compensado" type="number" step="0.1" min="0" placeholder="Ex: 280" style="padding:8px 10px;border:1px solid #b2e0c4;border-radius:8px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1D9E75">Crédito Acumulado (kWh)</label>
+          <input id="rl-credito" type="number" step="0.1" min="0" placeholder="Ex: 45" style="padding:8px 10px;border:1px solid #b2e0c4;border-radius:8px;font-size:13px">
+        </div>
+      </div>
+    </div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
       <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Observações (opcional)</label>
       <textarea id="rl-obs" rows="2" placeholder="Ex: Inversor com alarme, geração abaixo do esperado..." style="padding:8px 10px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;resize:vertical"></textarea>
@@ -3817,6 +3831,9 @@ function editarLeitura(histId){
   document.getElementById('rl-obs').value=h.obs||'';
   document.getElementById('rl-modal-title').textContent='✎ Editar Leitura';
   document.getElementById('rl-btn-salvar').textContent='✎ Atualizar Leitura';
+  document.getElementById('rl-ben-fields').style.display=h.isBen?'block':'none';
+  document.getElementById('rl-compensado').value=h.compensado||'';
+  document.getElementById('rl-credito').value=h.credito||'';
   closeMo('mo-hist-cliente');
   document.getElementById('mo-reg-leitura').classList.add('open');
 }
@@ -3834,6 +3851,9 @@ function _abrirModalRegistroLeitura(){
   const d=_regLeituraData;
   document.getElementById('rl-modal-title').textContent='📊 Registrar Leitura';
   document.getElementById('rl-btn-salvar').textContent='💾 Salvar Leitura';
+  document.getElementById('rl-ben-fields').style.display=d.isBen?'block':'none';
+  document.getElementById('rl-compensado').value='';
+  document.getElementById('rl-credito').value='';
   document.getElementById('rl-info').innerHTML=
     `<div style="font-weight:700;font-size:14px">${d.nome}</div>`+
     `<div style="font-size:12px;color:#555;margin-top:3px">${d.cliente} · UC: ${d.uc||'—'}</div>`+
@@ -3857,6 +3877,8 @@ async function salvarRegistroLeitura(){
   const valor=parseFloat(document.getElementById('rl-valor').value)||null;
   const obs=document.getElementById('rl-obs').value.trim();
   const proximaManual=document.getElementById('rl-proxima').value;
+  const compensado=d.isBen?(parseFloat(document.getElementById('rl-compensado').value)||null):null;
+  const credito=d.isBen?(parseFloat(document.getElementById('rl-credito').value)||null):null;
   let proxStr;
   if(proximaManual){
     proxStr=proximaManual;
@@ -3865,7 +3887,7 @@ async function salvarRegistroLeitura(){
     proxStr=prox.toISOString().slice(0,10);
   }
   const payload={ucId:d.ucId, uc:d.uc||'', cliente:d.cliente||d.nome, nomeTitular:d.nome,
-    data, geracao, consumo, valor, obs, proximaLeitura:proxStr, isBen:d.isBen||false};
+    data, geracao, consumo, valor, obs, compensado, credito, proximaLeitura:proxStr, isBen:d.isBen||false};
   try{
     if(d.editId){
       await db.collection('historico_leituras').doc(d.editId).update({
@@ -3908,30 +3930,39 @@ function abrirHistoricoCliente(id){
   document.getElementById('mo-hist-cliente').classList.add('open');
 }
 
-function _tabelaHistoricoUC(hist){
+function _tabelaHistoricoUC(hist, isBen=false){
   if(!hist.length) return '<div style="padding:16px;text-align:center;color:var(--txts);font-size:13px">Nenhuma leitura registrada.</div>';
+  const extraTh=isBen
+    ?'<th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center;color:#1D9E75">Compensado (kWh)</th>'
+     +'<th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center;color:#1D9E75">Crédito (kWh)</th>'
+    :'';
   return `<table style="width:100%;border-collapse:collapse;font-size:12.5px">
     <thead><tr style="background:#f7f6f1">
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Data</th>
-      <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Geração (kWh)</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Consumo (kWh)</th>
+      ${isBen?extraTh:'<th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Geração (kWh)</th>'}
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:center">Fatura (R$)</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Próx. leitura</th>
       <th style="padding:7px 10px;border-bottom:2px solid #e4e3dc;text-align:left">Obs</th>
     </tr></thead>
-    <tbody>${hist.map((h,i)=>`<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
+    <tbody>${hist.map((h,i)=>{
+      const extraTd=isBen
+        ?`<td style="padding:7px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.compensado||'—'}</td>`
+         +`<td style="padding:7px 10px;text-align:center;color:#2E3486;font-weight:600">${h.credito||'—'}</td>`
+        :`<td style="padding:7px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>`;
+      return `<tr style="border-bottom:1px solid #f0efe8;background:${i===0?'#f0faf5':'#fff'}">
       <td style="padding:7px 10px;font-weight:${i===0?700:400}">
         <div style="display:flex;align-items:center;gap:6px">
           <button onclick="editarLeitura('${h.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:11px;flex-shrink:0">✎</button>
           ${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}
         </div>
       </td>
-      <td style="padding:7px 10px;text-align:center;color:#FDC300;font-weight:600">${h.geracao||'—'}</td>
       <td style="padding:7px 10px;text-align:center">${h.consumo||'—'}</td>
+      ${extraTd}
       <td style="padding:7px 10px;text-align:center;color:#1D9E75;font-weight:600">${h.valor?'R$ '+parseFloat(h.valor).toFixed(2):'—'}</td>
       <td style="padding:7px 10px;color:#888">${h.proximaLeitura?new Date(h.proximaLeitura+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
       <td style="padding:7px 10px;color:#888;font-style:italic;font-size:11.5px">${h.obs||''}</td>
-    </tr>`).join('')}</tbody>
+    </tr>`;}).join('')}</tbody>
   </table>`;
 }
 
@@ -3981,7 +4012,7 @@ function renderHistoricoClienteModal(id){
         <span>🟢 UC Beneficiária ${i+1} · ${b.uc}${b.endereco?' — '+b.endereco:''}</span>
         <button onclick="abrirRegistroBenDoHistorico('${id}','${b.uc}','${escEnd}','${escNome}');event.stopPropagation()" style="background:#e8f8ef;border:1px solid #b2e0c4;color:#1D9E75;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px;font-weight:600">+ Registrar</button>
       </div>
-      ${_tabelaHistoricoUC(histBen)}
+      ${_tabelaHistoricoUC(histBen, true)}
     </div>`;
   });
 
