@@ -3601,11 +3601,11 @@ function renderAgendaLeituras(){
   const busca=(document.getElementById('al-busca')?.value||'').toLowerCase();
 
   function classificar(c){
-    if(c.status==='ok') return 'ok';
     if(!c.proxLeitura) return 'sem-data';
     const d=new Date(c.proxLeitura+'T00:00:00');
     if(d<hoje) return 'atrasada';
     if(d<=em7) return 'proxima';
+    if(c.status==='ok') return 'ok';
     return 'futura';
   }
 
