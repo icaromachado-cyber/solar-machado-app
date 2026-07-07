@@ -2445,7 +2445,7 @@ function atualizarPreview(){
   const saud=document.getElementById('pc-saud');
   if(saud){const n=nome?'<strong>'+nome+'</strong>, ':'';const ct=cidade?' em <strong>'+cidade+'</strong>':'';saud.innerHTML='Olá, '+n+'preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico'+ct+'. Confira:';}
   const kwpEl=document.getElementById('pc-kwp');if(kwpEl)kwpEl.textContent=kwp+' kWp';
-  const modSub=document.getElementById('pc-modulos-sub');if(modSub)modSub.textContent=(mods||'—')+'x '+(wp||'—')+'Wp'+(inv?' · '+inv+' '+pinv:'');
+  const modSub=document.getElementById('pc-modulos-sub');if(modSub)modSub.textContent=(mods||'—')+'x '+(wp||'—')+'Wp'+(inv?' · '+inv+(pinv?' '+pinv+' kW':''):'');
   const gerEl2=document.getElementById('pc-geracao');if(gerEl2)gerEl2.textContent=geracao?geracao.toLocaleString('pt-BR')+' kWh':'— kWh';
   const gerSub=document.getElementById('pc-geracao-sub');if(gerSub&&consumo)gerSub.textContent='Cobre ~'+Math.min(100,Math.round(geracao/consumo*100))+'% do consumo';else if(gerSub)gerSub.textContent='estimado/mês';
   const irr=[4.7,4.93,5.04,4.98,5.08,5.31,5.51,5.98,6.24,5.99,5.65,5.3];
