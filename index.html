@@ -765,6 +765,18 @@ tr:hover td{background:#faf9f5}
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Geração Mensal (kWh)</label><input type="number" id="pp-geracao" placeholder="800" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tarifa kWh (R$)</label><input type="number" id="pp-tarifa" placeholder="0.85" step="0.01" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
           </div>
+          <!-- Sistema Híbrido -->
+          <div style="margin-bottom:14px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;background:#f0faf5;border:1px solid #b2e0c4;border-radius:8px">
+              <input type="checkbox" id="pp-hibrido" onchange="toggleHibridoForm();atualizarPreview()" style="width:16px;height:16px;accent-color:#1D9E75">
+              <span style="font-size:13px;font-weight:600;color:#1D9E75">🔋 Sistema Híbrido (com bateria)</span>
+            </label>
+            <div id="pp-bat-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+              <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Marca/Modelo da Bateria</label><input type="text" id="pp-bat-marca" placeholder="Ex: BYD Battery-Box 5.1" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+              <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Capacidade (kWh)</label><input type="number" id="pp-bat-cap" placeholder="Ex: 5.1" step="0.1" min="0" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+              <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Autonomia estimada (horas)</label><input type="number" id="pp-bat-aut" placeholder="Ex: 4" step="0.5" min="0" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            </div>
+          </div>
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--am)">💰 Investimento</div>
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor Total (R$) *</label><input type="number" id="pp-valor" placeholder="15000" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
@@ -847,7 +859,7 @@ tr:hover td{background:#faf9f5}
                     <div style="font-size:9px;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase;margin-top:2px">Energia solar e soluções elétricas</div>
                   </div>
                 </div>
-                <div style="text-align:right"><div style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px">PROPOSTA COMERCIAL</div><div style="font-size:8.5px;color:rgba(255,255,255,.5);margin-top:2px">SISTEMA DE ENERGIA SOLAR</div></div>
+                <div style="text-align:right"><div style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px">PROPOSTA COMERCIAL</div><div id="pc-tipo" style="font-size:8.5px;color:rgba(255,255,255,.5);margin-top:2px">SISTEMA DE ENERGIA SOLAR</div></div>
               </div>
               <div style="padding:12px 18px 8px;font-size:11px;color:#333;line-height:1.6;border-bottom:1px solid #f0efe8" id="pc-saud">Segue abaixo a proposta personalizada para o seu sistema fotovoltaico.</div>
               <div style="padding:10px 18px 8px">
@@ -855,6 +867,7 @@ tr:hover td{background:#faf9f5}
                 <div style="display:flex;gap:8px">
                   <div style="flex:1;display:flex;align-items:center;gap:8px;background:#f7f6f1;border-radius:8px;padding:9px 10px"><div style="width:32px;height:32px;background:#2E3486;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">☀</div><div><div style="font-size:8.5px;color:#888;text-transform:uppercase;letter-spacing:.5px">Sistema</div><div style="font-size:15px;font-weight:900;color:#2E3486" id="pc-kwp">— kWp</div><div style="font-size:9px;color:#555" id="pc-modulos-sub">—</div></div></div>
                   <div style="flex:1;display:flex;align-items:center;gap:8px;background:#f7f6f1;border-radius:8px;padding:9px 10px"><div style="width:32px;height:32px;background:#FDC300;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚡</div><div><div style="font-size:8.5px;color:#888;text-transform:uppercase;letter-spacing:.5px">Geração Mensal</div><div style="font-size:15px;font-weight:900;color:#2E3486" id="pc-geracao">— kWh</div><div style="font-size:9px;color:#555" id="pc-geracao-sub">estimado/mês</div></div></div>
+                  <div id="pc-bat-card" style="display:none;flex:1;align-items:center;gap:8px;background:#f0faf5;border-radius:8px;padding:9px 10px;border:1px solid #b2e0c4"><div style="width:32px;height:32px;background:#1D9E75;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔋</div><div><div style="font-size:8.5px;color:#888;text-transform:uppercase;letter-spacing:.5px">Bateria</div><div style="font-size:15px;font-weight:900;color:#1D9E75" id="pc-bat-kwh">— kWh</div><div style="font-size:9px;color:#555" id="pc-bat-sub">—</div></div></div>
                 </div>
               </div>
               <div style="padding:6px 18px 8px">
@@ -869,7 +882,7 @@ tr:hover td{background:#faf9f5}
               </div>
               <div style="display:flex;padding:8px 18px 10px;gap:12px">
                 <div style="flex:1"><div style="font-size:9.5px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Componentes</div>
-                  <div style="font-size:9.5px;color:#333;line-height:2"><div id="pc-comp-inversor">✓ Inversor —</div><div id="pc-comp-modulos">✓ — módulos</div><div>✓ String Box e proteção</div><div>✓ Estrutura de fixação</div><div>✓ Projeto e homologação</div><div>✓ Instalação</div></div>
+                  <div style="font-size:9.5px;color:#333;line-height:2"><div id="pc-comp-inversor">✓ Inversor —</div><div id="pc-comp-modulos">✓ — módulos</div><div id="pc-comp-bateria" style="display:none;color:#1D9E75">✓ Bateria —</div><div>✓ String Box e proteção</div><div>✓ Estrutura de fixação</div><div>✓ Projeto e homologação</div><div>✓ Instalação</div></div>
                 </div>
                 <div id="pc-fin" style="flex:1;display:none">
                   <div class="fin-hdr" style="background:#2E3486;color:#fff;font-size:9.5px;font-weight:700;text-align:center;padding:6px;border-radius:5px 5px 0 0;text-transform:uppercase">Financiamento</div>
@@ -2052,6 +2065,7 @@ function setTab(i) {
   document.querySelectorAll('.tcon').forEach((c,idx)=>c.style.display = idx===i?'block':'none');
 }
 function closeMo(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('open');el.style.display='';}
+function toggleHibridoForm(){const wrap=document.getElementById('pp-bat-wrap');if(!wrap)return;wrap.style.display=document.getElementById('pp-hibrido')?.checked?'grid':'none';}
 function fmt_data(d){if(!d)return'—'; return new Date(d+'T12:00').toLocaleDateString('pt-BR');}
 function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});}
 function toast(msg,type){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>{t.className='toast';},2800);}
@@ -2453,6 +2467,13 @@ function atualizarPreview(){
   if(grafico&&parseFloat(kwp)>0){const gens=irr.map(i=>Math.round(parseFloat(kwp)*i*30*0.79));const maxG=Math.max(...gens);grafico.innerHTML=gens.map((g,i)=>{const h=Math.round((g/maxG)*36);const cor=i===7||i===8?'#FDC300':'#2E3486';return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px"><div style="font-size:6.5px;color:#2E3486;font-weight:600">'+g+'</div><div style="width:100%;background:'+cor+';border-radius:2px 2px 0 0;height:'+h+'px"></div></div>';}).join('');}
   const ci=document.getElementById('pc-comp-inversor');if(ci)ci.textContent='✓ Inversor '+(inv?inv+' '+pinv:'—')+' kW';
   const cm=document.getElementById('pc-comp-modulos');if(cm)cm.textContent='✓ '+(mods||'—')+' módulos '+(wp||'—')+' Wp';
+  const hibrido=document.getElementById('pp-hibrido')?.checked;
+  const batMarca=document.getElementById('pp-bat-marca')?.value||'';
+  const batCap=parseFloat(document.getElementById('pp-bat-cap')?.value)||0;
+  const batAut=parseFloat(document.getElementById('pp-bat-aut')?.value)||0;
+  const tipoEl=document.getElementById('pc-tipo');if(tipoEl)tipoEl.textContent=hibrido?'SISTEMA SOLAR HÍBRIDO':'SISTEMA DE ENERGIA SOLAR';
+  const batCard=document.getElementById('pc-bat-card');if(batCard){batCard.style.display=hibrido?'flex':'none';const bkEl=document.getElementById('pc-bat-kwh');if(bkEl)bkEl.textContent=batCap?batCap.toLocaleString('pt-BR')+' kWh':'— kWh';const bsEl=document.getElementById('pc-bat-sub');if(bsEl)bsEl.textContent=batAut?'~'+batAut+'h autonomia':(batMarca||'—');}
+  const cBat=document.getElementById('pc-comp-bateria');if(cBat){cBat.style.display=hibrido?'block':'none';if(hibrido)cBat.textContent='✓ Bateria '+(batMarca||'—')+(batCap?' · '+batCap+' kWh':'');}
   const valEl=document.getElementById('pc-valor');if(valEl)valEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
   const finDiv=document.getElementById('pc-fin');const parSub=document.getElementById('pc-parcela-sub');const aVistaEl=document.getElementById('pc-avista');
   if(modalidade==='avista'){if(finDiv)finDiv.style.display='none';if(parSub)parSub.textContent='';}
