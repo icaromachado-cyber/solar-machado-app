@@ -2111,7 +2111,7 @@ auth.onAuthStateChanged(async user=>{
     window._nomeUsuarioLogado = nomeUsuario;
     document.getElementById('usr-nome').textContent = nomeUsuario;
     document.getElementById('usr-email-display').textContent = user.email;
-    const ADMINS = ['icarocaio18@gmail.com','shelydamachado@solarmachadoeng.com.br','brendavirna@hotmail.com'];
+    const ADMINS = ['icarocaio18@gmail.com','shelydamachado@solarmachadoeng.com.br','brendavirna@hotmail.com','projetos@solarmachado.com.br'];
     isAdmin = ADMINS.includes(user.email);
     if (isAdmin) {
       document.getElementById('btn-usuarios').style.display = 'block';
@@ -2126,7 +2126,7 @@ auth.onAuthStateChanged(async user=>{
 
       if (perfil.exists && !perfil.data().desativado) {
         nomeUsuario = perfil.data().nome || eq?.nome || user.email;
-        const isAdminEmail = ['icarocaio18@gmail.com','shelydamachado@solarmachadoeng.com.br','brendavirna@hotmail.com'].includes(user.email);
+        const isAdminEmail = ['icarocaio18@gmail.com','shelydamachado@solarmachadoeng.com.br','brendavirna@hotmail.com','projetos@solarmachado.com.br'].includes(user.email);
         isAdmin = perfil.data().perfil === 'admin' || isAdminEmail;
         // Corrigir perfil no Firestore se email é admin mas perfil está como usuario
         if (isAdminEmail && perfil.data().perfil !== 'admin') {
