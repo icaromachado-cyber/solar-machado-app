@@ -3711,7 +3711,7 @@ function renderAgendaLeituras(){
           +'</div>'
           +'<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'
           +'<button onclick="registrarLeituraBen(\''+c.id+'\',\''+escUc+'\',\''+escEnd+'\',\''+nomeTit+'\')" style="background:#1D9E75;color:#fff;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap">📊 Registrar</button>'
-          +'<input type="date" value="'+(benEntry.proxLeitura||'')+'" onchange="atualizarDataLeitura(\''+benId+'\',this.value)" style="padding:4px 6px;border:1px solid #b2e0c4;border-radius:6px;font-size:11px">'
+          +'<input type="date" value="'+(benEntry.proxLeitura||'')+'" onchange="atualizarDataLeituraBen(\''+benId+'\',\''+escUc+'\',this.value)" style="padding:4px 6px;border:1px solid #b2e0c4;border-radius:6px;font-size:11px">'
           +'</div>'
           +'</div>';
       }).join('');
@@ -4076,6 +4076,10 @@ async function marcarLeituraFeita(id){
 async function atualizarDataLeitura(id,data){
   try{await db.collection('agenda_leituras').doc(id).update({proxLeitura:data,status:''});toast('Data atualizada','ok');}
   catch(e){toast('Erro','er');}
+}
+async function atualizarDataLeituraBen(id,uc,data){
+  try{await db.collection('agenda_leituras').doc(id).set({proxLeitura:data,status:'',uc:String(uc),tipo:'beneficiaria'},{merge:true});toast('Data atualizada','ok');}
+  catch(e){toast('Erro: '+e.message,'er');}
 }
 async function atualizarTelLeitura(id,tel){
   try{await db.collection('agenda_leituras').doc(id).update({telefone:tel});}
