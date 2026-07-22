@@ -3830,6 +3830,22 @@ function wppMassaLeituras(){
 
 let _regLeituraData=null; // {agendaId, ucId, nome, cliente, uc, proxLeitura, isBen, editId}
 
+async function excluirLeitura(histId){
+  let h=null;
+  for(const ucId of Object.keys(HISTORICO_LEITURAS)){
+    h=HISTORICO_LEITURAS[ucId].find(x=>x.id===histId);
+    if(h)break;
+  }
+  if(!h)return;
+  const dt=h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):histId;
+  if(!confirm('Excluir leitura de '+dt+'?\nEssa ação não pode ser desfeita.'))return;
+  try{
+    await db.collection('historico_leituras').doc(histId).delete();
+    toast('Leitura excluída','ok');
+    if(_histClienteId)renderHistoricoClienteModal(_histClienteId);
+  }catch(e){toast('Erro: '+e.message,'er');}
+}
+
 function editarLeitura(histId){
   // Busca em todos os ucIds
   let h=null;
@@ -3992,6 +4008,7 @@ function _tabelaHistoricoUC(hist, isBen=false){
       <td style="padding:7px 10px;font-weight:${i===0?700:400}">
         <div style="display:flex;align-items:center;gap:6px">
           <button onclick="editarLeitura('${h.id}')" style="background:var(--azs);border:1px solid #b5d4f4;color:var(--az);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:11px;flex-shrink:0">✎</button>
+          <button onclick="excluirLeitura('${h.id}')" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:11px;flex-shrink:0">🗑</button>
           ${h.data?new Date(h.data+'T00:00:00').toLocaleDateString('pt-BR'):'—'}
         </div>
       </td>
