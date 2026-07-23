@@ -1742,11 +1742,33 @@ function drop(ev, novaEtapa) {
 // ══════════════════════════════════════════
 // DETALHES E HISTÓRICO
 // ══════════════════════════════════════════
+function copiarTextoFallback(texto){
+  const ta=document.createElement('textarea');
+  ta.value=texto;
+  ta.style.position='fixed';
+  ta.style.top='-9999px';
+  ta.style.left='-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+  document.body.removeChild(ta);
+  return ok;
+}
 function copiarTexto(texto,label){
   if(!texto||texto==='—'){toast('Nada para copiar.','er');return;}
-  navigator.clipboard.writeText(texto).then(()=>{
-    toast('✅ '+(label||'Copiado')+' copiado!','ok');
-  }).catch(()=>{toast('Não foi possível copiar.','er');});
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(texto).then(()=>{
+      toast('✅ '+(label||'Copiado')+' copiado!','ok');
+    }).catch(()=>{
+      if(copiarTextoFallback(texto)) toast('✅ '+(label||'Copiado')+' copiado!','ok');
+      else toast('Não foi possível copiar.','er');
+    });
+  } else {
+    if(copiarTextoFallback(texto)) toast('✅ '+(label||'Copiado')+' copiado!','ok');
+    else toast('Não foi possível copiar.','er');
+  }
 }
 function openDet(id){
   const p=PROJETOS.find(x=>x.id===id); if(!p) return;
