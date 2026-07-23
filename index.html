@@ -1742,6 +1742,12 @@ function drop(ev, novaEtapa) {
 // ══════════════════════════════════════════
 // DETALHES E HISTÓRICO
 // ══════════════════════════════════════════
+function copiarTexto(texto,label){
+  if(!texto||texto==='—'){toast('Nada para copiar.','er');return;}
+  navigator.clipboard.writeText(texto).then(()=>{
+    toast('✅ '+(label||'Copiado')+' copiado!','ok');
+  }).catch(()=>{toast('Não foi possível copiar.','er');});
+}
 function openDet(id){
   const p=PROJETOS.find(x=>x.id===id); if(!p) return;
   // Histórico completo — todos os chamados do projeto (ativos e resolvidos)
@@ -1762,10 +1768,10 @@ function openDet(id){
   document.getElementById('det-content').innerHTML=
     '<div class="det-sec"><div class="det-sec-ttl">👤 Dados do Cliente</div>'
     +'<div class="det-row"><span>Nome</span><span style="font-size:12px;text-align:right;max-width:55%">'+(p.nome||'—')+'</span></div>'
-    +'<div class="det-row"><span>CPF</span><span><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.cpf||'—')+'</code></span></div>'
-    +'<div class="det-row"><span>Nascimento</span><span>'+fmt_data(p.dataNascimento)+'</span></div>'
+    +'<div class="det-row"><span>CPF</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.cpf||'—')+'</code>'+(p.cpf?'<span onclick="copiarTexto(\''+p.cpf.replace(/'/g,"\\'")+'\',\'CPF\')" title="Copiar CPF" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
+    +'<div class="det-row"><span>Nascimento</span><span style="display:inline-flex;align-items:center;gap:5px">'+fmt_data(p.dataNascimento)+(p.dataNascimento?'<span onclick="copiarTexto(\''+fmt_data(p.dataNascimento)+'\',\'Data de nascimento\')" title="Copiar data de nascimento" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>WhatsApp</span><span>'+wppHtml+'</span></div>'
-    +'<div class="det-row"><span>UC</span><span><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code></span></div>'
+    +'<div class="det-row"><span>UC</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code>'+(p.uc?'<span onclick="copiarTexto(\''+String(p.uc).replace(/'/g,"\\'")+'\',\'UC\')" title="Copiar UC" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>Endereço</span><span style="font-size:11px;text-align:right;max-width:60%">'+(p.end||'—')+'</span></div>'
     +'<div class="det-row"><span>Localização</span><span>'+mapsHtml+'</span></div>'
     +'<div class="det-row"><span>Beneficiário</span><span>'+(p.possuiBeneficiario||'Não')+'</span></div>'
