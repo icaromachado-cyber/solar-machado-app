@@ -1765,6 +1765,18 @@ function openDet(id){
   if(p.dataInicio&&p.dataLigacao){const dias=Math.round((new Date(p.dataLigacao)-new Date(p.dataInicio))/86400000);const cor=dias<=30?'#1D9E75':dias<=60?'#f59e0b':'#D85A30';diasHtml='<div class="det-row"><span>⏱ Prazo aquisição→ligação</span><span style="font-weight:700;color:'+cor+'">'+dias+' dias</span></div>';}
   else if(p.dataInicio){const dias=Math.round((new Date()-new Date(p.dataInicio))/86400000);diasHtml='<div class="det-row"><span>⏱ Em andamento há</span><span style="font-weight:700;color:#f59e0b">'+dias+' dias</span></div>';}
   const chamadosHtml=hist.length?hist.map(ch=>{const dtAb=ch.dataAbertura?new Date(ch.dataAbertura).toLocaleString('pt-BR'):(ch.data?fmt_data(ch.data):'—');const pc={'Urgente':'#D85A30','Alta':'#f59e0b','Normal':'#3b82f6'}[ch.prioridade]||'#888';return '<div class="hist-item" style="border-left:3px solid '+pc+';padding-left:10px"><div class="hist-hdr"><span class="hist-tipo">'+ch.tipo+'</span><span class="hist-data">'+fmt_data(ch.data)+'</span></div><div class="hist-desc">'+ch.desc+'</div><div style="font-size:11px;color:var(--txts);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap">'+(ch.abertoPorNome?'<span>✍️ <strong>'+ch.abertoPorNome+'</strong></span>':'')+(ch.responsavel?'<span>👤 Resp: <strong>'+ch.responsavel+'</strong></span>':'')+'<span>🕐 '+dtAb+'</span>'+(ch.prioridade?'<span style="color:'+pc+';font-weight:600">⚡ '+ch.prioridade+'</span>':'')+'</div>'+(ch.res?'<div style="font-size:11.5px;color:var(--txts);margin-top:4px;padding-top:4px;border-top:1px solid #f0efe8">↳ <em>'+ch.res+'</em></div>':'')+'</div>';}).join(''):'<div class="empty">Sem chamados.</div>';
+  const ESTADOS_NOME={PI:'Piauí',MA:'Maranhão',CE:'Ceará'};
+  const beneficiariosHtml=(p.possuiBeneficiario==='Sim'&&(p.beneficiarios||[]).length)
+    ?(p.beneficiarios||[]).map((b,i)=>'<div class="det-row"><span>UC Ben. '+(i+1)+'</span><span style="text-align:right;font-size:11.5px">'+(b.uc||'—')+(b.porcentagem?' — '+b.porcentagem+'%':'')+(b.endereco?'<br><span style="color:var(--txts);font-size:10.5px">'+b.endereco+'</span>':'')+'</span></div>').join('')
+    :'';
+  const modulosList=(p.modulos_list||[]).length?p.modulos_list:(p.modulos||p.wpMod?[{marca:p.inversor||'',qtd:p.modulos,wp:p.wpMod}]:[]);
+  const modulosHtml=modulosList.length
+    ?modulosList.map((m,i)=>'<div class="det-row"><span>Módulo '+(i+1)+'</span><span>'+(m.qtd||'—')+'x '+(m.wp||'—')+'Wp'+(m.marca?' — '+m.marca:'')+'</span></div>').join('')
+    :'<div class="det-row"><span>Módulos</span><span>—</span></div>';
+  const inversoresList=(p.inversores_list||[]).length?p.inversores_list:(p.inversor?[{marca:p.inversor,pot:p.potInv,qtd:1}]:[]);
+  const inversoresHtml=inversoresList.length
+    ?inversoresList.map((v,i)=>'<div class="det-row"><span>Inversor '+(i+1)+'</span><span>'+(v.qtd>1?v.qtd+'x ':'')+(v.marca||'—')+(v.pot?' — '+v.pot+' kW':'')+'</span></div>').join('')
+    :'<div class="det-row"><span>Inversor</span><span>—</span></div>';
   document.getElementById('det-content').innerHTML=
     '<div class="det-sec"><div class="det-sec-ttl">👤 Dados do Cliente</div>'
     +'<div class="det-row"><span>Nome</span><span style="font-size:12px;text-align:right;max-width:55%">'+(p.nome||'—')+'</span></div>'
@@ -1774,15 +1786,22 @@ function openDet(id){
     +'<div class="det-row"><span>UC</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code>'+(p.uc?'<span onclick="copiarTexto(\''+String(p.uc).replace(/'/g,"\\'")+'\',\'UC\')" title="Copiar UC" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>Endereço</span><span style="font-size:11px;text-align:right;max-width:60%">'+(p.end||'—')+'</span></div>'
     +'<div class="det-row"><span>Localização</span><span>'+mapsHtml+'</span></div>'
+    +'<div class="det-row"><span>Estado</span><span>'+(ESTADOS_NOME[p.estado]||p.estado||'—')+'</span></div>'
     +'<div class="det-row"><span>Beneficiário</span><span>'+(p.possuiBeneficiario||'Não')+'</span></div>'
+    +beneficiariosHtml
     +'</div>'
     +'<div class="det-sec"><div class="det-sec-ttl">⚡ Sistema Fotovoltaico</div>'
     +'<div class="det-row"><span>Potência</span><span style="font-weight:700;color:var(--az)">'+(parseFloat(p.kwp)||0).toFixed(2)+' kWp</span></div>'
-    +'<div class="det-row"><span>Módulos</span><span>'+(p.modulos||'—')+'x '+(p.wpMod||'—')+'Wp</span></div>'
-    +'<div class="det-row"><span>Inversor</span><span>'+(p.inversor||'—')+(p.potInv?' — '+p.potInv+' kW':'')+'</span></div>'
+    +modulosHtml
+    +inversoresHtml
     +'<div class="det-row"><span>Tensão</span><span>'+(p.tensao||'—')+'</span></div>'
     +'<div class="det-row"><span>Montador</span><span>'+(p.montador||'—')+'</span></div>'
     +'<div class="det-row"><span>Valor</span><span style="font-weight:600">R$ '+((parseFloat(p.valor)||0).toLocaleString('pt-BR',{minimumFractionDigits:2}))+'</span></div>'
+    +'</div>'
+    +'<div class="det-sec"><div class="det-sec-ttl">🛡 Proteção</div>'
+    +'<div class="det-row"><span>Disjuntor do Medidor</span><span>'+(p.protMedidor?p.protMedidor+' A':'—')+'</span></div>'
+    +'<div class="det-row"><span>Disjuntor CA</span><span>'+(p.protCaDisj?p.protCaDisj+' A':'—')+'</span></div>'
+    +'<div class="det-row"><span>DPS CA</span><span>'+(p.protCaDps||'—')+'</span></div>'
     +'</div>'
     +'<div class="det-sec"><div class="det-sec-ttl">📅 Datas & Etapa</div>'
     +'<div class="det-row"><span>Etapa</span><span style="font-weight:600;color:var(--az)">'+(p.etapa||'—')+'</span></div>'
