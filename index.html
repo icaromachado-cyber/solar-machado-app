@@ -1257,6 +1257,7 @@ tr:hover td{background:#faf9f5}
         <div class="fg">
           <div class="fgrp"><label>Valor do Projeto (R$)</label><input type="number" id="p-val"></div>
           <div class="fgrp"><label>Potência Total (kWp)</label><input type="number" step="0.01" id="p-kwp" readonly style="background:#f7f6f1"></div>
+          <div class="fgrp"><label>Geração Mensal Estimada (kWh)</label><input type="number" step="1" id="p-ger-mensal" placeholder="Ex: 950"></div>
           <div class="fgrp"><label>Montador Responsável</label><input type="text" id="p-mont"></div>
           <div class="fgrp"><label>Tensão de Fornecimento</label><select id="p-tensao"><option value="">Selecionar</option><option value="Monofásico">Monofásico (127V)</option><option value="Bifásico">Bifásico (220V)</option><option value="Trifásico">Trifásico (220V/380V)</option></select></div>
         </div>
@@ -1296,6 +1297,7 @@ tr:hover td{background:#faf9f5}
         <div class="fg">
           <div class="fgrp"><label>Data Início</label><input type="date" id="p-dini"></div>
           <div class="fgrp"><label>Data Ligação</label><input type="date" id="p-dlig"></div>
+          <div class="fgrp"><label>CEP</label><input type="text" id="p-cep" placeholder="64000-000" maxlength="9" oninput="mascaraCep(this)" onblur="buscarCep(this.value)"></div>
           <div class="fgrp full"><label>Endereço</label><input type="text" id="p-end" placeholder="Rua, número, bairro, cidade"></div>
           <div class="fgrp"><label>Latitude</label><input type="text" id="p-lat" placeholder="-5.0920"></div>
           <div class="fgrp"><label>Longitude</label><input type="text" id="p-lng" placeholder="-42.8019"></div>
@@ -1806,6 +1808,7 @@ function openDet(id){
     +'<div class="det-row"><span>Nascimento</span><span style="display:inline-flex;align-items:center;gap:5px">'+fmt_data(p.dataNascimento)+(p.dataNascimento?'<span onclick="copiarTexto(\''+fmt_data(p.dataNascimento)+'\',\'Data de nascimento\')" title="Copiar data de nascimento" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>WhatsApp</span><span>'+wppHtml+'</span></div>'
     +'<div class="det-row"><span>UC</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code>'+(p.uc?'<span onclick="copiarTexto(\''+String(p.uc).replace(/'/g,"\\'")+'\',\'UC\')" title="Copiar UC" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
+    +'<div class="det-row"><span>CEP</span><span style="display:inline-flex;align-items:center;gap:5px">'+(p.cep||'—')+(p.cep?'<span onclick="copiarTexto(\''+p.cep.replace(/'/g,"\\'")+'\',\'CEP\')" title="Copiar CEP" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>Endereço</span><span style="font-size:11px;text-align:right;max-width:60%">'+(p.end||'—')+'</span></div>'
     +'<div class="det-row"><span>Localização</span><span>'+mapsHtml+'</span></div>'
     +'<div class="det-row"><span>Estado</span><span>'+(ESTADOS_NOME[p.estado]||p.estado||'—')+'</span></div>'
@@ -1814,6 +1817,7 @@ function openDet(id){
     +'</div>'
     +'<div class="det-sec"><div class="det-sec-ttl">⚡ Sistema Fotovoltaico</div>'
     +'<div class="det-row"><span>Potência</span><span style="font-weight:700;color:var(--az)">'+(parseFloat(p.kwp)||0).toFixed(2)+' kWp</span></div>'
+    +(p.geracaoMensalEstimada?'<div class="det-row"><span>Geração Mensal Estimada</span><span style="font-weight:600;color:#1D9E75">'+(+p.geracaoMensalEstimada).toLocaleString('pt-BR')+' kWh</span></div>':'')
     +modulosHtml
     +inversoresHtml
     +'<div class="det-row"><span>Tensão</span><span>'+(p.tensao||'—')+'</span></div>'
@@ -1872,6 +1876,26 @@ function atualizarBtnNovo(pagina) {
   }
 }
 
+function mascaraCep(el){
+  let v=el.value.replace(/\D/g,'').slice(0,8);
+  if(v.length>5) v=v.slice(0,5)+'-'+v.slice(5);
+  el.value=v;
+}
+function buscarCep(cep){
+  const digitos=(cep||'').replace(/\D/g,'');
+  if(digitos.length!==8) return;
+  fetch('https://viacep.com.br/ws/'+digitos+'/json/')
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.erro){toast('CEP não encontrado.','er');return;}
+      const partes=[d.logradouro,d.bairro,d.localidade+(d.uf?'/'+d.uf:'')].filter(Boolean);
+      const endEl=document.getElementById('p-end');
+      if(endEl && !endEl.value) endEl.value=partes.join(', ');
+      const estEl=document.getElementById('p-est');
+      if(estEl && ['PI','MA','CE'].includes(d.uf)) estEl.value=d.uf;
+    })
+    .catch(()=>{toast('Não foi possível buscar o CEP.','er');});
+}
 function openModalProj() {
   editProjId = null; document.getElementById('mpt').textContent = 'Novo Projeto';
   document.getElementById('mo-proj').classList.add('open');
@@ -1903,7 +1927,8 @@ function openEditProj(id) {
   sf('p-est',p.estado); sf('p-mont',p.montador); sf('p-tensao',p.tensao);
   sf('p-prot-med',p.protMedidor); sf('p-prot-ca-disj',p.protCaDisj); sf('p-prot-ca-dps',p.protCaDps);
   sf('p-dini',p.dataInicio); sf('p-dlig',p.dataLigacao); sf('p-obs',p.obs);
-  sf('p-end',p.end); sf('p-lat',p.lat); sf('p-lng',p.lng);
+  sf('p-end',p.end); sf('p-lat',p.lat); sf('p-lng',p.lng); sf('p-cep',p.cep);
+  sf('p-ger-mensal',p.geracaoMensalEstimada);
   // Carregar listas do projeto
   beneficiarios = (p.beneficiarios||[]).map(b=>({...b, id:b.id||Date.now()+Math.random()}));
   modulos       = (p.modulos_list||[]).map(m=>({...m, id:m.id||Date.now()+Math.random()}));
@@ -1931,10 +1956,11 @@ function saveProjeto(){
     cpf:g('p-cpf'), tel:g('p-tel'), uc:g('p-uc'), estado:g('p-est'),
     etapa:g('p-etapa'), possuiBeneficiario:g('p-ben'),
     kwp:parseFloat(g('p-kwp'))||0, valor:parseFloat(g('p-val'))||0,
+    geracaoMensalEstimada:parseFloat(g('p-ger-mensal'))||0,
     montador:g('p-mont'), tensao:g('p-tensao'),
     protMedidor:g('p-prot-med'), protCaDisj:g('p-prot-ca-disj'), protCaDps:g('p-prot-ca-dps'),
     dataInicio:g('p-dini'), dataLigacao:g('p-dlig'), obs:g('p-obs'),
-    end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'),
+    end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'), cep:g('p-cep'),
     beneficiarios:   g('p-ben')==='Sim' ? beneficiarios : [],
     modulos_list:    modulos,
     inversores_list: inversores,
