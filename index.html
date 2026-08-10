@@ -2205,7 +2205,7 @@ function openEditLeitura(id) {
     if(mftr) {
       mftr.style.justifyContent = 'space-between';
       mftr.innerHTML = `
-        <button id="btn-excluir-leit" onclick="excluirLeitura()" style="background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir</button>
+        <button id="btn-excluir-leit" onclick="excluirLeituraGeracao()" style="background:#fdf0ec;border:1.5px solid #f5b8a0;color:#D85A30;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🗑 Excluir</button>
         <div style="display:flex;gap:8px;margin-left:auto">
           <button class="btn btn-g" onclick="closeMo('mo-leit')">Cancelar</button>
           <button class="btn btn-p" onclick="saveLeitura()">Salvar</button>
@@ -2230,7 +2230,7 @@ async function excluirProjeto(id) {
   } catch(e) { toast('Erro ao excluir: '+e.message, 'er'); }
 }
 
-function excluirLeitura() {
+function excluirLeituraGeracao() {
   if(!editLeituraId) return;
   if(confirm('Tem certeza que deseja excluir esta leitura? Esta ação não pode ser desfeita.')) {
     fbDelete('leituras', editLeituraId).then(() => {
@@ -4417,7 +4417,7 @@ function _abrirModalRegistroLeitura(){
   document.getElementById('rl-geracao').value='';
   document.getElementById('rl-consumo').value='';
   document.getElementById('rl-valor').value='';
-  document.getElementById('rl-proxima').value=d.proxLeitura||'';
+  document.getElementById('rl-proxima').value='';
   document.getElementById('rl-obs').value='';
   document.getElementById('mo-reg-leitura').classList.add('open');
 }
