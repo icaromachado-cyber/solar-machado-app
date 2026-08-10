@@ -518,6 +518,9 @@ tr:hover td{background:#faf9f5}
     <div class="ni" onclick="go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
     </div>
+    <div class="ni" onclick="go('wallbox');toggleMenu(false)">
+      <div class="ic">🔌</div><span>Wallbox</span>
+    </div>
     <div class="ni" onclick="go('historico');toggleMenu(false)">
       <div class="ic">🗂</div><span>Histórico</span>
     </div>
@@ -908,6 +911,108 @@ tr:hover td{background:#faf9f5}
         </div>
       </div>
 
+    </div>
+
+    <!-- PAGE WALLBOX -->
+    <div id="page-wallbox" class="page">
+      <div style="margin-bottom:20px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--az)">🔌 Orçamento Wallbox</h2>
+        <div style="font-size:13px;color:var(--txts);margin-top:4px">Monte o orçamento de instalação de carregador veicular e envie no WhatsApp</div>
+      </div>
+
+      <div class="prop-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+        <div style="background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:20px">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--am)">👤 Dados do Cliente</div>
+          <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Nome do Cliente *</label><input type="text" id="wb-nome" placeholder="Ex: João Silva" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Cidade</label><input type="text" id="wb-cidade" placeholder="Teresina" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Veículo (opcional)</label><input type="text" id="wb-veiculo" placeholder="Ex: BYD Dolphin" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+          </div>
+
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--am)">🔌 Carregador</div>
+          <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Modelo do Carregador</label><input type="text" id="wb-modelo" placeholder="Ex: Wallbox Pulsar Plus" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência (kW)</label><input type="number" id="wb-potencia" step="0.1" placeholder="Ex: 7.4" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Distância do Quadro (m)</label><input type="number" id="wb-distancia" placeholder="Ex: 8" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tipo de Instalação</label><select id="wb-tipo" onchange="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><option value="Parede">Fixação na Parede</option><option value="Pedestal">Pedestal</option></select></div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az)">💰 Itens do Orçamento</div>
+            <button type="button" class="btn btn-p" onclick="adicionarItemWallbox()" style="padding:5px 12px;font-size:12px">+ Adicionar Item</button>
+          </div>
+          <div id="lista-itens-wallbox" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div id="sem-itens-wallbox" style="font-size:13px;color:var(--txts);text-align:center;padding:16px">
+            Clique em "+ Adicionar Item" para incluir carregador, cabo, disjuntor, mão de obra etc.
+          </div>
+
+          <div class="fg" style="display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0">
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Condição de Pagamento</label><input type="text" id="wb-pagamento" placeholder="Ex: À vista ou em até 3x no cartão" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Observações</label><textarea id="wb-obs" oninput="atualizarPreviewWallbox()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;min-height:60px"></textarea></div>
+          </div>
+
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-y" onclick="gerarPNGWallbox()" style="flex:1;justify-content:center">📥 Baixar PNG para WhatsApp</button>
+            <button class="btn btn-g" onclick="limparWallbox()">🗑</button>
+          </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div style="position:sticky;top:80px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az)">Prévia</span>
+            <span style="font-size:11px;color:var(--txts)">480px</span>
+          </div>
+          <div style="overflow:auto;background:#e8e7e0;border-radius:12px;padding:16px;display:flex;justify-content:center">
+            <div id="wb-card" style="width:480px;background:#fff;font-family:Arial,sans-serif;border-radius:0;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15)">
+              <div style="background:#2E3486;padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <img src="data:image/png;base64,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" alt="" style="height:46px;width:auto;display:block;flex-shrink:0">
+                  <div>
+                    <div style="font-size:20px;color:#FDC300;letter-spacing:-0.3px;line-height:1.1"><span style="font-weight:800">Solar</span><span style="font-weight:400"> Machado</span></div>
+                    <div style="font-size:9px;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase;margin-top:2px">Energia solar e soluções elétricas</div>
+                  </div>
+                </div>
+                <div style="text-align:right"><div style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px">ORÇAMENTO</div><div style="font-size:8.5px;color:rgba(255,255,255,.5);margin-top:2px">CARREGADOR VEICULAR</div></div>
+              </div>
+              <div style="padding:12px 18px 8px;font-size:11px;color:#333;line-height:1.6;border-bottom:1px solid #f0efe8">Segue abaixo o orçamento para instalação do seu carregador veicular (wallbox).</div>
+              <div style="padding:10px 18px 8px">
+                <div style="font-size:10px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Cliente</div>
+                <div style="font-size:13px;font-weight:700;color:#333" id="wbc-nome">—</div>
+                <div style="font-size:11px;color:#666;margin-top:2px" id="wbc-cidade">—</div>
+              </div>
+              <div style="padding:6px 18px 8px">
+                <div style="font-size:10px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Carregador</div>
+                <div style="display:flex;gap:8px">
+                  <div style="flex:1;display:flex;align-items:center;gap:8px;background:#f7f6f1;border-radius:8px;padding:9px 10px"><div style="width:32px;height:32px;background:#2E3486;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔌</div><div><div style="font-size:8.5px;color:#888;text-transform:uppercase;letter-spacing:.5px">Potência</div><div style="font-size:15px;font-weight:900;color:#2E3486" id="wbc-potencia">— kW</div><div style="font-size:9px;color:#555" id="wbc-modelo">—</div></div></div>
+                  <div style="flex:1;display:flex;align-items:center;gap:8px;background:#f7f6f1;border-radius:8px;padding:9px 10px"><div style="width:32px;height:32px;background:#FDC300;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📏</div><div><div style="font-size:8.5px;color:#888;text-transform:uppercase;letter-spacing:.5px">Instalação</div><div style="font-size:15px;font-weight:900;color:#2E3486" id="wbc-tipo">—</div><div style="font-size:9px;color:#555" id="wbc-distancia">—</div></div></div>
+                </div>
+              </div>
+              <div style="padding:6px 18px 8px">
+                <div style="font-size:10px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Itens do Orçamento</div>
+                <div style="border:1px solid #e4e3dc;border-radius:6px;overflow:hidden">
+                  <div style="display:flex;justify-content:space-between;background:#EDECE5;padding:5px 10px;font-size:9px;font-weight:700;color:#333;text-transform:uppercase"><span>Item</span><span style="color:#2E3486">Valor</span></div>
+                  <div id="wbc-itens-rows"></div>
+                </div>
+              </div>
+              <div style="margin:6px 18px 10px;background:#FDC300;border-radius:8px;padding:12px 14px;text-align:center">
+                <div style="font-size:9px;font-weight:700;color:rgba(46,52,134,.65);text-transform:uppercase;letter-spacing:1px">Investimento Total</div>
+                <div style="font-size:26px;font-weight:900;color:#2E3486" id="wbc-valor">R$ —</div>
+                <div style="font-size:10px;color:rgba(46,52,134,.6);margin-top:3px" id="wbc-pagamento-sub"></div>
+              </div>
+              <div id="wbc-obs-wrap" style="display:none;margin:0 18px 10px;background:#f7f6f1;border-radius:8px;padding:9px 12px">
+                <div style="font-size:8.5px;font-weight:700;color:#2E3486;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Observações</div>
+                <div style="font-size:10.5px;color:#444;line-height:1.5" id="wbc-obs">—</div>
+              </div>
+              <div style="background:#2E3486;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+                <div style="font-size:9px;color:rgba(255,255,255,.7);line-height:1.8">📞 (86) 99977-2559 | 📷 @solarmachado<br>🌐 solarmachado.com.br | 📍 Teresina, PI</div>
+                <div style="display:flex;gap:4px"><div style="border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:5px 7px;text-align:center;font-size:7.5px;color:#fff">👤 +500<br>sistemas</div><div style="border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:5px 7px;text-align:center;font-size:7.5px;color:#fff">👥 Equipe<br>certificada</div><div style="background:#FDC300;border-radius:4px;padding:5px 7px;text-align:center;font-size:7.5px;color:#2E3486;font-weight:700">🎧 Suporte<br>completo</div></div>
+              </div>
+              <div style="background:#1e2260;padding:5px 18px;text-align:center;font-size:8px;color:rgba(255,255,255,.35)">CNPJ 34.757.760/0001-60 • Ícaro Caio de Sousa Machado • Solar Machado Engenharia</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- PAGE HISTÓRICO -->
@@ -1526,7 +1631,7 @@ function go(p) {
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
   window.scrollTo(0,0);
-  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',historico:'Histórico',financeiro:'Financeiro',agenda:'Agenda'};
+  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Wallbox',historico:'Histórico',financeiro:'Financeiro',agenda:'Agenda'};
   document.getElementById('tb-title').textContent = titles[p]||p;
   // Destacar item ativo na sidebar
   document.querySelectorAll('.ni').forEach(n => {
@@ -1539,6 +1644,7 @@ function go(p) {
   if(p==='leituras'){renderLeituras();renderAgendaLeituras();}
   if(p==='mapa') setTimeout(()=>{iniciarLeafletMap();renderMapa();renderLocManager();},50);
   if(p==='propostas') atualizarPreview();
+  if(p==='wallbox') atualizarPreviewWallbox();
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
   if(p==='agenda') setTimeout(renderAgenda, 50);
   if(p==='historico') renderOrcamentos();
@@ -2637,6 +2743,127 @@ async function gerarPNG(){
   }catch(e){toast('Erro: '+e.message,'er');}
 }
 function limparProposta(){['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
+
+// ══════════════════════════════════════════
+// ORÇAMENTO WALLBOX
+// ══════════════════════════════════════════
+let wbItens=[];
+function adicionarItemWallbox(){
+  wbItens.push({id:Date.now(),desc:'',qtd:1,valor:0});
+  renderListaItensWallbox();
+  atualizarPreviewWallbox();
+}
+function removerItemWallbox(id){
+  wbItens=wbItens.filter(i=>i.id!==id);
+  renderListaItensWallbox();
+  atualizarPreviewWallbox();
+}
+function totalWallbox(){
+  return wbItens.reduce((s,i)=>s+(parseFloat(i.qtd)||0)*(parseFloat(i.valor)||0),0);
+}
+function renderListaItensWallbox(){
+  const lista=document.getElementById('lista-itens-wallbox');
+  const semMsg=document.getElementById('sem-itens-wallbox');
+  if(!lista)return;
+  if(!wbItens.length){lista.innerHTML='';if(semMsg)semMsg.style.display='block';return;}
+  if(semMsg)semMsg.style.display='none';
+  lista.innerHTML=wbItens.map((it,i)=>`
+    <div style="background:var(--cz);border-radius:10px;padding:12px 14px;border:1px solid #e4e3dc">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:var(--az)">Item ${i+1}</div>
+        <button type="button" onclick="removerItemWallbox(${it.id})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:11px">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:3px;grid-column:1/-1">
+          <label style="font-size:10.5px;color:var(--txts);font-weight:500">Descrição</label>
+          <input type="text" value="${it.desc||''}" oninput="wbItens[${i}].desc=this.value;atualizarPreviewWallbox()" placeholder="Ex: Carregador Wallbox 7,4kW" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:10.5px;color:var(--txts);font-weight:500">Quantidade</label>
+          <input type="number" value="${it.qtd||''}" min="0" oninput="wbItens[${i}].qtd=this.value;recalcularWallbox();atualizarPreviewWallbox()" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:10.5px;color:var(--txts);font-weight:500">Valor Unit. (R$)</label>
+          <input type="number" value="${it.valor||''}" min="0" step="0.01" oninput="wbItens[${i}].valor=this.value;recalcularWallbox();atualizarPreviewWallbox()" style="padding:7px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;background:#fff;border-radius:7px;padding:7px 10px">
+          <label style="font-size:9.5px;color:var(--txts);font-weight:500">Subtotal</label>
+          <span style="font-size:13px;font-weight:700;color:var(--az)" id="sub-wb-${it.id}">R$ ${((parseFloat(it.qtd)||0)*(parseFloat(it.valor)||0)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function recalcularWallbox(){
+  wbItens.forEach(it=>{
+    const sub=document.getElementById('sub-wb-'+it.id);
+    if(sub) sub.textContent='R$ '+((parseFloat(it.qtd)||0)*(parseFloat(it.valor)||0)).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  });
+}
+function atualizarPreviewWallbox(){
+  const g=i=>document.getElementById(i)?.value||'';
+  const set=(i,v)=>{const el=document.getElementById(i);if(el)el.textContent=v};
+  set('wbc-nome',g('wb-nome')||'—');
+  set('wbc-cidade',g('wb-cidade')||'—');
+  set('wbc-modelo',g('wb-modelo')||'—');
+  set('wbc-potencia',(g('wb-potencia')?(+g('wb-potencia')).toLocaleString('pt-BR'):'—')+' kW');
+  set('wbc-tipo',g('wb-tipo')||'—');
+  set('wbc-distancia',g('wb-distancia')?g('wb-distancia')+' m do quadro':'—');
+  const rows=document.getElementById('wbc-itens-rows');
+  if(rows){
+    rows.innerHTML=wbItens.filter(it=>it.desc).map(it=>{
+      const sub=(parseFloat(it.qtd)||0)*(parseFloat(it.valor)||0);
+      return '<div style="display:flex;justify-content:space-between;padding:5px 10px;font-size:10px;border-top:1px solid #f0efe8"><span style="color:#555">'+(it.qtd>1?it.qtd+'x ':'')+it.desc+'</span><span style="font-weight:700;color:#2E3486">R$ '+sub.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';
+    }).join('')||'<div style="padding:8px 10px;font-size:10.5px;color:#999">Nenhum item adicionado</div>';
+  }
+  set('wbc-valor','R$ '+totalWallbox().toLocaleString('pt-BR',{minimumFractionDigits:2}));
+  set('wbc-pagamento-sub',g('wb-pagamento'));
+  const obs=g('wb-obs');
+  const obsWrap=document.getElementById('wbc-obs-wrap');
+  if(obsWrap) obsWrap.style.display=obs?'block':'none';
+  set('wbc-obs',obs);
+}
+function limparWallbox(){
+  ['wb-nome','wb-cidade','wb-veiculo','wb-modelo','wb-potencia','wb-distancia','wb-pagamento','wb-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const tipoEl=document.getElementById('wb-tipo'); if(tipoEl) tipoEl.value='Parede';
+  wbItens=[];
+  renderListaItensWallbox();
+  atualizarPreviewWallbox();
+}
+async function gerarPNGWallbox(){
+  const card=document.getElementById('wb-card');
+  if(!card)return;
+  const nome=document.getElementById('wb-nome')?.value||'cliente';
+  const nomeArquivo='Orcamento_Wallbox_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';
+  toast('Gerando imagem...','');
+  try{
+    const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    if(!blob) throw new Error('Falha ao gerar imagem.');
+    const file=new File([blob],nomeArquivo,{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:'Orçamento Wallbox Solar Machado'});
+        toast('✅ Imagem pronta! Salve ou envie pelo WhatsApp.','ok');
+      }catch(shareErr){
+        if(shareErr?.name!=='AbortError'){
+          abrirImagemEmNovaAba(blob);
+          toast('Não deu pra compartilhar direto — abri a imagem para você salvar manualmente.','');
+        }
+      }
+    } else if(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      abrirImagemEmNovaAba(blob);
+      toast('Segure a imagem e toque em "Salvar imagem" para baixar.','');
+    } else {
+      const link=document.createElement('a');
+      link.href=URL.createObjectURL(blob);
+      link.download=nomeArquivo;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast('✅ Imagem baixada!','ok');
+    }
+  }catch(e){toast('Erro: '+e.message,'er');}
+}
 
 // ══ MAPA ══
 let _leafletMap=null,_mapaMarkers=[],_mapaMarkersById={};
