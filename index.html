@@ -2573,18 +2573,50 @@ function atualizarPreview(){
   if(ecoDiv&&tarifa>0&&geracao>0){ecoDiv.style.display='block';const ecoMes=geracao*tarifa;const ret=valor>0?(valor/(ecoMes*12)).toFixed(1):'—';document.getElementById('pc-eco-val').textContent='R$ '+ecoMes.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês';document.getElementById('pc-eco-sub').textContent='Retorno estimado em '+ret+' anos';}
   else if(ecoDiv)ecoDiv.style.display='none';
 }
+function abrirImagemEmNovaAba(blob){
+  const url=URL.createObjectURL(blob);
+  const win=window.open(url,'_blank');
+  if(!win){
+    const link=document.createElement('a');
+    link.href=url; link.target='_blank';
+    document.body.appendChild(link); link.click(); link.remove();
+  }
+}
 async function gerarPNG(){
   const card=document.getElementById('prop-card');
   if(!card)return;
   const nome=document.getElementById('pp-nome')?.value||'cliente';
+  const nomeArquivo='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';
   toast('Gerando imagem...','');
   try{
     const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
-    const link=document.createElement('a');
-    link.href=canvas.toDataURL('image/png');
-    link.download='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';
-    link.click();
-    toast('✅ Imagem baixada!','ok');
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    if(!blob) throw new Error('Falha ao gerar imagem.');
+    const file=new File([blob],nomeArquivo,{type:'image/png'});
+    // Em celular/tablet, o <a download> costuma falhar silenciosamente — usar Web Share API quando disponível
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:'Proposta Solar Machado'});
+        toast('✅ Imagem pronta! Salve ou envie pelo WhatsApp.','ok');
+      }catch(shareErr){
+        if(shareErr?.name!=='AbortError'){
+          abrirImagemEmNovaAba(blob);
+          toast('Não deu pra compartilhar direto — abri a imagem para você salvar manualmente.','');
+        }
+      }
+    } else if(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      // Sem Web Share API: abrir em nova aba para o usuário salvar com toque longo
+      abrirImagemEmNovaAba(blob);
+      toast('Segure a imagem e toque em "Salvar imagem" para baixar.','');
+    } else {
+      const link=document.createElement('a');
+      link.href=URL.createObjectURL(blob);
+      link.download=nomeArquivo;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast('✅ Imagem baixada!','ok');
+    }
     const orc={
       nome, cidade:document.getElementById('pp-cidade')?.value||'',
       consumo:parseFloat(document.getElementById('pp-consumo')?.value)||0,
