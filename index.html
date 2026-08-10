@@ -514,14 +514,18 @@ tr:hover td{background:#faf9f5}
     <div class="ni" onclick="go('mapa');toggleMenu(false)">
       <div class="ic">🗺</div><span>Mapa de Clientes</span>
     </div>
-    <div class="nav-sec">Comercial</div>
+    <div class="nav-sec">Comercial Solar</div>
     <div class="ni" onclick="go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
     </div>
-    <div class="ni" onclick="go('wallbox');toggleMenu(false)">
-      <div class="ic">🔌</div><span>Wallbox</span>
-    </div>
     <div class="ni" onclick="go('historico');toggleMenu(false)">
+      <div class="ic">🗂</div><span>Histórico</span>
+    </div>
+    <div class="nav-sec">Comercial Wallbox</div>
+    <div class="ni" onclick="go('wallbox');toggleMenu(false)">
+      <div class="ic">🔌</div><span>Orçamento</span>
+    </div>
+    <div class="ni" onclick="go('historicoWallbox');toggleMenu(false)">
       <div class="ic">🗂</div><span>Histórico</span>
     </div>
     <div class="nav-sec" id="sep-financeiro" style="display:none">Financeiro</div>
@@ -1031,6 +1035,26 @@ tr:hover td{background:#faf9f5}
         </div>
       </div>
       <div id="orc-lista" style="display:flex;flex-direction:column;gap:10px">
+        <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- PAGE HISTÓRICO WALLBOX -->
+    <div id="page-historicoWallbox" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--az)">🗂 Histórico de Orçamentos Wallbox</h1>
+          <div style="font-size:13px;color:var(--txts);margin-top:4px">Todos os orçamentos de wallbox gerados</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="orcw-filtro-status" onchange="renderOrcamentosWallbox()" style="padding:8px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+            <option value="">Todos os status</option>
+            <option>Enviada</option><option>Aprovada</option><option>Recusada</option><option>Em negociação</option>
+          </select>
+          <div id="orcw-kpis" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+      <div id="orcw-lista" style="display:flex;flex-direction:column;gap:10px">
         <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
       </div>
     </div>
@@ -1576,6 +1600,7 @@ function initFirebaseListeners() {
   initFinanceiroListener();
   initAgendaListener();
   initOrcamentosListener();
+  initOrcamentosWallboxListener();
   initAgendaLeiturasListener();
   initHistoricoLeiturasListener();
   // Limpar chamados resolvidos com mais de 2 dias
@@ -1631,7 +1656,7 @@ function go(p) {
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
   window.scrollTo(0,0);
-  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Wallbox',historico:'Histórico',financeiro:'Financeiro',agenda:'Agenda'};
+  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Orçamento Wallbox',historico:'Histórico',historicoWallbox:'Histórico Wallbox',financeiro:'Financeiro',agenda:'Agenda'};
   document.getElementById('tb-title').textContent = titles[p]||p;
   // Destacar item ativo na sidebar
   document.querySelectorAll('.ni').forEach(n => {
@@ -1648,6 +1673,7 @@ function go(p) {
   if(p==='financeiro') setTimeout(renderFinanceiro, 100);
   if(p==='agenda') setTimeout(renderAgenda, 50);
   if(p==='historico') renderOrcamentos();
+  if(p==='historicoWallbox') renderOrcamentosWallbox();
   atualizarBtnNovo(p);
 }
 
@@ -2862,7 +2888,152 @@ async function gerarPNGWallbox(){
       link.remove();
       toast('✅ Imagem baixada!','ok');
     }
+    const g=i=>document.getElementById(i)?.value||'';
+    const orc={
+      nome, cidade:g('wb-cidade'), veiculo:g('wb-veiculo'),
+      modelo:g('wb-modelo'), potencia:parseFloat(g('wb-potencia'))||0,
+      distancia:parseFloat(g('wb-distancia'))||0, tipo:g('wb-tipo'),
+      pagamento:g('wb-pagamento'), obs:g('wb-obs'),
+      itens: wbItens.filter(it=>it.desc),
+      valor: totalWallbox(),
+      status:'Enviada',
+      geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
+      geradoPor:usuarioAtual?.displayName||usuarioAtual?.email||'desconhecido',
+      geradoPorUid:usuarioAtual?.uid||''
+    };
+    await db.collection('orcamentos_wallbox').add(orc);
   }catch(e){toast('Erro: '+e.message,'er');}
+}
+
+// ── ORÇAMENTOS WALLBOX (HISTÓRICO) ──────────────────────
+let ORCAMENTOS_WALLBOX=[];
+function initOrcamentosWallboxListener(){
+  db.collection('orcamentos_wallbox').orderBy('geradoEm','desc').limit(100).onSnapshot(snap=>{
+    ORCAMENTOS_WALLBOX = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderOrcamentosWallbox();
+  });
+}
+function renderOrcamentosWallbox(){
+  const el=document.getElementById('orcw-lista');
+  if(!el)return;
+  const filtroStatus=document.getElementById('orcw-filtro-status')?.value||'';
+  let lista=ORCAMENTOS_WALLBOX;
+  const kpiEl=document.getElementById('orcw-kpis');
+  if(kpiEl){
+    const total=ORCAMENTOS_WALLBOX.length;
+    const aprovadas=ORCAMENTOS_WALLBOX.filter(o=>o.status==='Aprovada').length;
+    const taxa=total?Math.round(aprovadas/total*100):0;
+    const vlAprov=ORCAMENTOS_WALLBOX.filter(o=>o.status==='Aprovada').reduce((s,o)=>s+(o.valor||0),0);
+    kpiEl.innerHTML=[
+      ['Total',total,'#2E3486'],
+      ['Aprovadas',aprovadas,'#1D9E75'],
+      ['Taxa',taxa+'%','#1D9E75'],
+      ['Volume Aprov.','R$ '+vlAprov.toLocaleString('pt-BR'),'#f39c12']
+    ].map(([l,v,c])=>`<div style="background:#fff;border:1px solid #e4e3dc;border-radius:8px;padding:6px 12px;font-size:12px;text-align:center"><div style="font-weight:700;color:${c};font-size:15px">${v}</div><div style="color:#888;margin-top:1px">${l}</div></div>`).join('');
+  }
+  if(filtroStatus) lista=lista.filter(o=>o.status===filtroStatus);
+  if(!lista.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Nenhum orçamento encontrado</div>';
+    return;
+  }
+  const COR_STATUS={'Enviada':'#2E3486','Aprovada':'#1D9E75','Recusada':'#e74c3c','Em negociação':'#f39c12'};
+  el.innerHTML=lista.map(o=>{
+    const dt=o.geradoEm?.toDate?o.geradoEm.toDate().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+    const val=o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR',{minimumFractionDigits:0}):'—';
+    const cor=COR_STATUS[o.status]||'#888';
+    const opts=['Enviada','Aprovada','Recusada','Em negociação'].map(s=>`<option value="${s}"${s===o.status?' selected':''}>${s}</option>`).join('');
+    const btnDel=usuarioAtual?.email==='icarocaio18@gmail.com'
+      ?`<button onclick="deletarOrcWallbox('${o.id}')" title="Deletar" style="background:none;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1">🗑</button>`
+      :'';
+    const nComent=(o.comentarios||[]).length;
+    const wppNum=(o.telefone||'').replace(/\D/g,'');
+    const wppBtn=wppNum?`<a href="https://wa.me/55${wppNum}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#25D366;color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;text-decoration:none">💬 WhatsApp</a>`:'';
+    return `<div id="orcw-card-${o.id}" style="background:var(--br);border:1px solid #e4e3dc;border-radius:10px;overflow:hidden">
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <div style="font-weight:700;font-size:14px;color:var(--az)">${o.nome||'—'}</div>
+          <div style="font-size:12px;color:var(--txts);margin-top:2px">${o.cidade||'—'} · ${o.modelo||'Carregador'} · ${o.potencia||0} kW · ${o.tipo||''}</div>
+          <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${o.geradoPor||'—'} · ${dt}</div>
+        </div>
+        <div style="font-weight:700;font-size:15px;color:var(--az);white-space:nowrap">${val}</div>
+        <select onchange="atualizarStatusOrcWallbox('${o.id}',this.value)" style="padding:6px 10px;border:2px solid ${cor};border-radius:7px;font-size:12px;font-weight:600;color:${cor};background:#fff;cursor:pointer">${opts}</select>
+        ${btnDel}
+      </div>
+      <div style="border-top:1px solid #e4e3dc;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;background:#faf9f5">
+        <button onclick="reabrirOrcamentoWallbox('${o.id}')" style="background:none;border:1px solid var(--az);color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">✎ Reabrir Orçamento</button>
+        <button onclick="toggleOrcWallboxSection('${o.id}','coment')" style="background:none;border:1px solid #888;color:#555;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px">💬 Comentários${nComent?' ('+nComent+')':''}</button>
+        <button onclick="toggleOrcWallboxSection('${o.id}','precad')" style="background:none;border:1px solid #888;color:#555;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px">📱 Contato</button>
+      </div>
+      <div id="orcw-coment-${o.id}" style="display:none;border-top:1px solid #e4e3dc;padding:14px 16px">
+        <div id="orcw-coment-lista-${o.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+          ${(o.comentarios||[]).length?
+            (o.comentarios).map(c=>`<div style="background:#fff;border:1px solid #e4e3dc;border-radius:8px;padding:8px 12px"><div style="font-size:12px;color:#333">${c.texto}</div><div style="font-size:10px;color:#aaa;margin-top:4px">${c.autor} · ${c.data}</div></div>`).join('')
+            :'<div style="font-size:12px;color:var(--txts)">Nenhum comentário ainda.</div>'}
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="orcw-coment-input-${o.id}" type="text" placeholder="Escreva um comentário..." style="flex:1;padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+          <button onclick="adicionarComentOrcWallbox('${o.id}')" style="background:var(--az);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">Enviar</button>
+        </div>
+      </div>
+      <div id="orcw-precad-${o.id}" style="display:none;border-top:1px solid #e4e3dc;padding:14px 16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:10px">📋 Contato do Cliente</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input id="orcw-tel-${o.id}" type="tel" placeholder="Telefone (ex: 86999990000)" value="${o.telefone||''}" style="flex:1;min-width:180px;padding:8px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
+          <button onclick="salvarTelOrcWallbox('${o.id}')" style="background:var(--az);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">Salvar</button>
+          ${wppBtn}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function atualizarStatusOrcWallbox(id,status){
+  try{await db.collection('orcamentos_wallbox').doc(id).update({status});toast('Status atualizado','ok');}
+  catch(e){toast('Erro ao atualizar','er');}
+}
+async function deletarOrcWallbox(id){
+  if(!confirm('Deletar este orçamento?'))return;
+  try{await db.collection('orcamentos_wallbox').doc(id).delete();toast('Orçamento deletado','ok');}
+  catch(e){toast('Erro ao deletar','er');}
+}
+function toggleOrcWallboxSection(id,sec){
+  const el=document.getElementById('orcw-'+sec+'-'+id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+async function adicionarComentOrcWallbox(id){
+  const inp=document.getElementById('orcw-coment-input-'+id);
+  const texto=(inp?.value||'').trim();
+  if(!texto)return;
+  const coment={texto,autor:usuarioAtual?.displayName||usuarioAtual?.email||'?',data:new Date().toLocaleString('pt-BR')};
+  const o=ORCAMENTOS_WALLBOX.find(x=>x.id===id);
+  const lista=[...(o?.comentarios||[]),coment];
+  try{
+    await db.collection('orcamentos_wallbox').doc(id).update({comentarios:lista});
+    inp.value='';
+    toast('Comentário adicionado','ok');
+  }catch(e){toast('Erro','er');}
+}
+async function salvarTelOrcWallbox(id){
+  const tel=document.getElementById('orcw-tel-'+id)?.value||'';
+  try{
+    await db.collection('orcamentos_wallbox').doc(id).update({telefone:tel});
+    toast('Telefone salvo','ok');
+  }catch(e){toast('Erro','er');}
+}
+function reabrirOrcamentoWallbox(id){
+  const o=ORCAMENTOS_WALLBOX.find(x=>x.id===id);
+  if(!o)return;
+  go('wallbox');
+  setTimeout(()=>{
+    const s=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||'';};
+    s('wb-nome',o.nome); s('wb-cidade',o.cidade); s('wb-veiculo',o.veiculo);
+    s('wb-modelo',o.modelo); s('wb-potencia',o.potencia); s('wb-distancia',o.distancia);
+    s('wb-tipo',o.tipo); s('wb-pagamento',o.pagamento); s('wb-obs',o.obs);
+    wbItens=(o.itens||[]).map(it=>({...it,id:it.id||Date.now()+Math.random()}));
+    renderListaItensWallbox();
+    atualizarPreviewWallbox();
+    toast('Orçamento carregado!','ok');
+  },200);
 }
 
 // ══ MAPA ══
