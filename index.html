@@ -671,6 +671,7 @@ tr:hover td{background:#faf9f5}
             </select>
             <input id="al-busca" type="text" placeholder="Buscar cliente..." oninput="renderAgendaLeituras()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;width:150px">
             <button onclick="wppMassaLeituras()" style="background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">💬 WhatsApp</button>
+            <button id="btn-corrigir-atrasadas" onclick="corrigirProximasLeituras()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔧 Corrigir Atrasadas</button>
           </div>
         </div>
         <div id="al-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px"></div>
@@ -2322,6 +2323,8 @@ auth.onAuthStateChanged(async user=>{
       document.getElementById('btn-usuarios').style.display = 'block';
       const btnTabI = document.getElementById('btn-editar-tabela');
       if (btnTabI) btnTabI.style.display = 'block';
+      const btnCorr = document.getElementById('btn-corrigir-atrasadas');
+      if (btnCorr) btnCorr.style.display = 'inline-block';
     }
     // Iniciar listeners AGORA com nome já definido
     initFirebaseListeners();
@@ -4115,6 +4118,27 @@ function initAgendaLeiturasListener(){
   });
 }
 
+async function corrigirProximasLeituras(){
+  if(!confirm('Isso vai revisar todos os clientes e corrigir a "Próxima Leitura" apenas dos casos em que já existe uma leitura mais recente registrada do que a data marcada (os presos em "Atrasada" por engano). Continuar?')) return;
+  toast('Corrigindo...','');
+  let ok=0, err=0;
+  for(const c of AGENDA_LEITURAS){
+    const key = c.tipo==='beneficiaria' ? String(c.uc) : c.id;
+    const hist = HISTORICO_LEITURAS[key] || HISTORICO_LEITURAS[c.id] || [];
+    if(!hist.length) continue;
+    const ultima = hist[0]; // HISTORICO_LEITURAS já vem ordenado por data desc
+    if(!ultima.data) continue;
+    // Só corrige quando a leitura mais recente é igual ou posterior à "próxima" marcada — sinal de que ficou presa na data antiga
+    if(!(c.proxLeitura && ultima.data >= c.proxLeitura)) continue;
+    const prox=new Date(ultima.data+'T00:00:00'); prox.setDate(prox.getDate()+30);
+    const proxStr=prox.toISOString().slice(0,10);
+    try{
+      await db.collection('agenda_leituras').doc(c.id).update({proxLeitura:proxStr,status:'ok'});
+      ok++;
+    }catch(e){ err++; }
+  }
+  toast('✅ '+ok+' corrigida(s)'+(err?', '+err+' erro(s)':''),'ok');
+}
 function renderAgendaLeituras(){
   const el=document.getElementById('al-lista');
   const kpiEl=document.getElementById('al-kpis');
