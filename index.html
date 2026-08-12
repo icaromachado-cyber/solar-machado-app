@@ -2752,6 +2752,8 @@ async function gerarPNG(){
       link.remove();
       toast('✅ Imagem baixada!','ok');
     }
+    const gv=i=>document.getElementById(i)?.value||'';
+    const gc=i=>!!document.getElementById(i)?.checked;
     const orc={
       nome, cidade:document.getElementById('pp-cidade')?.value||'',
       consumo:parseFloat(document.getElementById('pp-consumo')?.value)||0,
@@ -2763,6 +2765,13 @@ async function gerarPNG(){
       tarifa:parseFloat(document.getElementById('pp-tarifa')?.value)||0,
       valor:parseFloat(document.getElementById('pp-valor')?.value)||0,
       distancia:parseFloat(document.getElementById('pp-tab-dist')?.value)||0,
+      hibrido:gc('pp-hibrido'), batMarca:gv('pp-bat-marca'), batCap:gv('pp-bat-cap'), batAut:gv('pp-bat-aut'),
+      modalidade:gv('pp-modalidade')||'avista', parcelas:gv('pp-parcelas'),
+      finN1:gv('pp-fin-n1'), finV1:gv('pp-fin-v1'), finC1:gc('pp-fin-c1'),
+      finN2:gv('pp-fin-n2'), finV2:gv('pp-fin-v2'), finC2:gc('pp-fin-c2'),
+      finN3:gv('pp-fin-n3'), finV3:gv('pp-fin-v3'), finC3:gc('pp-fin-c3'),
+      finN4:gv('pp-fin-n4'), finV4:gv('pp-fin-v4'), finC4:gc('pp-fin-c4'),
+      finEntrada:gv('pp-fin-entrada'), finCarencia:gv('pp-fin-carencia'),
       status:'Enviada',
       geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
       geradoPor:usuarioAtual?.displayName||usuarioAtual?.email||'desconhecido',
@@ -3981,10 +3990,20 @@ function reabrirProposta(id){
   go('propostas');
   setTimeout(()=>{
     const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+    const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
     s('pp-nome',o.nome); s('pp-cidade',o.cidade); s('pp-consumo',o.consumo);
     s('pp-modulos',o.modulos); s('pp-wpmod',o.wpMod); s('pp-inv',o.inversor);
     s('pp-pinv',o.potInv); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
     s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
+    sc('pp-hibrido',o.hibrido); s('pp-bat-marca',o.batMarca); s('pp-bat-cap',o.batCap); s('pp-bat-aut',o.batAut);
+    s('pp-modalidade',o.modalidade||'avista'); s('pp-parcelas',o.parcelas);
+    s('pp-fin-n1',o.finN1); s('pp-fin-v1',o.finV1); sc('pp-fin-c1',o.finC1);
+    s('pp-fin-n2',o.finN2); s('pp-fin-v2',o.finV2); sc('pp-fin-c2',o.finC2);
+    s('pp-fin-n3',o.finN3); s('pp-fin-v3',o.finV3); sc('pp-fin-c3',o.finC3);
+    s('pp-fin-n4',o.finN4); s('pp-fin-v4',o.finV4); sc('pp-fin-c4',o.finC4);
+    s('pp-fin-entrada',o.finEntrada); s('pp-fin-carencia',o.finCarencia);
+    if(typeof toggleHibridoForm==='function') toggleHibridoForm();
+    if(typeof atualizarModalidade==='function') atualizarModalidade();
     if(typeof atualizarPreview==='function') atualizarPreview();
     toast('Proposta carregada!','ok');
   },200);
