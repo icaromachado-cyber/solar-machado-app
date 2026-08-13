@@ -792,12 +792,34 @@ tr:hover td{background:#faf9f5}
               <select id="pp-modalidade" onchange="atualizarModalidade()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><option value="avista">À Vista</option><option value="cartao">Cartão de Crédito</option><option value="financiado">Financiado</option></select></div>
           </div>
           <div id="pp-parcelas-wrap" style="display:none;margin-bottom:14px">
-            <div id="pp-wrap-cartao" style="display:none;flex-direction:column;gap:8px">
-              <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Parcelas (até)</label>
-                <select id="pp-parcelas" onchange="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
-                  <option value="1">1x (à vista)</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12">12x</option><option value="13">13x</option><option value="14">14x</option><option value="15">15x</option><option value="16">16x</option><option value="17">17x</option><option value="18" selected>18x</option>
-                </select>
+            <div id="pp-wrap-cartao" style="display:none;flex-direction:column;gap:10px">
+              <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px;font-size:11.5px;color:#2E3486;border:1px solid #c5d0f5">
+                💡 Insira as condições da maquininha/operadora para cada opção de parcelamento.
+              </div>
+              <!-- 4 opções de parcelamento -->
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <label style="font-size:11px;font-weight:700;color:var(--az)">Opções de Parcelamento</label>
+                <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:center">
+                  <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Prazo</div>
+                  <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Valor da Parcela (R$)</div>
+                  <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Mostrar na prévia?</div>
+                  <!-- Opção 1 -->
+                  <input type="number" id="pp-cc-n1" placeholder="Ex: 6" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-v1" placeholder="R$ —" step="0.01" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c1" checked onchange="atualizarPreview()"> Sim</label>
+                  <!-- Opção 2 -->
+                  <input type="number" id="pp-cc-n2" placeholder="Ex: 12" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-v2" placeholder="R$ —" step="0.01" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c2" checked onchange="atualizarPreview()"> Sim</label>
+                  <!-- Opção 3 -->
+                  <input type="number" id="pp-cc-n3" placeholder="Ex: 18" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-v3" placeholder="R$ —" step="0.01" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c3" checked onchange="atualizarPreview()"> Sim</label>
+                  <!-- Opção 4 -->
+                  <input type="number" id="pp-cc-n4" placeholder="Ex: 21" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-v4" placeholder="R$ —" step="0.01" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c4" onchange="atualizarPreview()"> Sim</label>
+                </div>
               </div>
             </div>
             <div id="pp-wrap-financiado" style="display:none;flex-direction:column;gap:10px">
@@ -2664,7 +2686,6 @@ function atualizarPreview(){
   const mods=parseInt(document.getElementById('pp-modulos')?.value)||0;const wp=parseInt(document.getElementById('pp-wpmod')?.value)||610;
   const inv=document.getElementById('pp-inv')?.value||'';const pinv=document.getElementById('pp-pinv')?.value||'';
   const geracao=parseInt(document.getElementById('pp-geracao')?.value)||0;const valor=parseFloat(document.getElementById('pp-valor')?.value)||0;
-  const parcMax=parseInt(document.getElementById('pp-parcelas')?.value)||18;
   const tarifa=parseFloat(document.getElementById('pp-tarifa')?.value)||0;const consumo=parseInt(document.getElementById('pp-consumo')?.value)||0;
   const modalidade=document.getElementById('pp-modalidade')?.value||'avista';const kwp=(mods*wp/1000).toFixed(2);
   const saud=document.getElementById('pc-saud');
@@ -2694,10 +2715,11 @@ function atualizarPreview(){
     if(aVistaEl)aVistaEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
     const pRows=document.getElementById('pc-parcelas-rows');
     if(modalidade==='cartao'){
-      function taxaC(n){if(n===1)return 1.70;if(n<=6)return 2.10;if(n<=12)return 2.20;return 3.20;}
-      const opts=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].filter(p=>p<=parcMax);
-      if(pRows)pRows.innerHTML=opts.map((p,i)=>{const taxa=taxaC(p)/100;const tot=valor*(1+taxa);const pmt=tot/p;const bg=i%2===0?'#EDECE5':'#fff';const tl=p===1?'(+1,70%)':p<=6?'(+2,10%)':p<=12?'(+2,20%)':'(+3,20%)';return '<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+p+'x <span style="color:#aaa;font-size:8px">'+tl+'</span></span><span style="font-weight:700;color:#2E3486">R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';}).join('')+'<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';
-      if(parSub&&valor){const taxa=taxaC(parcMax)/100;const tot=valor*(1+taxa);const pmt=tot/parcMax;parSub.textContent='ou '+parcMax+'x de R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2});}
+      const opcoesCc=[];
+      for(let i=1;i<=4;i++){const n=parseInt(document.getElementById('pp-cc-n'+i)?.value)||0;const v=parseFloat(document.getElementById('pp-cc-v'+i)?.value)||0;const ck=document.getElementById('pp-cc-c'+i)?.checked;if(n>0&&v>0&&ck)opcoesCc.push({n,v});}
+      if(pRows){let html='';if(opcoesCc.length){opcoesCc.forEach((op,i)=>{const bg=i%2===0?'#EDECE5':'#fff';html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+op.n+'x</span><span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';});html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';}else html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de parcelamento</div>';pRows.innerHTML=html;}
+      if(parSub&&opcoesCc.length){const op=opcoesCc[opcoesCc.length-1];parSub.textContent='ou '+op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2});}
+      else if(parSub)parSub.textContent='';
     } else if(modalidade==='financiado'){
       const entrada=parseFloat(document.getElementById('pp-fin-entrada')?.value)||0;
       const carencia=document.getElementById('pp-fin-carencia')?.value||'';
@@ -2780,7 +2802,11 @@ async function gerarPNG(){
       valor:parseFloat(document.getElementById('pp-valor')?.value)||0,
       distancia:parseFloat(document.getElementById('pp-tab-dist')?.value)||0,
       hibrido:gc('pp-hibrido'), batMarca:gv('pp-bat-marca'), batCap:gv('pp-bat-cap'), batAut:gv('pp-bat-aut'),
-      modalidade:gv('pp-modalidade')||'avista', parcelas:gv('pp-parcelas'),
+      modalidade:gv('pp-modalidade')||'avista',
+      ccN1:gv('pp-cc-n1'), ccV1:gv('pp-cc-v1'), ccC1:gc('pp-cc-c1'),
+      ccN2:gv('pp-cc-n2'), ccV2:gv('pp-cc-v2'), ccC2:gc('pp-cc-c2'),
+      ccN3:gv('pp-cc-n3'), ccV3:gv('pp-cc-v3'), ccC3:gc('pp-cc-c3'),
+      ccN4:gv('pp-cc-n4'), ccV4:gv('pp-cc-v4'), ccC4:gc('pp-cc-c4'),
       finN1:gv('pp-fin-n1'), finV1:gv('pp-fin-v1'), finC1:gc('pp-fin-c1'),
       finN2:gv('pp-fin-n2'), finV2:gv('pp-fin-v2'), finC2:gc('pp-fin-c2'),
       finN3:gv('pp-fin-n3'), finV3:gv('pp-fin-v3'), finC3:gc('pp-fin-c3'),
@@ -4020,7 +4046,11 @@ function reabrirProposta(id){
     s('pp-pinv',o.potInv); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
     s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
     sc('pp-hibrido',o.hibrido); s('pp-bat-marca',o.batMarca); s('pp-bat-cap',o.batCap); s('pp-bat-aut',o.batAut);
-    s('pp-modalidade',o.modalidade||'avista'); s('pp-parcelas',o.parcelas);
+    s('pp-modalidade',o.modalidade||'avista');
+    s('pp-cc-n1',o.ccN1); s('pp-cc-v1',o.ccV1); sc('pp-cc-c1',o.ccC1);
+    s('pp-cc-n2',o.ccN2); s('pp-cc-v2',o.ccV2); sc('pp-cc-c2',o.ccC2);
+    s('pp-cc-n3',o.ccN3); s('pp-cc-v3',o.ccV3); sc('pp-cc-c3',o.ccC3);
+    s('pp-cc-n4',o.ccN4); s('pp-cc-v4',o.ccV4); sc('pp-cc-c4',o.ccC4);
     s('pp-fin-n1',o.finN1); s('pp-fin-v1',o.finV1); sc('pp-fin-c1',o.finC1);
     s('pp-fin-n2',o.finN2); s('pp-fin-v2',o.finV2); sc('pp-fin-c2',o.finC2);
     s('pp-fin-n3',o.finN3); s('pp-fin-v3',o.finV3); sc('pp-fin-c3',o.finC3);
