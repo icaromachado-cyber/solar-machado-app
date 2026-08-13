@@ -1032,6 +1032,7 @@ tr:hover td{background:#faf9f5}
             <option value="">Todos os status</option>
             <option>Enviada</option><option>Aprovada</option><option>Recusada</option><option>Em negociação</option>
           </select>
+          <button id="btn-limpar-duplicados" onclick="limparOrcamentosDuplicados()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🧹 Remover Duplicados</button>
           <div id="orc-kpis" style="display:flex;gap:8px;flex-wrap:wrap"></div>
         </div>
       </div>
@@ -2325,6 +2326,8 @@ auth.onAuthStateChanged(async user=>{
       if (btnTabI) btnTabI.style.display = 'block';
       const btnCorr = document.getElementById('btn-corrigir-atrasadas');
       if (btnCorr) btnCorr.style.display = 'inline-block';
+      const btnDup = document.getElementById('btn-limpar-duplicados');
+      if (btnDup) btnDup.style.display = 'inline-block';
     }
     // Iniciar listeners AGORA com nome já definido
     initFirebaseListeners();
@@ -3867,6 +3870,29 @@ function initOrcamentosListener(){
     ORCAMENTOS = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderOrcamentos();
   });
+}
+async function limparOrcamentosDuplicados(){
+  const grupos={};
+  ORCAMENTOS.forEach(o=>{
+    const dia=o.geradoEm?.toDate?o.geradoEm.toDate().toISOString().slice(0,10):'';
+    const chave=[o.nome,o.cidade,o.consumo,o.modulos,o.wpMod,o.inversor,o.potInv,o.valor,dia].join('|');
+    (grupos[chave]=grupos[chave]||[]).push(o);
+  });
+  const duplicados=[];
+  Object.values(grupos).forEach(lista=>{
+    if(lista.length<2)return;
+    lista.sort((a,b)=>(a.geradoEm?.toMillis?.()||0)-(b.geradoEm?.toMillis?.()||0));
+    duplicados.push(...lista.slice(0,-1)); // mantém só o mais recente de cada grupo
+  });
+  if(!duplicados.length){toast('Nenhum orçamento duplicado encontrado (nos últimos 100).','ok');return;}
+  if(!confirm('Encontrados '+duplicados.length+' orçamento(s) duplicado(s) — mesmo cliente, mesmos dados, gerados no mesmo dia. Vou manter apenas o mais recente de cada grupo e apagar o resto. Continuar?'))return;
+  toast('Removendo duplicados...','');
+  let ok=0,err=0;
+  for(const o of duplicados){
+    try{await db.collection('orcamentos').doc(o.id).delete();ok++;}
+    catch(e){err++;}
+  }
+  toast('✅ '+ok+' duplicado(s) removido(s)'+(err?', '+err+' erro(s)':''),'ok');
 }
 function renderOrcamentos(){
   const el=document.getElementById('orc-lista');
