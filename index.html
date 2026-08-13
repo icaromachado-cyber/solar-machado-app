@@ -515,7 +515,7 @@ tr:hover td{background:#faf9f5}
       <div class="ic">🗺</div><span>Mapa de Clientes</span>
     </div>
     <div class="nav-sec">Comercial Solar</div>
-    <div class="ni" onclick="go('propostas');toggleMenu(false)">
+    <div class="ni" onclick="_editandoOrcamentoId=null;go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
     </div>
     <div class="ni" onclick="go('historico');toggleMenu(false)">
@@ -2782,16 +2782,23 @@ async function gerarPNG(){
       finN2:gv('pp-fin-n2'), finV2:gv('pp-fin-v2'), finC2:gc('pp-fin-c2'),
       finN3:gv('pp-fin-n3'), finV3:gv('pp-fin-v3'), finC3:gc('pp-fin-c3'),
       finN4:gv('pp-fin-n4'), finV4:gv('pp-fin-v4'), finC4:gc('pp-fin-c4'),
-      finEntrada:gv('pp-fin-entrada'), finCarencia:gv('pp-fin-carencia'),
-      status:'Enviada',
-      geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
-      geradoPor:usuarioAtual?.displayName||usuarioAtual?.email||'desconhecido',
-      geradoPorUid:usuarioAtual?.uid||''
+      finEntrada:gv('pp-fin-entrada'), finCarencia:gv('pp-fin-carencia')
     };
-    await db.collection('orcamentos').add(orc);
+    if(_editandoOrcamentoId){
+      await db.collection('orcamentos').doc(_editandoOrcamentoId).update({
+        ...orc, atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await db.collection('orcamentos').add({
+        ...orc, status:'Enviada',
+        geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
+        geradoPor:usuarioAtual?.displayName||usuarioAtual?.email||'desconhecido',
+        geradoPorUid:usuarioAtual?.uid||''
+      });
+    }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
-function limparProposta(){['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
+function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
 
 // ══════════════════════════════════════════
 // ORÇAMENTO WALLBOX
@@ -3854,6 +3861,7 @@ let _editVisitaId = null;
 
 // ── ORÇAMENTOS ──────────────────────────────────────────
 let ORCAMENTOS = [];
+let _editandoOrcamentoId=null;
 function initOrcamentosListener(){
   db.collection('orcamentos').orderBy('geradoEm','desc').limit(100).onSnapshot(snap=>{
     ORCAMENTOS = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -3976,6 +3984,7 @@ async function salvarTelOrc(id){
 function reabrirProposta(id){
   const o=ORCAMENTOS.find(x=>x.id===id);
   if(!o)return;
+  _editandoOrcamentoId=id;
   go('propostas');
   setTimeout(()=>{
     const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
