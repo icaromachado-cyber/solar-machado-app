@@ -2717,6 +2717,41 @@ function abrirImagemEmNovaAba(blob){
     document.body.appendChild(link); link.click(); link.remove();
   }
 }
+function ehTelefoneMovel(){
+  // Celular de verdade — exclui tablet (iPad moderno se identifica como Mac) e desktop
+  const ua=navigator.userAgent;
+  if(/iPad/i.test(ua)) return false;
+  if(/Mac/i.test(navigator.platform||'') && navigator.maxTouchPoints>1) return false;
+  return /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(ua);
+}
+async function salvarOuCompartilharImagem(blob,nomeArquivo,tituloShare){
+  // Só usa a folha de compartilhar em celular — no computador e no tablet, baixa direto (como antes)
+  if(ehTelefoneMovel()){
+    const file=new File([blob],nomeArquivo,{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:tituloShare});
+        toast('✅ Imagem pronta! Salve ou envie pelo WhatsApp.','ok');
+        return;
+      }catch(shareErr){
+        if(shareErr?.name==='AbortError')return;
+        abrirImagemEmNovaAba(blob);
+        toast('Não deu pra compartilhar direto — abri a imagem para você salvar manualmente.','');
+        return;
+      }
+    }
+    abrirImagemEmNovaAba(blob);
+    toast('Segure a imagem e toque em "Salvar imagem" para baixar.','');
+    return;
+  }
+  const link=document.createElement('a');
+  link.href=URL.createObjectURL(blob);
+  link.download=nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  toast('✅ Imagem baixada!','ok');
+}
 async function gerarPNG(){
   const card=document.getElementById('prop-card');
   if(!card)return;
@@ -2727,31 +2762,7 @@ async function gerarPNG(){
     const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
     const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
     if(!blob) throw new Error('Falha ao gerar imagem.');
-    const file=new File([blob],nomeArquivo,{type:'image/png'});
-    // Em celular/tablet, o <a download> costuma falhar silenciosamente — usar Web Share API quando disponível
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{
-        await navigator.share({files:[file],title:'Proposta Solar Machado'});
-        toast('✅ Imagem pronta! Salve ou envie pelo WhatsApp.','ok');
-      }catch(shareErr){
-        if(shareErr?.name!=='AbortError'){
-          abrirImagemEmNovaAba(blob);
-          toast('Não deu pra compartilhar direto — abri a imagem para você salvar manualmente.','');
-        }
-      }
-    } else if(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-      // Sem Web Share API: abrir em nova aba para o usuário salvar com toque longo
-      abrirImagemEmNovaAba(blob);
-      toast('Segure a imagem e toque em "Salvar imagem" para baixar.','');
-    } else {
-      const link=document.createElement('a');
-      link.href=URL.createObjectURL(blob);
-      link.download=nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast('✅ Imagem baixada!','ok');
-    }
+    await salvarOuCompartilharImagem(blob,nomeArquivo,'Proposta Solar Machado');
     const gv=i=>document.getElementById(i)?.value||'';
     const gc=i=>!!document.getElementById(i)?.checked;
     const orc={
@@ -2877,29 +2888,7 @@ async function gerarPNGWallbox(){
     const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
     const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
     if(!blob) throw new Error('Falha ao gerar imagem.');
-    const file=new File([blob],nomeArquivo,{type:'image/png'});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{
-        await navigator.share({files:[file],title:'Orçamento Wallbox Solar Machado'});
-        toast('✅ Imagem pronta! Salve ou envie pelo WhatsApp.','ok');
-      }catch(shareErr){
-        if(shareErr?.name!=='AbortError'){
-          abrirImagemEmNovaAba(blob);
-          toast('Não deu pra compartilhar direto — abri a imagem para você salvar manualmente.','');
-        }
-      }
-    } else if(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-      abrirImagemEmNovaAba(blob);
-      toast('Segure a imagem e toque em "Salvar imagem" para baixar.','');
-    } else {
-      const link=document.createElement('a');
-      link.href=URL.createObjectURL(blob);
-      link.download=nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast('✅ Imagem baixada!','ok');
-    }
+    await salvarOuCompartilharImagem(blob,nomeArquivo,'Orçamento Wallbox Solar Machado');
     const g=i=>document.getElementById(i)?.value||'';
     const orc={
       nome, cidade:g('wb-cidade'), veiculo:g('wb-veiculo'),
