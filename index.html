@@ -4132,6 +4132,16 @@ const CLIENTES_UC = [
 
 let AGENDA_LEITURAS = [];
 let HISTORICO_LEITURAS = {}; // keyed by ucId
+function agendaTemProjeto(c){
+  if(!PROJETOS.length)return true; // Projetos ainda não carregou — não esconder nada por engano
+  const _nP=s=>(s||'').trim().toLowerCase();
+  if(c.projetoId&&PROJETOS.some(p=>p.id===c.projetoId))return true;
+  return PROJETOS.some(p=>
+    (c.uc&&p.uc&&String(p.uc)===String(c.uc))||
+    (p.cliente&&(_nP(p.cliente)===_nP(c.cliente)||_nP(p.cliente)===_nP(c.nome)))||
+    (p.nome&&_nP(p.nome)===_nP(c.nome))
+  );
+}
 
 function initHistoricoLeiturasListener(){
   db.collection('historico_leituras').orderBy('data','desc').onSnapshot(snap=>{
@@ -4333,8 +4343,8 @@ function renderAgendaLeituras(){
     return 'futura';
   }
 
-  // Apenas principais (sem beneficiárias avulsas)
-  const principais=AGENDA_LEITURAS.filter(c=>c.tipo!=='beneficiaria');
+  // Apenas principais (sem beneficiárias avulsas) e só quem tem Projeto cadastrado
+  const principais=AGENDA_LEITURAS.filter(c=>c.tipo!=='beneficiaria'&&agendaTemProjeto(c));
 
   // KPIs
   if(kpiEl){
@@ -4470,6 +4480,7 @@ function atualizarBadgeLeituras(){
   const hoje=new Date(); hoje.setHours(0,0,0,0);
   const atrasadas=AGENDA_LEITURAS.filter(c=>{
     if(c.status==='ok'||!c.proxLeitura)return false;
+    if(!agendaTemProjeto(c))return false;
     return new Date(c.proxLeitura+'T00:00:00')<hoje;
   }).length;
   const badge=document.getElementById('badge-leituras');
@@ -4485,6 +4496,7 @@ function renderDashLeiturasSemana(){
   const em7=new Date(hoje); em7.setDate(em7.getDate()+7);
   const lista=AGENDA_LEITURAS.filter(c=>{
     if(!c.proxLeitura)return false;
+    if(!agendaTemProjeto(c))return false;
     const d=new Date(c.proxLeitura+'T00:00:00');
     return d>=hoje && d<=em7;
   }).sort((a,b)=>a.proxLeitura.localeCompare(b.proxLeitura));
@@ -4506,6 +4518,7 @@ function wppMassaLeituras(){
   const em7=new Date(hoje); em7.setDate(em7.getDate()+7);
   const lista=AGENDA_LEITURAS.filter(c=>{
     if(c.status==='ok'||!c.proxLeitura)return false;
+    if(!agendaTemProjeto(c))return false;
     const d=new Date(c.proxLeitura+'T00:00:00');
     return d<=em7;
   }).sort((a,b)=>a.proxLeitura.localeCompare(b.proxLeitura));
