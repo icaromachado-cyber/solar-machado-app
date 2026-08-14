@@ -2589,9 +2589,11 @@ function mostrarCardResponsavel(){
 }
 
 // ══ TABELA PREÇOS ══
+const TABELA_VERSAO_ATUAL='2026-08-14';
 async function carregarTabelaFirestore(){
   try{
-    const doc=await db.collection('config').doc('tabela_precos').get();
+    const ref=db.collection('config').doc('tabela_precos');
+    const doc=await ref.get();
     if(doc.exists){
       if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
       if(doc.data().config) {
@@ -2602,6 +2604,12 @@ async function carregarTabelaFirestore(){
         ppDist.value = doc.data().config.distancia || 0;
       }
     }
+    }
+    // Migração automática (uma vez só): aplica a tabela de preços atualizada do código
+    // se o Firebase ainda não tem essa versão salva. Não roda de novo depois.
+    if(isAdmin && doc.data()?.versaoTabela!==TABELA_VERSAO_ATUAL){
+      await ref.set({itens:TABELA_SOLAR,versaoTabela:TABELA_VERSAO_ATUAL,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      window.TABELA_SOLAR=[...TABELA_SOLAR];
     }
   }catch(e){}
 }
