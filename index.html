@@ -672,6 +672,8 @@ tr:hover td{background:#faf9f5}
             <input id="al-busca" type="text" placeholder="Buscar cliente..." oninput="renderAgendaLeituras()" style="padding:7px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;width:150px">
             <button onclick="wppMassaLeituras()" style="background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">💬 WhatsApp</button>
             <button id="btn-corrigir-atrasadas" onclick="corrigirProximasLeituras()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔧 Corrigir Atrasadas</button>
+            <button id="btn-sync-clientes" onclick="sincronizarClientesPrincipais()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔍 Sincronizar Clientes Faltantes</button>
+            <button id="btn-limpar-dup-agenda" onclick="limparDuplicadosVaziosAgenda()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🧹 Remover Duplicados Vazios</button>
           </div>
         </div>
         <div id="al-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px"></div>
@@ -1635,7 +1637,7 @@ function initFirebaseListeners() {
     PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
     renderProjetos(); renderDash(); renderPipeline();
     if(document.getElementById('page-mapa')?.classList.contains('on')) renderMapa();
-    if(AGENDA_LEITURAS.length){ sincronizarClientesPrincipais(); sincronizarBeneficiarias(); }
+    if(AGENDA_LEITURAS.length) sincronizarBeneficiarias();
     setFbStatus(true);
   }, err => { setFbStatus(false); });
 
@@ -2350,6 +2352,10 @@ auth.onAuthStateChanged(async user=>{
       if (btnCorr) btnCorr.style.display = 'inline-block';
       const btnDup = document.getElementById('btn-limpar-duplicados');
       if (btnDup) btnDup.style.display = 'inline-block';
+      const btnSync = document.getElementById('btn-sync-clientes');
+      if (btnSync) btnSync.style.display = 'inline-block';
+      const btnLimpAg = document.getElementById('btn-limpar-dup-agenda');
+      if (btnLimpAg) btnLimpAg.style.display = 'inline-block';
     }
     // Iniciar listeners AGORA com nome já definido
     initFirebaseListeners();
@@ -4137,29 +4143,65 @@ function initHistoricoLeiturasListener(){
   }, ()=>{});
 }
 
-async function sincronizarClientesPrincipais(){
-  if(!PROJETOS.length) return;
-  const ucsCadastradas=new Set(AGENDA_LEITURAS.filter(c=>c.tipo!=='beneficiaria').map(c=>String(c.uc||c.id)));
-  const batch=db.batch();
-  let adicionou=false;
+function _normNome(s){
+  return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+function encontrarClientesFaltantesNaAgenda(){
+  if(!PROJETOS.length) return [];
+  const ucsCadastradas=new Set(AGENDA_LEITURAS.map(c=>String(c.uc||'')).filter(Boolean));
+  const nomesCadastrados=new Set(AGENDA_LEITURAS.map(c=>_normNome(c.nome||c.cliente)).filter(Boolean));
+  const faltantes=[];
   PROJETOS.forEach(p=>{
     if(!p.uc) return;
     const ucStr=String(p.uc);
-    if(ucsCadastradas.has(ucStr)) return;
-    if(AGENDA_LEITURAS.find(x=>x.id===ucStr)) return;
-    const ref=db.collection('agenda_leituras').doc(ucStr);
+    const nomeNorm=_normNome(p.nome||p.cliente);
+    if(ucsCadastradas.has(ucStr)) return; // já existe por UC
+    if(nomeNorm && nomesCadastrados.has(nomeNorm)) return; // já existe por nome (UC pode estar diferente entre Projetos e Agenda)
+    faltantes.push({uc:ucStr, nome:p.nome||p.cliente||'', cliente:p.cliente||p.nome||'', telefone:p.tel||''});
+  });
+  return faltantes;
+}
+async function sincronizarClientesPrincipais(){
+  const faltantes=encontrarClientesFaltantesNaAgenda();
+  if(!faltantes.length){toast('Nenhum cliente faltando na Agenda de Leituras.','ok');return;}
+  const lista=faltantes.map(f=>'• '+f.nome+' (UC '+f.uc+')').join('\n');
+  if(!confirm('Encontrados '+faltantes.length+' cliente(s) de Projetos sem entrada na Agenda de Leituras:\n\n'+lista+'\n\nAdicionar todos à Agenda (sem data definida)?'))return;
+  const batch=db.batch();
+  faltantes.forEach(f=>{
+    const ref=db.collection('agenda_leituras').doc(f.uc);
     batch.set(ref,{
-      nome:p.nome||p.cliente||'',
-      cliente:p.cliente||p.nome||'',
-      uc:ucStr,
-      telefone:p.tel||'',
-      proxLeitura:'',
-      status:'',
+      nome:f.nome, cliente:f.cliente, uc:f.uc, telefone:f.telefone,
+      proxLeitura:'', status:'',
       importadoEm:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
-    adicionou=true;
   });
-  if(adicionou) batch.commit().catch(()=>{});
+  try{ await batch.commit(); toast('✅ '+faltantes.length+' cliente(s) adicionado(s) à Agenda!','ok'); }
+  catch(e){ toast('Erro: '+e.message,'er'); }
+}
+async function limparDuplicadosVaziosAgenda(){
+  const principais=AGENDA_LEITURAS.filter(c=>c.tipo!=='beneficiaria');
+  const porNome={};
+  principais.forEach(c=>{
+    const n=_normNome(c.nome||c.cliente);
+    if(!n)return;
+    (porNome[n]=porNome[n]||[]).push(c);
+  });
+  const duplicados=[];
+  Object.values(porNome).forEach(lista=>{
+    if(lista.length<2)return;
+    const comDados=lista.filter(c=>c.proxLeitura||c.status||(HISTORICO_LEITURAS[c.id]||[]).length);
+    const semDados=lista.filter(c=>!c.proxLeitura&&!c.status&&!(HISTORICO_LEITURAS[c.id]||[]).length);
+    if(comDados.length&&semDados.length) duplicados.push(...semDados);
+  });
+  if(!duplicados.length){toast('Nenhum duplicado vazio encontrado.','ok');return;}
+  const lista=duplicados.map(d=>'• '+d.nome+' (UC '+d.uc+')').join('\n');
+  if(!confirm('Encontrados '+duplicados.length+' registro(s) duplicado(s) e vazio(s) na Agenda (mesmo nome de outro cliente já cadastrado, sem nenhuma leitura):\n\n'+lista+'\n\nApagar esses duplicados vazios?'))return;
+  let ok=0,err=0;
+  for(const d of duplicados){
+    try{await db.collection('agenda_leituras').doc(d.id).delete();ok++;}
+    catch(e){err++;}
+  }
+  toast('✅ '+ok+' duplicado(s) removido(s)'+(err?', '+err+' erro(s)':''),'ok');
 }
 async function sincronizarBeneficiarias(){
   if(!PROJETOS.length) return;
@@ -4204,7 +4246,6 @@ function initAgendaLeiturasListener(){
       batch.commit();
     } else {
       AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
-      sincronizarClientesPrincipais();
       sincronizarBeneficiarias();
       atualizarBadgeLeituras();
       renderDashLeiturasSemana();
