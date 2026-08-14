@@ -4445,7 +4445,7 @@ function renderAgendaLeituras(){
       +'<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">'
       +'<div style="flex:1;min-width:160px">'
       +'<div style="font-weight:700;font-size:13px;color:var(--az);cursor:pointer;text-decoration:underline dotted" onclick="abrirHistoricoCliente(\''+c.id+'\')">'+c.nome+(bens.length?'<span style="margin-left:6px;font-size:10px;font-weight:600;background:#e8f8ef;color:#1D9E75;padding:1px 6px;border-radius:4px">'+bens.length+' Ben.</span>':'')+'</div>'
-      +'<div style="font-size:12px;color:var(--txts);margin-top:2px">Contato: '+c.cliente+' · UC: '+(c.uc||'—')+(isAdmin?'<button onclick="editarUcAgenda(\''+c.id+'\')" title="Editar UC" style="background:none;border:none;cursor:pointer;font-size:11px;color:#aaa;padding:0 3px;margin-left:2px;vertical-align:middle">✎</button>':'')+'</div>'
+      +'<div style="font-size:12px;color:var(--txts);margin-top:2px">Contato: '+c.cliente+' · UC: '+(c.uc||'—')+(isAdmin?'<button onclick="editarUcAgenda(\''+c.id+'\')" title="Editar UC" style="background:none;border:none;cursor:pointer;font-size:11px;color:#aaa;padding:0 3px;margin-left:2px;vertical-align:middle">✎</button><button onclick="excluirClienteAgenda(\''+c.id+'\',\''+c.nome.replace(/'/g,"\\'")+'\')" title="Excluir da Agenda" style="background:none;border:none;cursor:pointer;font-size:11px;color:#D85A30;padding:0 3px;vertical-align:middle">🗑</button>':'')+'</div>'
       +'<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center">'+wppBtn+(hist.length?'<button onclick="abrirHistoricoCliente(\''+c.id+'\')" style="background:none;border:1px solid #b5d4f4;color:var(--az);border-radius:5px;padding:2px 8px;cursor:pointer;font-size:11px">📊 '+hist.length+' leitura'+(hist.length>1?'s':'')+'</button>':'')+'</div>'
       +ultimaInfo
       +'</div>'
@@ -4593,6 +4593,15 @@ async function editarUcAgenda(agendaId){
     await db.collection('agenda_leituras').doc(agendaId).update({uc:novoUc.trim()});
     toast('UC atualizada para '+novoUc.trim(),'ok');
   }catch(e){toast('Erro: '+e.message,'erro');}
+}
+async function excluirClienteAgenda(agendaId,nome){
+  const hist=(HISTORICO_LEITURAS[agendaId]||[]).length;
+  const aviso=hist?'\n\n⚠️ Este cliente tem '+hist+' leitura(s) registrada(s) que ficarão sem card na Agenda (o histórico continua salvo, mas some daqui).':'';
+  if(!confirm('Excluir "'+nome+'" da Agenda de Leituras?'+aviso+'\n\nEssa ação não pode ser desfeita.'))return;
+  try{
+    await db.collection('agenda_leituras').doc(agendaId).delete();
+    toast('Removido da Agenda.','ok');
+  }catch(e){toast('Erro: '+e.message,'er');}
 }
 
 function registrarLeituraBen(agendaId, benUc, benEnd, nomeTitular){
