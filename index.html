@@ -1635,7 +1635,7 @@ function initFirebaseListeners() {
     PROJETOS.sort((a, b) => (a.id || 0) - (b.id || 0));
     renderProjetos(); renderDash(); renderPipeline();
     if(document.getElementById('page-mapa')?.classList.contains('on')) renderMapa();
-    if(AGENDA_LEITURAS.length) sincronizarBeneficiarias();
+    if(AGENDA_LEITURAS.length){ sincronizarClientesPrincipais(); sincronizarBeneficiarias(); }
     setFbStatus(true);
   }, err => { setFbStatus(false); });
 
@@ -4137,6 +4137,30 @@ function initHistoricoLeiturasListener(){
   }, ()=>{});
 }
 
+async function sincronizarClientesPrincipais(){
+  if(!PROJETOS.length) return;
+  const ucsCadastradas=new Set(AGENDA_LEITURAS.filter(c=>c.tipo!=='beneficiaria').map(c=>String(c.uc||c.id)));
+  const batch=db.batch();
+  let adicionou=false;
+  PROJETOS.forEach(p=>{
+    if(!p.uc) return;
+    const ucStr=String(p.uc);
+    if(ucsCadastradas.has(ucStr)) return;
+    if(AGENDA_LEITURAS.find(x=>x.id===ucStr)) return;
+    const ref=db.collection('agenda_leituras').doc(ucStr);
+    batch.set(ref,{
+      nome:p.nome||p.cliente||'',
+      cliente:p.cliente||p.nome||'',
+      uc:ucStr,
+      telefone:p.tel||'',
+      proxLeitura:'',
+      status:'',
+      importadoEm:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    adicionou=true;
+  });
+  if(adicionou) batch.commit().catch(()=>{});
+}
 async function sincronizarBeneficiarias(){
   if(!PROJETOS.length) return;
   const ucsCadastradas=new Set(AGENDA_LEITURAS.map(c=>String(c.uc||c.id)));
@@ -4180,6 +4204,7 @@ function initAgendaLeiturasListener(){
       batch.commit();
     } else {
       AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
+      sincronizarClientesPrincipais();
       sincronizarBeneficiarias();
       atualizarBadgeLeituras();
       renderDashLeiturasSemana();
