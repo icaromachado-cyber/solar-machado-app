@@ -4382,9 +4382,9 @@ function renderAgendaLeituras(){
       +'<span style="color:#888">📅 '+(ultima.data?new Date(ultima.data+'T00:00:00').toLocaleDateString('pt-BR'):'—')+'</span>'
       +'</div>':'';
 
-    // UCs beneficiárias do projeto — busca por UC, nome completo ou nome exibição
+    // UCs beneficiárias do projeto — prioriza o vínculo projetoId (confiável); cai pra UC/nome só se ainda não associado
     const _n=s=>(s||'').trim().toLowerCase();
-    const proj=PROJETOS.find(p=>
+    const proj=(c.projetoId&&PROJETOS.find(p=>p.id===c.projetoId))||PROJETOS.find(p=>
       (p.uc&&String(p.uc)===String(c.uc))||
       (p.cliente&&_n(p.cliente)===_n(c.cliente))||
       (p.cliente&&_n(p.cliente)===_n(c.nome))||
