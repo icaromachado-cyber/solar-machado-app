@@ -674,7 +674,7 @@ tr:hover td{background:#faf9f5}
             <button id="btn-corrigir-atrasadas" onclick="corrigirProximasLeituras()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔧 Corrigir Atrasadas</button>
             <button id="btn-sync-clientes" onclick="sincronizarClientesPrincipais()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔍 Sincronizar Clientes Faltantes</button>
             <button id="btn-limpar-dup-agenda" onclick="limparDuplicadosVaziosAgenda()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🧹 Remover Duplicados Vazios</button>
-            <button id="btn-corrigir-uc-agenda" onclick="corrigirUcAgendaPeloProjeto()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔗 Corrigir UC pelo Projeto</button>
+            <button id="btn-corrigir-uc-agenda" onclick="corrigirUcAgendaPeloProjeto()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔗 Associar/Corrigir pelo Projeto</button>
           </div>
         </div>
         <div id="al-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px"></div>
@@ -4214,21 +4214,31 @@ async function corrigirUcAgendaPeloProjeto(){
     const nomeNorm=_normNome(c.nome||c.cliente);
     if(!nomeNorm)return;
     const proj=PROJETOS.find(p=>_normNome(p.nome||p.cliente)===nomeNorm||_normNome(p.cliente)===nomeNorm);
-    if(!proj||!proj.uc)return;
-    const ucProjeto=String(proj.uc);
+    if(!proj)return;
+    const ucProjeto=proj.uc?String(proj.uc):'';
     const ucAgenda=String(c.uc||'');
-    if(ucProjeto===ucAgenda)return;
-    correcoes.push({id:c.id,nome:c.nome||c.cliente,ucAntiga:ucAgenda||'(vazio)',ucNova:ucProjeto});
+    const precisaUc=ucProjeto&&ucProjeto!==ucAgenda;
+    const precisaAssociar=String(c.projetoId||'')!==String(proj.id);
+    if(!precisaUc&&!precisaAssociar)return;
+    correcoes.push({
+      id:c.id, nome:c.nome||c.cliente, projetoId:proj.id,
+      ucAntiga:ucAgenda||'(vazio)', ucNova:precisaUc?ucProjeto:null,
+      resumo:c.nome+(precisaUc?': UC '+(ucAgenda||'(vazio)')+' → '+ucProjeto:'')+(precisaAssociar?' · vincula ao projeto #'+proj.id:'')
+    });
   });
-  if(!correcoes.length){toast('Nenhuma UC divergente entre Agenda e Projetos.','ok');return;}
-  const lista=correcoes.map(c=>'• '+c.nome+': '+c.ucAntiga+' → '+c.ucNova).join('\n');
-  if(!confirm('Encontradas '+correcoes.length+' UC(s) diferentes entre Agenda e Projetos (mesmo nome de cliente):\n\n'+lista+'\n\nAtualizar a Agenda para usar a UC do cadastro de Projetos?'))return;
+  if(!correcoes.length){toast('Agenda já está toda associada e com UC batendo com Projetos.','ok');return;}
+  const lista=correcoes.map(c=>'• '+c.resumo).join('\n');
+  if(!confirm('Encontrados '+correcoes.length+' cliente(s) da Agenda pra associar/corrigir com base em Projetos (casando pelo nome):\n\n'+lista+'\n\nAplicar?'))return;
   let ok=0,err=0;
   for(const c of correcoes){
-    try{await db.collection('agenda_leituras').doc(c.id).update({uc:c.ucNova});ok++;}
-    catch(e){err++;}
+    try{
+      const upd={projetoId:c.projetoId};
+      if(c.ucNova) upd.uc=c.ucNova;
+      await db.collection('agenda_leituras').doc(c.id).update(upd);
+      ok++;
+    }catch(e){err++;}
   }
-  toast('✅ '+ok+' UC(s) corrigida(s)'+(err?', '+err+' erro(s)':''),'ok');
+  toast('✅ '+ok+' cliente(s) associado(s)/corrigido(s)'+(err?', '+err+' erro(s)':''),'ok');
 }
 async function sincronizarBeneficiarias(){
   if(!PROJETOS.length) return;
