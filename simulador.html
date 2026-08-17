@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Solar — Solar Machado Engenharia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --navy-950:#08111f;
+    --navy-900:#0c1a2e;
+    --navy-800:#13253f;
+    --navy-700:#1c3654;
+    --line: rgba(237,239,243,0.10);
+    --gold:#f2a93b;
+    --gold-soft: rgba(242,169,59,0.14);
+    --coral:#ff6b4a;
+    --sky:#5fc9e8;
+    --green:#4ade80;
+    --ink:#edeff3;
+    --ink-dim:#9fb0c3;
+    --ink-faint:#6c7f96;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(242,169,59,0.10), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(95,201,232,0.08), transparent 55%),
+      var(--navy-950);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; margin:0; letter-spacing:-0.01em;}
+  a{color:inherit;}
+
+  /* -------- top nav -------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px clamp(20px,5vw,64px);
+    background:rgba(8,17,31,0.72);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:600; font-size:1.05rem;}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--gold); box-shadow:0 0 0 4px var(--gold-soft);}
+  .brand small{ display:block; font-family:'Inter',sans-serif; font-weight:400; font-size:0.68rem; color:var(--ink-faint); letter-spacing:.04em; text-transform:uppercase;}
+  .cta-nav{
+    font-size:0.82rem; font-weight:600; color:var(--navy-950);
+    background:var(--gold); padding:9px 16px; border-radius:100px;
+    text-decoration:none; white-space:nowrap;
+  }
+
+  /* -------- hero -------- */
+  .hero{
+    padding: clamp(56px,10vw,110px) clamp(20px,5vw,64px) 70px;
+    max-width:1180px; margin:0 auto;
+    display:grid; grid-template-columns: 1.15fr 0.85fr; gap:56px; align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:0.72rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--gold); border:1px solid rgba(242,169,59,0.35); padding:6px 12px; border-radius:100px; margin-bottom:22px;
+  }
+  .hero h1{ font-size:clamp(2.2rem,4.4vw,3.6rem); line-height:1.06; color:#fff;}
+  .hero h1 em{ font-style:normal; color:var(--gold); }
+  .hero p.lede{ margin-top:20px; font-size:1.08rem; line-height:1.6; color:var(--ink-dim); max-width:46ch;}
+  .hero .stats{ display:flex; gap:28px; margin-top:36px; flex-wrap:wrap;}
+  .hero .stats div b{ display:block; font-family:'Fraunces',serif; font-size:1.5rem; color:#fff;}
+  .hero .stats div span{ font-size:0.76rem; color:var(--ink-faint); }
+  .hero .cta{
+    margin-top:34px; display:inline-flex; align-items:center; gap:10px;
+    background:var(--gold); color:var(--navy-950); font-weight:700; font-size:0.95rem;
+    padding:14px 24px; border-radius:100px; text-decoration:none;
+  }
+
+  /* sundial signature graphic */
+  .sundial-wrap{ display:flex; justify-content:center; align-items:center; }
+  #sundial{ width:100%; max-width:380px; height:auto; }
+  .sun-core{ filter:drop-shadow(0 0 22px rgba(242,169,59,0.55)); }
+
+  /* -------- section shell -------- */
+  section{ padding: 60px clamp(20px,5vw,64px); max-width:1180px; margin:0 auto; }
+  .section-head{ margin-bottom:36px; max-width:60ch; }
+  .section-head .kicker{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--sky); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; display:block;}
+  .section-head h2{ font-size:clamp(1.5rem,2.6vw,2.1rem); color:#fff; }
+
+  /* -------- calculator -------- */
+  #calculadora{ padding-top:20px; }
+  .calc-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:20px;
+    background:var(--navy-900); border:1px solid var(--line); border-radius:22px; padding:clamp(20px,3.5vw,36px);
+  }
+  .field{ display:flex; flex-direction:column; gap:8px; }
+  .field label{ font-size:0.82rem; color:var(--ink-dim); font-weight:500; }
+  .field .hint{ font-size:0.72rem; color:var(--ink-faint); }
+  .field input, .field select{
+    background:var(--navy-800); border:1px solid var(--line); color:var(--ink);
+    padding:12px 14px; border-radius:10px; font-size:0.98rem; font-family:'IBM Plex Mono',monospace;
+    outline:none; transition:border-color .15s;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--gold); }
+  .toggle-row{ display:flex; gap:8px; grid-column:1/-1; }
+  .toggle-btn{
+    flex:1; text-align:center; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+    background:var(--navy-800); color:var(--ink-dim); font-size:0.86rem; cursor:pointer; font-weight:500;
+  }
+  .toggle-btn.active{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+  .adv-toggle{
+    grid-column:1/-1; margin-top:4px; background:none; border:none; color:var(--sky);
+    font-size:0.8rem; cursor:pointer; text-align:left; padding:0; font-family:'Inter',sans-serif;
+  }
+  .adv-fields{ display:none; grid-column:1/-1; grid-template-columns:1fr 1fr 1fr; gap:16px; padding-top:8px; border-top:1px dashed var(--line); margin-top:6px;}
+  .adv-fields.open{ display:grid; }
+  .calc-btn{
+    grid-column:1/-1; margin-top:6px; background:var(--gold); color:var(--navy-950); border:none;
+    padding:15px; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .calc-btn:hover{ filter:brightness(1.06); }
+
+  /* -------- results -------- */
+  #resultados{ display:none; }
+  #resultados.show{ display:block; }
+  .result-hero{
+    display:grid; grid-template-columns: 0.9fr 1.1fr; gap:40px; align-items:center;
+    background:linear-gradient(135deg, var(--navy-800), var(--navy-900));
+    border:1px solid var(--line); border-radius:22px; padding:clamp(24px,4vw,44px); margin-top:28px;
+  }
+  .gauge-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .gauge-num{ font-family:'Fraunces',serif; font-size:2.6rem; color:var(--gold); }
+  .gauge-label{ font-size:0.78rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; }
+  .kpi-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .kpi{ border-left:2px solid var(--gold); padding-left:14px; }
+  .kpi b{ display:block; font-family:'Fraunces',serif; font-size:1.5rem; color:#fff; }
+  .kpi span{ font-size:0.78rem; color:var(--ink-faint); }
+  .kpi.green{ border-left-color:var(--green); }
+  .kpi.green b{ color:var(--green); }
+  .kpi.sky{ border-left-color:var(--sky); }
+  .kpi.sky b{ color:var(--sky); }
+
+  .detail-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:24px; }
+  .detail-card{ background:var(--navy-900); border:1px solid var(--line); border-radius:14px; padding:18px; }
+  .detail-card .lbl{ font-size:0.72rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; }
+  .detail-card .val{ font-family:'IBM Plex Mono',monospace; font-size:1.2rem; color:var(--ink); margin-top:6px; }
+
+  /* chart */
+  .chart-card{ margin-top:24px; background:var(--navy-900); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  .chart-card h3{ font-size:1.05rem; color:#fff; margin-bottom:4px;}
+  .chart-card .sub{ font-size:0.8rem; color:var(--ink-faint); margin-bottom:20px; }
+  #barChart{ display:flex; align-items:flex-end; gap:14px; height:180px; }
+  .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:8px; }
+  .bar{ width:100%; border-radius:6px 6px 0 0; background:linear-gradient(180deg, var(--gold), var(--coral)); transition:height .6s ease; }
+  .bar-col .yr{ font-size:0.72rem; color:var(--ink-faint); }
+  .bar-col .amt{ font-size:0.68rem; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace; }
+
+  .disclaimer{ font-size:0.76rem; color:var(--ink-faint); margin-top:20px; line-height:1.6; border-top:1px solid var(--line); padding-top:16px; }
+
+  /* -------- footer -------- */
+  footer{
+    margin-top:40px; padding:40px clamp(20px,5vw,64px) 50px; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+    max-width:1180px; margin-left:auto; margin-right:auto;
+  }
+  footer .f-brand{ font-family:'Fraunces',serif; font-size:1.1rem; color:#fff; }
+  footer .f-meta{ font-size:0.78rem; color:var(--ink-faint); margin-top:4px; line-height:1.6; }
+  footer .f-cta{ background:var(--gold); color:var(--navy-950); font-weight:700; text-decoration:none; padding:12px 22px; border-radius:100px; font-size:0.88rem;}
+
+  @media (max-width: 880px){
+    .hero{ grid-template-columns:1fr; }
+    .calc-grid{ grid-template-columns:1fr; }
+    .adv-fields{ grid-template-columns:1fr; }
+    .result-hero{ grid-template-columns:1fr; }
+    .kpi-grid{ grid-template-columns:1fr 1fr; }
+    .detail-grid{ grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>Solar Machado <small>Engenharia de energia solar</small></div>
+  </div>
+  <a class="cta-nav" href="#calculadora">Simular agora</a>
+</div>
+
+<section class="hero">
+  <div>
+    <span class="eyebrow">Simulador de geração fotovoltaica</span>
+    <h1>Sua conta de luz tem um <em>teto solar</em> escondido nela.</h1>
+    <p class="lede">Informe o valor médio da sua conta e a cidade do imóvel. Em segundos, calculamos o tamanho do sistema, a geração mensal esperada e em quanto tempo o investimento se paga.</p>
+    <div class="stats">
+      <div><b>27</b><span>estados com irradiação mapeada</span></div>
+      <div><b>~25 anos</b><span>de vida útil estimada do sistema</span></div>
+      <div><b>CREA-PI</b><span>1916641032</span></div>
+    </div>
+    <a class="cta" href="#calculadora">Calcular minha economia →</a>
+  </div>
+  <div class="sundial-wrap">
+    <svg id="sundial" viewBox="0 0 380 380" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="190" cy="190" r="170" fill="none" stroke="rgba(237,239,243,0.08)" stroke-width="1"/>
+      <circle cx="190" cy="190" r="132" fill="none" stroke="rgba(237,239,243,0.06)" stroke-width="1"/>
+      <g id="sunArc" stroke="url(#arcGrad)" stroke-width="10" fill="none" stroke-linecap="round">
+        <path d="M 46 190 A 144 144 0 0 1 334 190" />
+      </g>
+      <defs>
+        <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ff6b4a"/>
+          <stop offset="100%" stop-color="#f2a93b"/>
+        </linearGradient>
+      </defs>
+      <circle class="sun-core" id="sunDot" cx="46" cy="190" r="15" fill="#f2a93b"/>
+      <text x="190" y="230" text-anchor="middle" fill="#edeff3" font-family="Fraunces, serif" font-size="30" font-weight="600" id="sunPct">0%</text>
+      <text x="190" y="254" text-anchor="middle" fill="#6c7f96" font-family="Inter, sans-serif" font-size="12" letter-spacing="1">DA CONTA COMPENSADA</text>
+    </svg>
+  </div>
+</section>
+
+<section id="calculadora">
+  <div class="section-head">
+    <span class="kicker">Passo único</span>
+    <h2>Preencha os dados do seu consumo</h2>
+  </div>
+
+  <div class="calc-grid">
+    <div class="toggle-row">
+      <button type="button" class="toggle-btn active" data-mode="conta">Sei o valor da conta (R$)</button>
+      <button type="button" class="toggle-btn" data-mode="kwh">Sei o consumo (kWh)</button>
+    </div>
+
+    <div class="field" id="fieldConta">
+      <label for="valorConta">Valor médio da conta de luz</label>
+      <input type="number" id="valorConta" placeholder="Ex: 450" min="0" step="1">
+      <span class="hint">Média dos últimos 3 meses, em reais</span>
+    </div>
+    <div class="field" id="fieldKwh" style="display:none;">
+      <label for="consumoKwh">Consumo médio mensal</label>
+      <input type="number" id="consumoKwh" placeholder="Ex: 480" min="0" step="1">
+      <span class="hint">Em kWh, conforme a fatura</span>
+    </div>
+
+    <div class="field">
+      <label for="estado">Estado do imóvel</label>
+      <select id="estado"></select>
+      <span class="hint">Define a irradiação solar média (HSP) usada no cálculo</span>
+    </div>
+
+    <div class="field">
+      <label for="tarifa">Tarifa de energia (R$/kWh)</label>
+      <input type="number" id="tarifa" value="0.85" min="0" step="0.01">
+      <span class="hint">Ajustável — use o valor da fatura, se tiver</span>
+    </div>
+
+    <button type="button" class="adv-toggle" id="advToggle">+ Parâmetros técnicos avançados</button>
+    <div class="adv-fields" id="advFields">
+      <div class="field">
+        <label for="potModulo">Potência do módulo (W)</label>
+        <input type="number" id="potModulo" value="610" min="1" step="5">
+      </div>
+      <div class="field">
+        <label for="custoKwp">Custo do sistema (R$/kWp)</label>
+        <input type="number" id="custoKwp" value="3800" min="1" step="50">
+      </div>
+      <div class="field">
+        <label for="fatorComp">Fator de compensação SCEE (%)</label>
+        <input type="number" id="fatorComp" value="88" min="1" max="100" step="1">
+        <span class="hint">Considera Fio B (Lei 14.300/2022) e taxa mínima</span>
+      </div>
+      <div class="field">
+        <label for="perdas">Performance ratio do sistema (%)</label>
+        <input type="number" id="perdas" value="78" min="1" max="100" step="1">
+      </div>
+      <div class="field">
+        <label for="degrad">Degradação anual do painel (%)</label>
+        <input type="number" id="degrad" value="0.5" min="0" step="0.1">
+      </div>
+      <div class="field">
+        <label for="reajuste">Reajuste tarifário anual médio (%)</label>
+        <input type="number" id="reajuste" value="6" min="0" step="0.5">
+      </div>
+    </div>
+
+    <button type="button" class="calc-btn" id="calcBtn">Calcular meu sistema solar</button>
+  </div>
+
+  <div id="resultados">
+    <div class="result-hero">
+      <div class="gauge-wrap">
+        <div class="gauge-num" id="kwpOut">0 kWp</div>
+        <div class="gauge-label">Potência do sistema recomendado</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <b id="genMensal">0 kWh</b>
+          <span>Geração média mensal</span>
+        </div>
+        <div class="kpi green">
+          <b id="econMensal">R$ 0</b>
+          <span>Economia mensal estimada</span>
+        </div>
+        <div class="kpi sky">
+          <b id="payback">0 anos</b>
+          <span>Retorno do investimento (payback)</span>
+        </div>
+        <div class="kpi">
+          <b id="investimento">R$ 0</b>
+          <span>Investimento estimado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-card"><div class="lbl">Módulos</div><div class="val" id="numModulos">—</div></div>
+      <div class="detail-card"><div class="lbl">Inversor sugerido</div><div class="val" id="inversorSug">—</div></div>
+      <div class="detail-card"><div class="lbl">HSP da região</div><div class="val" id="hspOut">—</div></div>
+      <div class="detail-card"><div class="lbl">Economia em 25 anos</div><div class="val" id="econ25">—</div></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Economia acumulada x tempo</h3>
+      <div class="sub">Considerando reajuste tarifário e degradação do sistema ao longo dos anos</div>
+      <div id="barChart"></div>
+    </div>
+
+    <p class="disclaimer">
+      Simulação com fins estimativos, baseada em médias de irradiação solar por estado (HSP), performance ratio típico de sistemas fotovoltaicos no Brasil e nas regras de compensação da Lei 14.300/2022. Valores de custo, tarifa e geração real variam conforme telhado, sombreamento, equipamentos e distribuidora local. Para um projeto e dimensionamento definitivo, fale com a Solar Machado Engenharia.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="f-brand">Solar Machado Engenharia</div>
+    <div class="f-meta">Ícaro Caio de Sousa Machado — Eng. Eletricista e Eng. de Segurança do Trabalho<br>CREA-PI 1916641032 · CNPJ 34.757.760/0001-60</div>
+  </div>
+  <a class="f-cta" href="#" id="whatsCta">Falar com um engenheiro</a>
+</footer>
+
+<script>
+  // ── Firebase (mesmo projeto do app Solar Machado) ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyCmZNBTQWx9Eb5sVy7h4tlMXlES7w0hhJA",
+    authDomain: "solar-machado.firebaseapp.com",
+    projectId: "solar-machado",
+    storageBucket: "solar-machado.firebasestorage.app",
+    messagingSenderId: "346832447278",
+    appId: "1:346832447278:web:fdec77421a8a120e7f7cbf"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  let _ultimoLeadRef = null;
+
+  // HSP médio (horas de sol pleno / dia) por estado — valores de referência, uso estimativo
+  const hspPorEstado = {
+    AC:4.5, AL:5.5, AP:4.9, AM:4.5, BA:5.5, CE:5.7, DF:5.3, ES:5.1, GO:5.4,
+    MA:5.2, MT:5.3, MS:5.2, MG:5.3, PA:4.8, PB:5.6, PR:4.8, PE:5.6, PI:5.7,
+    RJ:4.9, RN:5.8, RS:4.7, RO:4.7, RR:4.7, SC:4.5, SP:5.0, SE:5.5, TO:5.3
+  };
+  const nomesEstado = {
+    AC:"Acre", AL:"Alagoas", AP:"Amapá", AM:"Amazonas", BA:"Bahia", CE:"Ceará",
+    DF:"Distrito Federal", ES:"Espírito Santo", GO:"Goiás", MA:"Maranhão",
+    MT:"Mato Grosso", MS:"Mato Grosso do Sul", MG:"Minas Gerais", PA:"Pará",
+    PB:"Paraíba", PR:"Paraná", PE:"Pernambuco", PI:"Piauí", RJ:"Rio de Janeiro",
+    RN:"Rio Grande do Norte", RS:"Rio Grande do Sul", RO:"Rondônia", RR:"Roraima",
+    SC:"Santa Catarina", SP:"São Paulo", SE:"Sergipe", TO:"Tocantins"
+  };
+
+  const estadoSelect = document.getElementById('estado');
+  Object.keys(nomesEstado).sort((a,b)=>nomesEstado[a].localeCompare(nomesEstado[b])).forEach(uf=>{
+    const opt = document.createElement('option');
+    opt.value = uf; opt.textContent = `${nomesEstado[uf]} (${uf})`;
+    if(uf === 'PI') opt.selected = true;
+    estadoSelect.appendChild(opt);
+  });
+
+  // toggle conta / kwh
+  let modo = 'conta';
+  document.querySelectorAll('.toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      modo = btn.dataset.mode;
+      document.getElementById('fieldConta').style.display = modo==='conta' ? 'flex':'none';
+      document.getElementById('fieldKwh').style.display = modo==='kwh' ? 'flex':'none';
+    });
+  });
+
+  document.getElementById('advToggle').addEventListener('click', (e)=>{
+    const box = document.getElementById('advFields');
+    box.classList.toggle('open');
+    e.target.textContent = box.classList.contains('open') ? '− Parâmetros técnicos avançados' : '+ Parâmetros técnicos avançados';
+  });
+
+  function fmtR$(v){
+    return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+  }
+  function fmtNum(v, casas=0){
+    return v.toLocaleString('pt-BR', {maximumFractionDigits:casas, minimumFractionDigits:casas});
+  }
+
+  const invSizes = [3,4,5,6,8,10,12,15,20,25,30,40,50,60,75,100];
+  function nearestInverter(kw){
+    return invSizes.reduce((prev, cur) => Math.abs(cur-kw) < Math.abs(prev-kw) ? cur : prev);
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', ()=>{
+    const uf = estadoSelect.value;
+    const hsp = hspPorEstado[uf];
+    const tarifa = parseFloat(document.getElementById('tarifa').value) || 0.85;
+    const potModulo = parseFloat(document.getElementById('potModulo').value) || 610;
+    const custoKwp = parseFloat(document.getElementById('custoKwp').value) || 3800;
+    const fatorComp = (parseFloat(document.getElementById('fatorComp').value) || 88) / 100;
+    const pr = (parseFloat(document.getElementById('perdas').value) || 78) / 100;
+    const degrad = (parseFloat(document.getElementById('degrad').value) || 0.5) / 100;
+    const reajuste = (parseFloat(document.getElementById('reajuste').value) || 6) / 100;
+
+    let valorConta, consumoKwh;
+    if(modo === 'conta'){
+      valorConta = parseFloat(document.getElementById('valorConta').value) || 0;
+      consumoKwh = valorConta / tarifa;
+    } else {
+      consumoKwh = parseFloat(document.getElementById('consumoKwh').value) || 0;
+      valorConta = consumoKwh * tarifa;
+    }
+    if(consumoKwh <= 0){
+      alert('Informe um valor de conta ou consumo maior que zero.');
+      return;
+    }
+
+    // dimensionamento
+    const kwpNecessario = consumoKwh / (hsp * 30 * pr);
+    const numModulos = Math.ceil((kwpNecessario * 1000) / potModulo);
+    const potReal = (numModulos * potModulo) / 1000;
+    const genMensal = potReal * hsp * 30 * pr;
+    const inversor = nearestInverter(potReal * 0.85);
+    const investimento = potReal * custoKwp;
+    const econMensal = Math.min(valorConta, genMensal * tarifa) * fatorComp;
+    const paybackMeses = investimento / econMensal;
+    const paybackAnos = paybackMeses / 12;
+
+    // economia acumulada 25 anos (com degradação e reajuste)
+    let acumulado = 0;
+    const anos = [1,5,10,15,20,25];
+    const seriePorAno = [];
+    let econMensalAno = econMensal;
+    let tarifaAno = tarifa;
+    for(let ano=1; ano<=25; ano++){
+      if(ano>1){
+        tarifaAno *= (1+reajuste);
+        econMensalAno = econMensal * (1 - degrad*(ano-1)) * (tarifaAno/tarifa);
+      }
+      acumulado += econMensalAno * 12;
+      if(anos.includes(ano)) seriePorAno.push({ano, acumulado});
+    }
+    const econ25 = acumulado - investimento;
+
+    // ---- render ----
+    document.getElementById('kwpOut').textContent = `${fmtNum(potReal,2)} kWp`;
+    document.getElementById('genMensal').textContent = `${fmtNum(genMensal)} kWh`;
+    document.getElementById('econMensal').textContent = fmtR$(econMensal);
+    document.getElementById('payback').textContent = `${fmtNum(paybackAnos,1)} anos`;
+    document.getElementById('investimento').textContent = fmtR$(investimento);
+    document.getElementById('numModulos').textContent = `${numModulos} × ${potModulo}W`;
+    document.getElementById('inversorSug').textContent = `${inversor} kW`;
+    document.getElementById('hspOut').textContent = `${hsp} h/dia — ${nomesEstado[uf]}`;
+    document.getElementById('econ25').textContent = fmtR$(econ25);
+
+    // sundial: % da conta compensada
+    const pctCompensado = Math.min(100, Math.round((econMensal/valorConta)*100)) || 0;
+    document.getElementById('sunPct').textContent = `${pctCompensado}%`;
+    const angle = (pctCompensado/100) * 180; // 0 a 180deg ao longo do arco
+    const rad = (angle) * Math.PI/180;
+    const cx=190, cy=190, r=144;
+    const x = cx - r*Math.cos(rad);
+    const y = cy - r*Math.sin(rad);
+    document.getElementById('sunDot').setAttribute('cx', x);
+    document.getElementById('sunDot').setAttribute('cy', y);
+
+    // bar chart
+    const chart = document.getElementById('barChart');
+    chart.innerHTML = '';
+    const maxVal = Math.max(...seriePorAno.map(s=>s.acumulado), investimento);
+    seriePorAno.forEach(s=>{
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      const barHeightPct = Math.max(4, (s.acumulado/maxVal)*100);
+      col.innerHTML = `
+        <div class="amt">${fmtR$(s.acumulado)}</div>
+        <div class="bar" style="height:${barHeightPct}%"></div>
+        <div class="yr">Ano ${s.ano}</div>
+      `;
+      chart.appendChild(col);
+    });
+
+    document.getElementById('resultados').classList.add('show');
+    document.getElementById('resultados').scrollIntoView({behavior:'smooth', block:'start'});
+
+    // whatsapp cta com mensagem pré-preenchida — direto pro WhatsApp da Solar Machado
+    const msg = encodeURIComponent(`Olá! Simulei um sistema de ${fmtNum(potReal,2)} kWp no site da Solar Machado (conta de ${fmtR$(valorConta)}/mês em ${nomesEstado[uf]}) e quero uma proposta.`);
+    document.getElementById('whatsCta').href = `https://wa.me/5586999772559?text=${msg}`;
+
+    // salva o lead no Firestore (não bloqueia a experiência do visitante se falhar)
+    db.collection('leads_simulador').add({
+      valorConta, consumoKwh, estado: uf, estadoNome: nomesEstado[uf], tarifa,
+      potModulo, custoKwp, fatorComp, performanceRatio: pr, degradacaoAnual: degrad, reajusteTarifario: reajuste,
+      kwp: potReal, numModulos, inversor, genMensal, econMensal, paybackAnos, investimento, econ25, pctCompensado,
+      contatoWhatsapp: false,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(ref=>{ _ultimoLeadRef = ref; }).catch(()=>{});
+  });
+
+  document.getElementById('whatsCta').addEventListener('click', ()=>{
+    if(_ultimoLeadRef) _ultimoLeadRef.update({contatoWhatsapp:true}).catch(()=>{});
+  });
+
+  // estado inicial do sundial
+  document.getElementById('sunDot').setAttribute('cx', 46);
+  document.getElementById('sunDot').setAttribute('cy', 190);
+</script>
+
+</body>
+</html>
