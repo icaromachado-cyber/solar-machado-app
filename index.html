@@ -2436,23 +2436,25 @@ auth.onAuthStateChanged(async user=>{
 });
 // ══ TABELA DE PREÇOS ══
 const TABELA_SOLAR = [
-  // Atualizado em 14/08/2026 — Fonte: tabela teste app.xlsx (TABELA 042026 solplanet, GOKIN 640Wp)
-  {kwh:450, wpMod:640, nMod:6,  potInv:3,   kwp:3.8,  total:12500, baixarAte:11500},
-  {kwh:500, wpMod:640, nMod:7,  potInv:3,   kwp:4.5,  total:13000, baixarAte:12000},
-  {kwh:600, wpMod:640, nMod:8,  potInv:6,   kwp:5.1,  total:14500, baixarAte:13500},
-  {kwh:700, wpMod:640, nMod:9,  potInv:6,   kwp:5.8,  total:15500, baixarAte:14500},
-  {kwh:800, wpMod:640, nMod:10, potInv:6,   kwp:6.4,  total:16000, baixarAte:15000},
-  {kwh:900, wpMod:640, nMod:12, potInv:6,   kwp:7.7,  total:17500, baixarAte:16500},
-  {kwh:1000,wpMod:640, nMod:13, potInv:6,   kwp:8.3,  total:20000, baixarAte:19000},
-  {kwh:1200,wpMod:640, nMod:15, potInv:7.5, kwp:9.6,  total:21000, baixarAte:20000},
-  {kwh:1300,wpMod:640, nMod:17, potInv:7.5, kwp:10.9, total:23500, baixarAte:22500},
-  {kwh:1500,wpMod:640, nMod:19, potInv:9.1, kwp:12.2, total:25000, baixarAte:24000},
-  {kwh:1800,wpMod:640, nMod:23, potInv:9.1, kwp:14.7, total:28000, baixarAte:27000},
-  {kwh:2000,wpMod:640, nMod:25, potInv:9.1, kwp:16.0, total:31000, baixarAte:30000},
-  {kwh:2200,wpMod:640, nMod:28, potInv:20,  kwp:17.9, total:35000, baixarAte:34000},
-  {kwh:2500,wpMod:640, nMod:31, potInv:20,  kwp:19.8, total:37500, baixarAte:36500},
-  {kwh:3000,wpMod:640, nMod:37, potInv:20,  kwp:23.7, total:44000, baixarAte:43000},
-  {kwh:3500,wpMod:640, nMod:44, potInv:20,  kwp:28.2, total:49500, baixarAte:48500}
+  // Atualizado em 01/09/2026 — Fonte: Tabela de Preços dos Kits Fotovoltaicos - Solar Machado
+  // Inversor SOLPLANET (todos em pré-venda) · Módulo RENEPV 620Wp (disp. a partir de 19/09/2026)
+  // Faixa de 700 kWh usa módulo ERA 710Wp (disp. a partir de 26/09/2026)
+  {kwh:450, wpMod:620, nMod:6,  potInv:3,   kwp:3.7,  total:12500, baixarAte:11500},
+  {kwh:500, wpMod:620, nMod:7,  potInv:3,   kwp:4.3,  total:13000, baixarAte:12000},
+  {kwh:600, wpMod:620, nMod:8,  potInv:6,   kwp:5.0,  total:14000, baixarAte:13000},
+  {kwh:700, wpMod:710, nMod:8,  potInv:6,   kwp:5.7,  total:15500, baixarAte:14500},
+  {kwh:800, wpMod:620, nMod:11, potInv:6,   kwp:6.8,  total:16500, baixarAte:15500},
+  {kwh:900, wpMod:620, nMod:12, potInv:6,   kwp:7.4,  total:17000, baixarAte:16000},
+  {kwh:1000,wpMod:620, nMod:13, potInv:6,   kwp:8.1,  total:19500, baixarAte:18500},
+  {kwh:1200,wpMod:620, nMod:16, potInv:7.5, kwp:9.9,  total:22000, baixarAte:21000},
+  {kwh:1300,wpMod:620, nMod:17, potInv:7.5, kwp:10.5, total:23000, baixarAte:22000},
+  {kwh:1500,wpMod:620, nMod:20, potInv:9.1, kwp:12.4, total:25000, baixarAte:24000},
+  {kwh:1800,wpMod:620, nMod:24, potInv:9.1, kwp:14.9, total:28500, baixarAte:27500},
+  {kwh:2000,wpMod:620, nMod:26, potInv:9.1, kwp:16.1, total:31000, baixarAte:30000},
+  {kwh:2200,wpMod:620, nMod:29, potInv:17,  kwp:18.0, total:35000, baixarAte:34000},
+  {kwh:2500,wpMod:620, nMod:32, potInv:17,  kwp:19.8, total:37000, baixarAte:36000},
+  {kwh:3000,wpMod:620, nMod:39, potInv:20,  kwp:24.2, total:44500, baixarAte:43500},
+  {kwh:3500,wpMod:620, nMod:45, potInv:20,  kwp:27.9, total:49500, baixarAte:48500}
 ];
 const TABELA_DIST_REF = 0; // Distância de referência (0 km = preço base)
 
@@ -2589,7 +2591,7 @@ function mostrarCardResponsavel(){
 }
 
 // ══ TABELA PREÇOS ══
-const TABELA_VERSAO_ATUAL='2026-08-14b';
+const TABELA_VERSAO_ATUAL='2026-09-01';
 async function carregarTabelaFirestore(){
   try{
     const ref=db.collection('config').doc('tabela_precos');
