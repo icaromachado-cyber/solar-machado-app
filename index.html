@@ -311,8 +311,14 @@ tr:hover td{background:#faf9f5}
           </div>
         </div>
       </div>
+      <div style="background:#f0f4ff;border:1px solid #c5d0f5;border-radius:8px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#2E3486;margin-bottom:6px">📋 Colar da Planilha (Excel/Google Sheets)</div>
+        <div style="font-size:11px;color:#5a5b6e;margin-bottom:8px">Selecione a tabela inteira na planilha (colunas de GERAÇÃO REAL até Baixar Até), copie e cole aqui embaixo. Não precisa digitar nada.</div>
+        <textarea id="tabela-colar" placeholder="Cole aqui as linhas copiadas da planilha..." style="width:100%;min-height:80px;padding:8px 10px;border:1px solid #c5d0f5;border-radius:6px;font-size:11.5px;font-family:'IBM Plex Mono',monospace;resize:vertical"></textarea>
+        <button type="button" onclick="importarTabelaColada()" style="margin-top:8px;background:#2E3486;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer">⬇ Importar da Planilha</button>
+      </div>
       <div style="background:#fff8e0;border:1px solid #fac775;border-radius:8px;padding:10px 14px;font-size:12px;color:#633806;margin-bottom:14px">
-        ⚠ Edite os valores abaixo e clique em <strong>Salvar no Firebase</strong>. A tabela fica disponível para todos os usuários automaticamente.
+        ⚠ Confira os valores importados (ou edite manualmente) e clique em <strong>Salvar no Firebase</strong>. A tabela fica disponível para todos os usuários automaticamente.
       </div>
       <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -3481,6 +3487,42 @@ function abrirEditarTabela(){
   s('cfg-dist', cfg.distancia);
   s('cfg-cidade', cfg.cidade || '');
   modal.style.display='flex';
+}
+function _parseNumBR(str){
+  if(str==null) return 0;
+  let s=String(str).trim();
+  if(!s) return 0;
+  s=s.replace(/^R\$\s?/,'').replace(/\s/g,'');
+  const neg=/^-/.test(s); s=s.replace(/^-/,'');
+  s=s.replace(/\./g,'').replace(',','.');
+  const n=parseFloat(s);
+  return isNaN(n)?0:(neg?-n:n);
+}
+function importarTabelaColada(){
+  const texto=document.getElementById('tabela-colar')?.value||'';
+  if(!texto.trim()){toast('Cole a tabela da planilha antes de importar.','er');return;}
+  // Colunas esperadas (na ordem da planilha): GERAÇÃO REAL, KWH, POT PLACA, Nº PLACA,
+  // Potência Inversor, KWP, KIT, MÃO DE OBRA, MATERIAL DC/AC, PROJETO, ART, LUCRO M., LUCRO V., TOTAL, Baixar Até
+  const linhas=texto.split(/\r?\n/).map(l=>l.split('\t')).filter(cols=>cols.length>=8);
+  const itens=[];
+  linhas.forEach(cols=>{
+    const kwh=_parseNumBR(cols[1]);
+    if(!kwh||kwh<=0) return; // pula cabeçalho e linhas inválidas
+    itens.push({
+      kwh,
+      wpMod:_parseNumBR(cols[2]),
+      nMod:_parseNumBR(cols[3]),
+      potInv:_parseNumBR(cols[4]),
+      kwp:_parseNumBR(cols[5]),
+      total:_parseNumBR(cols[13]),
+      baixarAte:_parseNumBR(cols[14])
+    });
+  });
+  if(!itens.length){toast('Não consegui reconhecer nenhuma linha válida. Confira se colou a tabela inteira.','er');return;}
+  itens.sort((a,b)=>a.kwh-b.kwh);
+  window.TABELA_SOLAR=itens;
+  renderEditarTabela();
+  toast('✅ '+itens.length+' linha(s) importada(s)! Confira e clique em Salvar no Firebase.','ok');
 }
 function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_SOLAR||TABELA_SOLAR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
 function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,total:0,baixarAte:0});renderEditarTabela();}
