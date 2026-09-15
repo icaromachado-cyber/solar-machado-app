@@ -817,19 +817,27 @@ tr:hover td{background:#faf9f5}
                   <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Valor da Parcela (calculado)</div>
                   <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Mostrar na prévia?</div>
                   <!-- Opção 1 -->
-                  <input type="number" id="pp-cc-n1" value="6" placeholder="Ex: 6" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <select id="pp-cc-n1" onchange="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                    <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6" selected>6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12">12x</option><option value="13">13x</option><option value="14">14x</option><option value="15">15x</option><option value="16">16x</option><option value="17">17x</option><option value="18">18x</option>
+                  </select>
                   <div id="pp-cc-v1" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c1" checked onchange="atualizarPreview()"> Sim</label>
                   <!-- Opção 2 -->
-                  <input type="number" id="pp-cc-n2" value="12" placeholder="Ex: 12" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <select id="pp-cc-n2" onchange="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                    <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12" selected>12x</option><option value="13">13x</option><option value="14">14x</option><option value="15">15x</option><option value="16">16x</option><option value="17">17x</option><option value="18">18x</option>
+                  </select>
                   <div id="pp-cc-v2" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c2" checked onchange="atualizarPreview()"> Sim</label>
                   <!-- Opção 3 -->
-                  <input type="number" id="pp-cc-n3" value="15" placeholder="Ex: 15" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <select id="pp-cc-n3" onchange="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                    <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12">12x</option><option value="13">13x</option><option value="14">14x</option><option value="15" selected>15x</option><option value="16">16x</option><option value="17">17x</option><option value="18">18x</option>
+                  </select>
                   <div id="pp-cc-v3" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c3" checked onchange="atualizarPreview()"> Sim</label>
                   <!-- Opção 4 -->
-                  <input type="number" id="pp-cc-n4" value="18" placeholder="Ex: 18" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <select id="pp-cc-n4" onchange="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                    <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12">12x</option><option value="13">13x</option><option value="14">14x</option><option value="15">15x</option><option value="16">16x</option><option value="17">17x</option><option value="18" selected>18x</option>
+                  </select>
                   <div id="pp-cc-v4" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c4" onchange="atualizarPreview()"> Sim</label>
                 </div>
