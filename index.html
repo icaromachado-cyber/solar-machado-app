@@ -807,11 +807,7 @@ tr:hover td{background:#faf9f5}
           <div id="pp-parcelas-wrap" style="display:none;margin-bottom:14px">
             <div id="pp-wrap-cartao" style="display:none;flex-direction:column;gap:10px">
               <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px;font-size:11.5px;color:#2E3486;border:1px solid #c5d0f5">
-                💡 Informe a taxa de juros mensal da maquininha/operadora. O valor da parcela de cada prazo é calculado automaticamente pela fórmula de amortização (Price): PMT = PV·i·(1+i)ⁿ / ((1+i)ⁿ-1).
-              </div>
-              <div style="display:flex;flex-direction:column;gap:4px">
-                <label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Taxa de Juros Mensal (%)</label>
-                <input type="number" id="pp-cc-taxa" placeholder="Ex: 2.5" step="0.01" min="0" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;max-width:160px">
+                💡 O valor da parcela é calculado automaticamente com a tabela real de taxas da maquininha (Valor Total × fator da operadora ÷ prazo). Disponível de 1x a 18x.
               </div>
               <!-- 4 opções de parcelamento -->
               <div style="display:flex;flex-direction:column;gap:6px">
@@ -821,19 +817,19 @@ tr:hover td{background:#faf9f5}
                   <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Valor da Parcela (calculado)</div>
                   <div style="font-size:10px;color:var(--txts);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Mostrar na prévia?</div>
                   <!-- Opção 1 -->
-                  <input type="number" id="pp-cc-n1" value="6" placeholder="Ex: 6" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-n1" value="6" placeholder="Ex: 6" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
                   <div id="pp-cc-v1" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c1" checked onchange="atualizarPreview()"> Sim</label>
                   <!-- Opção 2 -->
-                  <input type="number" id="pp-cc-n2" value="12" placeholder="Ex: 12" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-n2" value="12" placeholder="Ex: 12" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
                   <div id="pp-cc-v2" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c2" checked onchange="atualizarPreview()"> Sim</label>
                   <!-- Opção 3 -->
-                  <input type="number" id="pp-cc-n3" value="18" placeholder="Ex: 18" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-n3" value="15" placeholder="Ex: 15" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
                   <div id="pp-cc-v3" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c3" checked onchange="atualizarPreview()"> Sim</label>
                   <!-- Opção 4 -->
-                  <input type="number" id="pp-cc-n4" value="21" placeholder="Ex: 21" min="1" max="21" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
+                  <input type="number" id="pp-cc-n4" value="18" placeholder="Ex: 18" min="1" max="18" oninput="atualizarPreview()" style="padding:8px 10px;border:1px solid var(--cz2);border-radius:7px;font-size:13px;width:70px">
                   <div id="pp-cc-v4" style="padding:8px 10px;font-size:13px;font-weight:600;color:var(--az)">R$ —</div>
                   <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" id="pp-cc-c4" onchange="atualizarPreview()"> Sim</label>
                 </div>
@@ -2477,6 +2473,14 @@ const TABELA_SOLAR = [
   {kwh:3000,wpMod:710, nMod:34, potInv:20,  kwp:24.1, total:42500, baixarAte:41500},
   {kwh:3500,wpMod:710, nMod:39, potInv:20,  kwp:27.7, total:46500, baixarAte:45500}
 ];
+// Tabela real de fatores do cartão de crédito (maquininha) — total_a_cobrar = Valor Total × fator(n)
+// Reverse-engenheirada a partir de dois cenários reais (receber R$40.000 e R$51.000): o fator bate
+// exatamente igual nos dois, confirmando que é tabela fixa por nº de parcelas, não juro composto simples.
+const FATOR_CARTAO = {
+  1:1.044059, 2:1.062135, 3:1.074114, 4:1.086130, 5:1.098298, 6:1.110494,
+  7:1.124101, 8:1.136622, 9:1.149029, 10:1.161710, 11:1.174398, 12:1.187226,
+  13:1.214772, 14:1.228049, 15:1.241465, 16:1.255020, 17:1.268713, 18:1.282380
+};
 const TABELA_DIST_REF = 0; // Distância de referência (0 km = preço base)
 
 // ══ KANBAN CHAMADOS ══
@@ -2758,30 +2762,27 @@ function atualizarPreview(){
     if(aVistaEl)aVistaEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
     const pRows=document.getElementById('pc-parcelas-rows');
     if(modalidade==='cartao'){
-      const taxaCc=(parseFloat(document.getElementById('pp-cc-taxa')?.value)||0)/100;
       const opcoesCc=[];
       for(let i=1;i<=4;i++){
         const n=parseInt(document.getElementById('pp-cc-n'+i)?.value)||0;
         const ck=document.getElementById('pp-cc-c'+i)?.checked;
         const vEl=document.getElementById('pp-cc-v'+i);
+        const fator=FATOR_CARTAO[n];
         let pmt=0;
-        if(n>0&&valor>0){
-          if(taxaCc>0){const pot=Math.pow(1+taxaCc,n);pmt=valor*taxaCc*pot/(pot-1);}
-          else pmt=valor/n;
-        }
-        if(vEl)vEl.textContent=pmt?'R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
+        if(n>0&&valor>0&&fator) pmt=(valor*fator)/n;
+        if(vEl)vEl.textContent=pmt?'R$ '+pmt.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):(n&&!fator?'sem tabela':'R$ —');
         if(n>0&&pmt>0&&ck)opcoesCc.push({n,v:pmt});
       }
-      if(pRows){let html='';if(opcoesCc.length){opcoesCc.forEach((op,i)=>{const bg=i%2===0?'#EDECE5':'#fff';html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+op.n+'x</span><span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';});html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';}else html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de parcelamento</div>';pRows.innerHTML=html;}
-      if(parSub&&opcoesCc.length){const op=opcoesCc[opcoesCc.length-1];parSub.textContent='ou '+op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2});}
+      if(pRows){let html='';if(opcoesCc.length){opcoesCc.forEach((op,i)=>{const bg=i%2===0?'#EDECE5':'#fff';html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+op.n+'x</span><span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'/mês</span></div>';});html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center">✓ Válido para Mastercard e Visa</div>';}else html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de parcelamento</div>';pRows.innerHTML=html;}
+      if(parSub&&opcoesCc.length){const op=opcoesCc[opcoesCc.length-1];parSub.textContent='ou '+op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
       else if(parSub)parSub.textContent='';
     } else if(modalidade==='financiado'){
       const entrada=parseFloat(document.getElementById('pp-fin-entrada')?.value)||0;
       const carencia=document.getElementById('pp-fin-carencia')?.value||'';
       const opcoes=[];
       for(let i=1;i<=4;i++){const n=parseInt(document.getElementById('pp-fin-n'+i)?.value)||0;const v=parseFloat(document.getElementById('pp-fin-v'+i)?.value)||0;const ck=document.getElementById('pp-fin-c'+i)?.checked;if(n>0&&v>0&&ck)opcoes.push({n,v});}
-      if(pRows){let html='';if(entrada>0)html+='<div style="display:flex;justify-content:space-between;background:#e8f8ef;padding:4px 8px;font-size:9.5px"><span style="color:#1D9E75;font-weight:600">Entrada</span><span style="font-weight:700;color:#1D9E75">R$ '+entrada.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';html+='<div style="display:flex;justify-content:space-between;background:#EDECE5;padding:3px 8px;font-size:8px;font-weight:700;text-transform:uppercase"><span>Prazo</span><span>Parcela/mês</span></div>';if(opcoes.length)opcoes.forEach((op,i)=>{const bg=i%2===0?'#fff':'#f7f6f1';html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+op.n+'x</span><span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+'/mês</span></div>';});else html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de prazo</div>';if(carencia)html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center;font-weight:500">⏳ Carência de '+carencia+' dias</div>';pRows.innerHTML=html;}
-      if(parSub&&opcoes.length){const op=opcoes[opcoes.length-1];parSub.textContent=op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2})+(carencia?' · '+carencia+'d carência':'');}
+      if(pRows){let html='';if(entrada>0)html+='<div style="display:flex;justify-content:space-between;background:#e8f8ef;padding:4px 8px;font-size:9.5px"><span style="color:#1D9E75;font-weight:600">Entrada</span><span style="font-weight:700;color:#1D9E75">R$ '+entrada.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span></div>';html+='<div style="display:flex;justify-content:space-between;background:#EDECE5;padding:3px 8px;font-size:8px;font-weight:700;text-transform:uppercase"><span>Prazo</span><span>Parcela/mês</span></div>';if(opcoes.length)opcoes.forEach((op,i)=>{const bg=i%2===0?'#fff':'#f7f6f1';html+='<div style="display:flex;justify-content:space-between;background:'+bg+';padding:4px 8px;font-size:9.5px"><span style="color:#555">'+op.n+'x</span><span style="font-weight:700;color:#2E3486">R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'/mês</span></div>';});else html+='<div style="padding:8px;font-size:10px;color:#aaa;text-align:center">Preencha as opções de prazo</div>';if(carencia)html+='<div style="background:#fff8e0;padding:4px 8px;font-size:8.5px;color:#854f0b;text-align:center;font-weight:500">⏳ Carência de '+carencia+' dias</div>';pRows.innerHTML=html;}
+      if(parSub&&opcoes.length){const op=opcoes[opcoes.length-1];parSub.textContent=op.n+'x de R$ '+op.v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+(carencia?' · '+carencia+'d carência':'');}
     }
   }
   const ecoDiv=document.getElementById('pc-economia');
@@ -2859,7 +2860,6 @@ async function gerarPNG(){
       hibrido:gc('pp-hibrido'), batMarca:gv('pp-bat-marca'), batCap:gv('pp-bat-cap'), batAut:gv('pp-bat-aut'),
       ampliacao:gc('pp-ampliacao'),
       modalidade:gv('pp-modalidade')||'avista',
-      ccTaxa:gv('pp-cc-taxa'),
       ccN1:gv('pp-cc-n1'), ccC1:gc('pp-cc-c1'),
       ccN2:gv('pp-cc-n2'), ccC2:gc('pp-cc-c2'),
       ccN3:gv('pp-cc-n3'), ccC3:gc('pp-cc-c3'),
@@ -4140,7 +4140,6 @@ function reabrirProposta(id){
     s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
     sc('pp-hibrido',o.hibrido); s('pp-bat-marca',o.batMarca); s('pp-bat-cap',o.batCap); s('pp-bat-aut',o.batAut);
     s('pp-modalidade',o.modalidade||'avista');
-    s('pp-cc-taxa',o.ccTaxa);
     s('pp-cc-n1',o.ccN1); sc('pp-cc-c1',o.ccC1);
     s('pp-cc-n2',o.ccN2); sc('pp-cc-c2',o.ccC2);
     s('pp-cc-n3',o.ccN3); sc('pp-cc-c3',o.ccC3);
