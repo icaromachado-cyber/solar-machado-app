@@ -1950,6 +1950,10 @@ function copiarTexto(texto,label){
     else toast('Não foi possível copiar.','er');
   }
 }
+function abrirEquatorial(cpf){
+  copiarTexto(cpf,'CPF');
+  window.open('https://pi.equatorialenergia.com.br/siteantigo','_blank');
+}
 function openDet(id){
   const p=PROJETOS.find(x=>x.id===id); if(!p) return;
   // Histórico completo — todos os chamados do projeto (ativos e resolvidos)
@@ -1986,6 +1990,7 @@ function openDet(id){
     +'<div class="det-row"><span>Nascimento</span><span style="display:inline-flex;align-items:center;gap:5px">'+fmt_data(p.dataNascimento)+(p.dataNascimento?'<span onclick="copiarTexto(\''+fmt_data(p.dataNascimento)+'\',\'Data de nascimento\')" title="Copiar data de nascimento" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>WhatsApp</span><span>'+wppHtml+'</span></div>'
     +'<div class="det-row"><span>UC</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code>'+(p.uc?'<span onclick="copiarTexto(\''+String(p.uc).replace(/'/g,"\\'")+'\',\'UC\')" title="Copiar UC" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
+    +(p.cpf?'<div class="det-row"><span>Equatorial</span><span><button onclick="abrirEquatorial(\''+p.cpf.replace(/'/g,"\\'")+'\')" style="background:#eef0ff;border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:600">🔗 Abrir e copiar CPF</button></span></div>':'')
     +'<div class="det-row"><span>CEP</span><span style="display:inline-flex;align-items:center;gap:5px">'+(p.cep||'—')+(p.cep?'<span onclick="copiarTexto(\''+p.cep.replace(/'/g,"\\'")+'\',\'CEP\')" title="Copiar CEP" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>Endereço</span><span style="font-size:11px;text-align:right;max-width:60%">'+(p.end||'—')+'</span></div>'
     +'<div class="det-row"><span>Localização</span><span>'+mapsHtml+'</span></div>'
