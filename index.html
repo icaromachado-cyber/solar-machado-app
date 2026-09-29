@@ -3572,8 +3572,9 @@ async function salvarEFecharTabela(){
     await db.collection('config').doc('tabela_precos').set({
       itens: tab,
       config: cfg,
+      versaoTabela: TABELA_VERSAO_ATUAL,
       atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    }, {merge:true});
     toast('✅ Tabela e configurações salvas!', 'ok');
   } catch(e) {
     toast('Erro ao salvar: ' + e.message, 'er');
