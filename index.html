@@ -1072,6 +1072,7 @@ tr:hover td{background:#faf9f5}
           <div style="font-size:13px;color:var(--txts);margin-top:4px">Todas as propostas geradas</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="orc-busca" type="text" placeholder="🔍 Buscar cliente..." oninput="renderOrcamentos()" style="padding:8px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;min-width:160px">
           <select id="orc-filtro-status" onchange="renderOrcamentos()" style="padding:8px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
             <option value="">Todos os status</option>
             <option>Enviada</option><option>Aprovada</option><option>Recusada</option><option>Em negociação</option>
@@ -4048,6 +4049,8 @@ function renderOrcamentos(){
     ].map(([l,v,c])=>`<div style="background:#fff;border:1px solid #e4e3dc;border-radius:8px;padding:6px 12px;font-size:12px;text-align:center"><div style="font-weight:700;color:${c};font-size:15px">${v}</div><div style="color:#888;margin-top:1px">${l}</div></div>`).join('');
   }
   if(filtroStatus) lista=lista.filter(o=>o.status===filtroStatus);
+  const busca=(document.getElementById('orc-busca')?.value||'').trim().toLowerCase();
+  if(busca) lista=lista.filter(o=>(o.nome||'').toLowerCase().includes(busca));
   if(!lista.length){
     el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Nenhum orçamento encontrado</div>';
     return;
