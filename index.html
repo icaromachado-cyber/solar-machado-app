@@ -1417,6 +1417,7 @@ tr:hover td{background:#faf9f5}
           <div class="fgrp"><label>Data de Nascimento</label><input type="date" id="p-nasc"></div>
           <div class="fgrp"><label>CPF/CNPJ</label><input type="text" id="p-cpf"></div>
           <div class="fgrp"><label>Telefone/WhatsApp</label><input type="text" id="p-tel"></div>
+          <div class="fgrp"><label>Email</label><input type="email" id="p-email" placeholder="cliente@email.com"></div>
           <div class="fgrp"><label>Unidade Consumidora (UC)</label><input type="text" id="p-uc"></div>
           <div class="fgrp"><label>Estado</label><select id="p-est"><option value="PI">Piauí</option><option value="MA">Maranhão</option><option value="CE">Ceará</option></select></div>
           <div class="fgrp"><label>Etapa Atual</label><select id="p-etapa"></select></div>
@@ -1990,6 +1991,7 @@ function openDet(id){
     +'<div class="det-row"><span>CPF</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.cpf||'—')+'</code>'+(p.cpf?'<span onclick="copiarTexto(\''+p.cpf.replace(/'/g,"\\'")+'\',\'CPF\')" title="Copiar CPF" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>Nascimento</span><span style="display:inline-flex;align-items:center;gap:5px">'+fmt_data(p.dataNascimento)+(p.dataNascimento?'<span onclick="copiarTexto(\''+fmt_data(p.dataNascimento).replace(/\D/g,'')+'\',\'Data de nascimento\')" title="Copiar data de nascimento (só números, seguro para campos com máscara)" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>WhatsApp</span><span>'+wppHtml+'</span></div>'
+    +(p.email?'<div class="det-row"><span>Email</span><span style="display:inline-flex;align-items:center;gap:5px;text-align:right"><span style="font-size:11.5px">'+p.email+'</span><span onclick="copiarTexto(\''+p.email.replace(/'/g,"\\'")+'\',\'Email\')" title="Copiar Email" style="cursor:pointer;font-size:12px;opacity:.7">📋</span></span></div>':'')
     +'<div class="det-row"><span>UC</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code>'+(p.uc?'<span onclick="copiarTexto(\''+String(p.uc).replace(/'/g,"\\'")+'\',\'UC\')" title="Copiar UC" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +(p.cpf?'<div class="det-row"><span>Equatorial</span><span><button onclick="abrirEquatorial()" style="background:#eef0ff;border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:600">🔗 Abrir Agência Virtual</button></span></div>':'')
     +'<div class="det-row"><span>CEP</span><span style="display:inline-flex;align-items:center;gap:5px">'+(p.cep||'—')+(p.cep?'<span onclick="copiarTexto(\''+p.cep.replace(/'/g,"\\'")+'\',\'CEP\')" title="Copiar CEP" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
@@ -2001,7 +2003,9 @@ function openDet(id){
     +'</div>'
     +'<div class="det-sec"><div class="det-sec-ttl">⚡ Sistema Fotovoltaico</div>'
     +'<div class="det-row"><span>Potência</span><span style="font-weight:700;color:var(--az)">'+(parseFloat(p.kwp)||0).toFixed(2)+' kWp</span></div>'
-    +(p.geracaoMensalEstimada?'<div class="det-row"><span>Geração Mensal Estimada</span><span style="font-weight:600;color:#1D9E75">'+(+p.geracaoMensalEstimada).toLocaleString('pt-BR')+' kWh</span></div>':'')
+    +(p.geracaoMensalEstimada
+      ?'<div class="det-row"><span>Geração Mensal Estimada</span><span style="font-weight:600;color:#1D9E75">'+(+p.geracaoMensalEstimada).toLocaleString('pt-BR')+' kWh</span></div>'
+      :(parseFloat(p.kwp)>0?'<div class="det-row"><span>Geração Mensal (calculado)</span><span style="font-weight:600;color:#1D9E75">~'+Math.round(parseFloat(p.kwp)*({PI:5.7,MA:5.2,CE:5.7}[p.estado]||5.5)*30*0.79).toLocaleString('pt-BR')+' kWh</span></div>':''))
     +modulosHtml
     +inversoresHtml
     +'<div class="det-row"><span>Tensão</span><span>'+(p.tensao||'—')+'</span></div>'
@@ -2102,6 +2106,7 @@ function openEditProj(id) {
   document.getElementById('p-nasc').value = p.dataNascimento || '';
   document.getElementById('p-cpf').value = p.cpf || '';
   document.getElementById('p-tel').value = p.tel || '';
+  document.getElementById('p-email').value = p.email || '';
   document.getElementById('p-uc').value = p.uc || '';
   document.getElementById('p-etapa').innerHTML = ETAPAS.map(e=>`<option ${p.etapa===e?'selected':''}>${e}</option>`).join('');
   const el_kwp=document.getElementById('p-kwp'); if(el_kwp) el_kwp.value=p.kwp||'';
@@ -2137,7 +2142,7 @@ function saveProjeto(){
   const g=i=>document.getElementById(i)?.value||'';
   const obj={
     id, cliente:g('p-cli'), nome:g('p-nome'), dataNascimento:g('p-nasc'),
-    cpf:g('p-cpf'), tel:g('p-tel'), uc:g('p-uc'), estado:g('p-est'),
+    cpf:g('p-cpf'), tel:g('p-tel'), email:g('p-email'), uc:g('p-uc'), estado:g('p-est'),
     etapa:g('p-etapa'), possuiBeneficiario:g('p-ben'),
     kwp:parseFloat(g('p-kwp'))||0, valor:parseFloat(g('p-val'))||0,
     geracaoMensalEstimada:parseFloat(g('p-ger-mensal'))||0,
