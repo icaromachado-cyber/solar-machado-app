@@ -2005,7 +2005,7 @@ function openDet(id){
     +'<div class="det-row"><span>Potência</span><span style="font-weight:700;color:var(--az)">'+(parseFloat(p.kwp)||0).toFixed(2)+' kWp</span></div>'
     +(p.geracaoMensalEstimada
       ?'<div class="det-row"><span>Geração Mensal Estimada</span><span style="font-weight:600;color:#1D9E75">'+(+p.geracaoMensalEstimada).toLocaleString('pt-BR')+' kWh</span></div>'
-      :(parseFloat(p.kwp)>0?'<div class="det-row"><span>Geração Mensal (calculado)</span><span style="font-weight:600;color:#1D9E75">~'+Math.round(parseFloat(p.kwp)*({PI:5.7,MA:5.2,CE:5.7}[p.estado]||5.5)*30*0.79).toLocaleString('pt-BR')+' kWh</span></div>':''))
+      :(parseFloat(p.kwp)>0?'<div class="det-row"><span>Geração Mensal (calculado)</span><span style="font-weight:600;color:#1D9E75">~'+Math.round(parseFloat(p.kwp)*5.39*30*0.79).toLocaleString('pt-BR')+' kWh</span></div>':''))
     +modulosHtml
     +inversoresHtml
     +'<div class="det-row"><span>Tensão</span><span>'+(p.tensao||'—')+'</span></div>'
