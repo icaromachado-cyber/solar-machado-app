@@ -2640,28 +2640,32 @@ function mostrarCardResponsavel(){
 
 // ══ TABELA PREÇOS ══
 const TABELA_VERSAO_ATUAL='2026-09-01b';
-async function carregarTabelaFirestore(){
-  try{
-    const ref=db.collection('config').doc('tabela_precos');
-    const doc=await ref.get();
-    if(doc.exists){
-      if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
-      if(doc.data().config) {
-      window.TABELA_CONFIG = doc.data().config;
-      // Atualizar campo de distância na proposta se estiver visível
-      const ppDist = document.getElementById('pp-tab-dist');
-      if (ppDist && doc.data().config.distancia !== undefined) {
-        ppDist.value = doc.data().config.distancia || 0;
+function carregarTabelaFirestore(){
+  const ref=db.collection('config').doc('tabela_precos');
+  ref.onSnapshot(async doc=>{
+    try{
+      if(doc.exists){
+        if(doc.data().itens?.length) window.TABELA_SOLAR=[...doc.data().itens];
+        if(doc.data().config) {
+        window.TABELA_CONFIG = doc.data().config;
+        // Atualizar campo de distância na proposta se estiver visível
+        const ppDist = document.getElementById('pp-tab-dist');
+        if (ppDist && doc.data().config.distancia !== undefined) {
+          ppDist.value = doc.data().config.distancia || 0;
+        }
       }
-    }
-    }
-    // Migração automática (uma vez só): aplica a tabela de preços atualizada do código
-    // se o Firebase ainda não tem essa versão salva. Não roda de novo depois.
-    if(isAdmin && doc.data()?.versaoTabela!==TABELA_VERSAO_ATUAL){
-      await ref.set({itens:TABELA_SOLAR,versaoTabela:TABELA_VERSAO_ATUAL,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-      window.TABELA_SOLAR=[...TABELA_SOLAR];
-    }
-  }catch(e){}
+      }
+      // Migração automática (uma vez só): aplica a tabela de preços atualizada do código
+      // se o Firebase ainda não tem essa versão salva. Não roda de novo depois.
+      if(isAdmin && doc.data()?.versaoTabela!==TABELA_VERSAO_ATUAL){
+        await ref.set({itens:TABELA_SOLAR,versaoTabela:TABELA_VERSAO_ATUAL,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        window.TABELA_SOLAR=[...TABELA_SOLAR];
+      }
+      // Como é um listener ao vivo, qualquer atualização de preço chega na hora,
+      // mesmo com a página aberta há tempo — não precisa recarregar pra pegar o valor novo.
+      if(document.getElementById('pp-tab-consumo')?.value && typeof buscarTabelaPreview==='function') buscarTabelaPreview();
+    }catch(e){}
+  }, ()=>{});
 }
 function buscarTabelaPreview(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
