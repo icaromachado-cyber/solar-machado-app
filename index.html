@@ -329,6 +329,7 @@ tr:hover td{background:#faf9f5}
               <th style="padding:7px 6px;text-align:left">Nº Mód</th>
               <th style="padding:7px 6px;text-align:left">Inv (kW)</th>
               <th style="padding:7px 6px;text-align:left">kWp</th>
+              <th style="padding:7px 6px;text-align:left">Kit (R$)</th>
               <th style="padding:7px 6px;text-align:left">Total (R$)</th>
               <th style="padding:7px 6px;text-align:left">Baixar até</th>
               <th style="padding:7px 6px"></th>
@@ -345,6 +346,35 @@ tr:hover td{background:#faf9f5}
       </div>
     </div>
   </div>
+
+<!-- MODAL CONSULTA TABELA DE PREÇOS (somente leitura) -->
+<div id="mo-consulta-tabela" class="mo" style="display:none">
+  <div class="mbox" style="max-width:700px">
+    <div class="mhdr">
+      <span>📊 Consultar Tabela de Preços — Solar Machado</span>
+      <button class="mcl" onclick="document.getElementById('mo-consulta-tabela').style.display='none'">✕</button>
+    </div>
+    <div style="padding:20px">
+      <input type="text" id="consulta-tabela-busca" placeholder="🔍 Buscar por consumo (kWh)..." oninput="renderConsultaTabela()" style="width:100%;padding:9px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;margin-bottom:14px;box-sizing:border-box">
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+          <thead>
+            <tr style="background:var(--az);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">
+              <th style="padding:8px 7px;text-align:left">kWh/mês</th>
+              <th style="padding:8px 7px;text-align:left">Módulos</th>
+              <th style="padding:8px 7px;text-align:left">Inversor</th>
+              <th style="padding:8px 7px;text-align:left">kWp</th>
+              <th style="padding:8px 7px;text-align:left">Material (Kit)</th>
+              <th style="padding:8px 7px;text-align:left">Total (R$)</th>
+              <th style="padding:8px 7px;text-align:left">Baixar até</th>
+            </tr>
+          </thead>
+          <tbody id="consulta-tabela-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <!-- MODAL MOVIMENTAÇÃO -->
@@ -573,15 +603,9 @@ tr:hover td{background:#faf9f5}
     <div id="page-dash" class="page on">
       <div class="kpi-grid" id="dash-kpis"></div>
       
-      <div class="charts-row">
-        <div class="card" style="flex:1.2">
-          <div class="ph" style="margin-bottom:12px"><h2>Geração Total (kWh)</h2></div>
-          <div class="chart-container"><canvas id="chart-mes"></canvas></div>
-        </div>
-        <div class="card" style="min-height:320px">
-          <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
-          <div class="chart-container" style="height:260px"><canvas id="chart-status"></canvas></div>
-        </div>
+      <div class="card" style="min-height:320px;margin-bottom:22px">
+        <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
+        <div class="chart-container" style="height:260px"><canvas id="chart-status"></canvas></div>
       </div>
 
       <div class="card">
@@ -592,20 +616,22 @@ tr:hover td{background:#faf9f5}
         <div id="dash-chamados"></div>
       </div>
 
-      <div class="card">
-        <div class="ph">
-          <h2>⚡ Leituras da Semana</h2>
-          <button class="btn btn-g" onclick="go('leituras')">Ver Agenda</button>
+      <div class="charts-row">
+        <div class="card">
+          <div class="ph">
+            <h2>⚡ Leituras da Semana</h2>
+            <button class="btn btn-g" onclick="go('leituras')">Ver Agenda</button>
+          </div>
+          <div id="dash-leituras-semana"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
         </div>
-        <div id="dash-leituras-semana"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
-      </div>
 
-      <div class="card">
-        <div class="ph">
-          <h2>📅 Próximas Visitas</h2>
-          <button class="btn btn-g" onclick="go('agenda')">Ver Agenda</button>
+        <div class="card">
+          <div class="ph">
+            <h2>📅 Próximas Visitas</h2>
+            <button class="btn btn-g" onclick="go('agenda')">Ver Agenda</button>
+          </div>
+          <div id="dash-visitas-hoje"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
         </div>
-        <div id="dash-visitas-hoje"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
       </div>
     </div>
 
@@ -748,7 +774,10 @@ tr:hover td{background:#faf9f5}
           <div id="pp-tabela-preco-wrap" style="background:#f0f4ff;border:1px solid #c5d0f5;border-radius:10px;padding:12px 14px;margin-bottom:14px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                 <div style="font-size:11.5px;font-weight:700;color:#2E3486">⚡ Preencher pela Tabela de Preços</div>
-                <button id="btn-editar-tabela" onclick="abrirEditarTabela()" style="display:none;background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">✏ Editar Tabela</button>
+                <span style="display:flex;gap:6px">
+                  <button onclick="abrirConsultaTabela()" style="background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">📊 Consultar Tabela</button>
+                  <button id="btn-editar-tabela" onclick="abrirEditarTabela()" style="display:none;background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">✏ Editar Tabela</button>
+                </span>
               </div>
             <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
               <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px">
@@ -1728,7 +1757,7 @@ function go(p) {
 // ══════════════════════════════════════════
 // RENDERIZAÇÃO
 // ══════════════════════════════════════════
-let chDM=null, chDS=null;
+let chDS=null;
 function renderDash() {
   const conc = PROJETOS.filter(p=>p.etapa==='Concluído').length;
   const kwp = PROJETOS.reduce((s,p)=>s+(p.kwp||0),0);
@@ -1780,23 +1809,6 @@ function renderDash() {
 }
 
 function renderCharts() {
-  // Chart linha — Geração Total
-  const ctxM = document.getElementById('chart-mes');
-  if (ctxM) {
-    if (window.chDM) window.chDM.destroy();
-    // Calcular geração real dos projetos
-    const kwpTotal = PROJETOS.reduce((s,p)=>s+(parseFloat(p.kwp)||0),0);
-    const irr=[4.7,4.93,5.04,4.98,5.08,5.31,5.51,5.98,6.24,5.99,5.65,5.3];
-    const gens = irr.map(i => Math.round(kwpTotal * i * 30 * 0.79));
-    window.chDM = new Chart(ctxM, {
-      type:'line',
-      data:{
-        labels:['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
-        datasets:[{label:'kWh',data:gens,fill:true,backgroundColor:'rgba(46,52,134,.08)',borderColor:'rgba(46,52,134,.7)',tension:.4,pointRadius:3}]
-      },
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true}},scales:{y:{beginAtZero:false}}}
-    });
-  }
   const ctxS = document.getElementById('chart-status');
   if (!ctxS) return;
   if (chDS) chDS.destroy();
@@ -2495,6 +2507,27 @@ const TABELA_SOLAR = [
   {kwh:2500,wpMod:710, nMod:28, potInv:17,  kwp:19.9, total:35520, baixarAte:34520},
   {kwh:3000,wpMod:710, nMod:34, potInv:20,  kwp:24.1, total:42500, baixarAte:41500},
   {kwh:3500,wpMod:710, nMod:39, potInv:20,  kwp:27.7, total:46500, baixarAte:45500}
+];
+// Tabela "Consultar Tabela" (somente referência interna — não usada na Proposta)
+// Fonte: planilha "tabela teste app.xlsx", aba "Tabela Solplanet", Drive — Data: 05/10/2026
+// Inversor SOLPLANET · Módulo HYSOLAR 610Wp (kit = custo do material, antes de mão de obra/projeto/ART)
+const TABELA_CONSULTA_SOLPLANET = [
+  {kwh:450, wpMod:610, nMod:6,  potInv:3,   kwp:3.7,  kit:5900,  total:11500, baixarAte:10500},
+  {kwh:500, wpMod:610, nMod:7,  potInv:3,   kwp:4.3,  kit:6400,  total:12000, baixarAte:11000},
+  {kwh:600, wpMod:610, nMod:8,  potInv:6,   kwp:4.9,  kit:7100,  total:13000, baixarAte:12000},
+  {kwh:700, wpMod:710, nMod:8,  potInv:6,   kwp:5.7,  kit:8300,  total:14000, baixarAte:13000},
+  {kwh:800, wpMod:610, nMod:11, potInv:6,   kwp:6.7,  kit:9100,  total:15000, baixarAte:14000},
+  {kwh:900, wpMod:620, nMod:12, potInv:6,   kwp:7.4,  kit:9800,  total:16000, baixarAte:15000},
+  {kwh:1000,wpMod:610, nMod:13, potInv:6,   kwp:7.9,  kit:10500, total:18000, baixarAte:17000},
+  {kwh:1200,wpMod:610, nMod:16, potInv:7.5, kwp:9.8,  kit:13500, total:21000, baixarAte:20000},
+  {kwh:1300,wpMod:620, nMod:17, potInv:7.5, kwp:10.5, kit:14500, total:22500, baixarAte:21500},
+  {kwh:1500,wpMod:610, nMod:20, potInv:9.1, kwp:12.2, kit:16000, total:24000, baixarAte:23000},
+  {kwh:1800,wpMod:610, nMod:24, potInv:9.1, kwp:14.6, kit:18500, total:27000, baixarAte:26000},
+  {kwh:2000,wpMod:610, nMod:26, potInv:9.1, kwp:15.9, kit:19900, total:29500, baixarAte:28500},
+  {kwh:2200,wpMod:610, nMod:29, potInv:12,  kwp:17.7, kit:22300, total:32500, baixarAte:31500},
+  {kwh:2500,wpMod:610, nMod:33, potInv:12,  kwp:20.1, kit:22800, total:33500, baixarAte:32500},
+  {kwh:3000,wpMod:610, nMod:39, potInv:20,  kwp:23.8, kit:29600, total:42500, baixarAte:41500},
+  {kwh:3500,wpMod:610, nMod:46, potInv:20,  kwp:28.1, kit:34100, total:48000, baixarAte:47000}
 ];
 // Tabela real de fatores do cartão de crédito (maquininha) — total_a_cobrar = Valor Total × fator(n)
 // Reverse-engenheirada a partir de dois cenários reais (receber R$40.000 e R$51.000): o fator bate
@@ -3519,6 +3552,31 @@ async function migrarLocalizacoes(){if(!db){toast('Firebase não conectado.','er
 async function migrarEtapas(){if(!db){toast('Firebase não conectado.','er');return;}const mapa={'Visita':'Proposta','Ligação':'Vistoria'};let ok=0;for(const p of PROJETOS){if(mapa[p.etapa]){try{await db.collection('projetos').doc(String(p.id)).set({etapa:mapa[p.etapa]},{merge:true});ok++;}catch(e){}}}toast(ok>0?'✅ '+ok+' etapas migradas!':'Nenhuma etapa antiga.','ok');}
 
 // ══ TABELA ADMIN ══
+function abrirConsultaTabela(){
+  const modal=document.getElementById('mo-consulta-tabela');if(!modal)return;
+  const busca=document.getElementById('consulta-tabela-busca');if(busca)busca.value='';
+  renderConsultaTabela();
+  modal.style.display='flex';
+}
+function renderConsultaTabela(){
+  const tbody=document.getElementById('consulta-tabela-tbody');if(!tbody)return;
+  const busca=parseInt(document.getElementById('consulta-tabela-busca')?.value)||0;
+  let itens=[...TABELA_CONSULTA_SOLPLANET].sort((a,b)=>a.kwh-b.kwh);
+  if(busca) itens=itens.filter(k=>k.kwh>=busca);
+  if(!itens.length){tbody.innerHTML='<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--txts)">Nenhum item encontrado</td></tr>';return;}
+  tbody.innerHTML=itens.map((k,i)=>{
+    const bg=i%2===0?'#faf9f5':'#fff';
+    return '<tr style="background:'+bg+'">'
+      +'<td style="padding:7px">'+k.kwh+'</td>'
+      +'<td style="padding:7px">'+k.nMod+'x '+k.wpMod+'Wp</td>'
+      +'<td style="padding:7px">SOLPLANET — '+k.potInv+' kW</td>'
+      +'<td style="padding:7px">'+k.kwp+'</td>'
+      +'<td style="padding:7px;color:#8a6d00">R$ '+k.kit.toLocaleString('pt-BR')+'</td>'
+      +'<td style="padding:7px;font-weight:700;color:var(--az)">R$ '+k.total.toLocaleString('pt-BR')+'</td>'
+      +'<td style="padding:7px;color:#1D9E75">R$ '+k.baixarAte.toLocaleString('pt-BR')+'</td>'
+      +'</tr>';
+  }).join('');
+}
 function abrirEditarTabela(){
   const modal=document.getElementById('mo-tabela');if(!modal)return;
   renderEditarTabela();
@@ -3558,6 +3616,7 @@ function importarTabelaColada(){
       nMod:_parseNumBR(cols[3]),
       potInv:_parseNumBR(cols[4]),
       kwp:_parseNumBR(cols[5]),
+      kit:_parseNumBR(cols[6]),
       total:_parseNumBR(cols[13]),
       baixarAte:_parseNumBR(cols[14])
     });
@@ -3568,8 +3627,8 @@ function importarTabelaColada(){
   renderEditarTabela();
   toast('✅ '+itens.length+' linha(s) importada(s)! Confira e clique em Salvar no Firebase.','ok');
 }
-function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_SOLAR||TABELA_SOLAR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
-function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,total:0,baixarAte:0});renderEditarTabela();}
+function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_SOLAR||TABELA_SOLAR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kit||0}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kit=+this.value" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
+function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,kit:0,total:0,baixarAte:0});renderEditarTabela();}
 function removerLinhaTabela(i){(window.TABELA_SOLAR||TABELA_SOLAR).splice(i,1);renderEditarTabela();}
 async function salvarEFecharTabela(){
   const tab = window.TABELA_SOLAR || TABELA_SOLAR;
