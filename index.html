@@ -2508,27 +2508,6 @@ const TABELA_SOLAR = [
   {kwh:3000,wpMod:710, nMod:34, potInv:20,  kwp:24.1, total:42500, baixarAte:41500},
   {kwh:3500,wpMod:710, nMod:39, potInv:20,  kwp:27.7, total:46500, baixarAte:45500}
 ];
-// Tabela "Consultar Tabela" (somente referência interna — não usada na Proposta)
-// Fonte: planilha "tabela teste app.xlsx", aba "Tabela Solplanet", Drive — Data: 05/10/2026
-// Inversor SOLPLANET · Módulo HYSOLAR 610Wp (kit = custo do material, antes de mão de obra/projeto/ART)
-const TABELA_CONSULTA_SOLPLANET = [
-  {kwh:450, wpMod:610, nMod:6,  potInv:3,   kwp:3.7,  kit:5900,  total:11500, baixarAte:10500},
-  {kwh:500, wpMod:610, nMod:7,  potInv:3,   kwp:4.3,  kit:6400,  total:12000, baixarAte:11000},
-  {kwh:600, wpMod:610, nMod:8,  potInv:6,   kwp:4.9,  kit:7100,  total:13000, baixarAte:12000},
-  {kwh:700, wpMod:710, nMod:8,  potInv:6,   kwp:5.7,  kit:8300,  total:14000, baixarAte:13000},
-  {kwh:800, wpMod:610, nMod:11, potInv:6,   kwp:6.7,  kit:9100,  total:15000, baixarAte:14000},
-  {kwh:900, wpMod:620, nMod:12, potInv:6,   kwp:7.4,  kit:9800,  total:16000, baixarAte:15000},
-  {kwh:1000,wpMod:610, nMod:13, potInv:6,   kwp:7.9,  kit:10500, total:18000, baixarAte:17000},
-  {kwh:1200,wpMod:610, nMod:16, potInv:7.5, kwp:9.8,  kit:13500, total:21000, baixarAte:20000},
-  {kwh:1300,wpMod:620, nMod:17, potInv:7.5, kwp:10.5, kit:14500, total:22500, baixarAte:21500},
-  {kwh:1500,wpMod:610, nMod:20, potInv:9.1, kwp:12.2, kit:16000, total:24000, baixarAte:23000},
-  {kwh:1800,wpMod:610, nMod:24, potInv:9.1, kwp:14.6, kit:18500, total:27000, baixarAte:26000},
-  {kwh:2000,wpMod:610, nMod:26, potInv:9.1, kwp:15.9, kit:19900, total:29500, baixarAte:28500},
-  {kwh:2200,wpMod:610, nMod:29, potInv:12,  kwp:17.7, kit:22300, total:32500, baixarAte:31500},
-  {kwh:2500,wpMod:610, nMod:33, potInv:12,  kwp:20.1, kit:22800, total:33500, baixarAte:32500},
-  {kwh:3000,wpMod:610, nMod:39, potInv:20,  kwp:23.8, kit:29600, total:42500, baixarAte:41500},
-  {kwh:3500,wpMod:610, nMod:46, potInv:20,  kwp:28.1, kit:34100, total:48000, baixarAte:47000}
-];
 // Tabela real de fatores do cartão de crédito (maquininha) — total_a_cobrar = Valor Total × fator(n)
 // Reverse-engenheirada a partir de dois cenários reais (receber R$40.000 e R$51.000): o fator bate
 // exatamente igual nos dois, confirmando que é tabela fixa por nº de parcelas, não juro composto simples.
@@ -3561,7 +3540,8 @@ function abrirConsultaTabela(){
 function renderConsultaTabela(){
   const tbody=document.getElementById('consulta-tabela-tbody');if(!tbody)return;
   const busca=parseInt(document.getElementById('consulta-tabela-busca')?.value)||0;
-  let itens=[...TABELA_CONSULTA_SOLPLANET].sort((a,b)=>a.kwh-b.kwh);
+  const cfg=window.TABELA_CONFIG||{};
+  let itens=[...(window.TABELA_SOLAR||TABELA_SOLAR)].sort((a,b)=>a.kwh-b.kwh);
   if(busca) itens=itens.filter(k=>k.kwh>=busca);
   if(!itens.length){tbody.innerHTML='<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--txts)">Nenhum item encontrado</td></tr>';return;}
   tbody.innerHTML=itens.map((k,i)=>{
@@ -3569,9 +3549,9 @@ function renderConsultaTabela(){
     return '<tr style="background:'+bg+'">'
       +'<td style="padding:7px">'+k.kwh+'</td>'
       +'<td style="padding:7px">'+k.nMod+'x '+k.wpMod+'Wp</td>'
-      +'<td style="padding:7px">SOLPLANET — '+k.potInv+' kW</td>'
+      +'<td style="padding:7px">'+(cfg.inversor||'—')+' — '+k.potInv+' kW</td>'
       +'<td style="padding:7px">'+k.kwp+'</td>'
-      +'<td style="padding:7px;color:#8a6d00">R$ '+k.kit.toLocaleString('pt-BR')+'</td>'
+      +'<td style="padding:7px;color:#8a6d00">'+(k.kit?'R$ '+k.kit.toLocaleString('pt-BR'):'—')+'</td>'
       +'<td style="padding:7px;font-weight:700;color:var(--az)">R$ '+k.total.toLocaleString('pt-BR')+'</td>'
       +'<td style="padding:7px;color:#1D9E75">R$ '+k.baixarAte.toLocaleString('pt-BR')+'</td>'
       +'</tr>';
