@@ -351,7 +351,7 @@ tr:hover td{background:#faf9f5}
 <div id="mo-consulta-tabela" class="mo" style="display:none">
   <div class="mbox" style="max-width:700px">
     <div class="mhdr">
-      <span>📊 Consultar Tabela de Preços — Solar Machado</span>
+      <span>📊 Consultar Valor do Kit — Solar Machado</span>
       <button class="mcl" onclick="document.getElementById('mo-consulta-tabela').style.display='none'">✕</button>
     </div>
     <div style="padding:20px">
@@ -361,12 +361,8 @@ tr:hover td{background:#faf9f5}
           <thead>
             <tr style="background:var(--az);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">
               <th style="padding:8px 7px;text-align:left">kWh/mês</th>
-              <th style="padding:8px 7px;text-align:left">Módulos</th>
-              <th style="padding:8px 7px;text-align:left">Inversor</th>
               <th style="padding:8px 7px;text-align:left">kWp</th>
-              <th style="padding:8px 7px;text-align:left">Material (Kit)</th>
-              <th style="padding:8px 7px;text-align:left">Total (R$)</th>
-              <th style="padding:8px 7px;text-align:left">Baixar até</th>
+              <th style="padding:8px 7px;text-align:left">Valor do Kit</th>
             </tr>
           </thead>
           <tbody id="consulta-tabela-tbody"></tbody>
@@ -775,7 +771,7 @@ tr:hover td{background:#faf9f5}
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                 <div style="font-size:11.5px;font-weight:700;color:#2E3486">⚡ Preencher pela Tabela de Preços</div>
                 <span style="display:flex;gap:6px">
-                  <button onclick="abrirConsultaTabela()" style="background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">📊 Consultar Tabela</button>
+                  <button onclick="abrirConsultaTabela()" style="background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">📊 Consultar Valor do Kit</button>
                   <button id="btn-editar-tabela" onclick="abrirEditarTabela()" style="display:none;background:rgba(46,52,134,.08);border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:10.5px;font-weight:600">✏ Editar Tabela</button>
                 </span>
               </div>
@@ -3540,20 +3536,15 @@ function abrirConsultaTabela(){
 function renderConsultaTabela(){
   const tbody=document.getElementById('consulta-tabela-tbody');if(!tbody)return;
   const busca=parseInt(document.getElementById('consulta-tabela-busca')?.value)||0;
-  const cfg=window.TABELA_CONFIG||{};
   let itens=[...(window.TABELA_SOLAR||TABELA_SOLAR)].sort((a,b)=>a.kwh-b.kwh);
   if(busca) itens=itens.filter(k=>k.kwh>=busca);
-  if(!itens.length){tbody.innerHTML='<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--txts)">Nenhum item encontrado</td></tr>';return;}
+  if(!itens.length){tbody.innerHTML='<tr><td colspan="3" style="padding:16px;text-align:center;color:var(--txts)">Nenhum item encontrado</td></tr>';return;}
   tbody.innerHTML=itens.map((k,i)=>{
     const bg=i%2===0?'#faf9f5':'#fff';
     return '<tr style="background:'+bg+'">'
       +'<td style="padding:7px">'+k.kwh+'</td>'
-      +'<td style="padding:7px">'+k.nMod+'x '+k.wpMod+'Wp</td>'
-      +'<td style="padding:7px">'+(cfg.inversor||'—')+' — '+k.potInv+' kW</td>'
       +'<td style="padding:7px">'+k.kwp+'</td>'
-      +'<td style="padding:7px;color:#8a6d00">'+(k.kit?'R$ '+k.kit.toLocaleString('pt-BR'):'—')+'</td>'
-      +'<td style="padding:7px;font-weight:700;color:var(--az)">R$ '+k.total.toLocaleString('pt-BR')+'</td>'
-      +'<td style="padding:7px;color:#1D9E75">R$ '+k.baixarAte.toLocaleString('pt-BR')+'</td>'
+      +'<td style="padding:7px;font-weight:700;color:#8a6d00">'+(k.kit?'R$ '+k.kit.toLocaleString('pt-BR'):'—')+'</td>'
       +'</tr>';
   }).join('');
 }
