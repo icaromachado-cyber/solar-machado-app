@@ -4272,7 +4272,7 @@ function initHistoricoLeiturasListener(){
     });
     if(document.getElementById('page-leituras')?.classList.contains('on')) renderAgendaLeituras();
     if(_histClienteId && document.getElementById('mo-hist-cliente')?.classList.contains('open')) renderHistoricoClienteModal(_histClienteId);
-  }, ()=>{});
+  }, err => { toast('Erro ao carregar histórico de leituras: ' + err.message, 'er'); });
 }
 
 function _normNome(s){
