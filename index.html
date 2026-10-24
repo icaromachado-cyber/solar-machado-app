@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 // ── FIREBASE CONFIG ──────────────────────────────
 const firebaseConfig = {
@@ -22,6 +23,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const storage = firebase.storage();
 // ─────────────────────────────────────────────────
 </script>
 <style>
@@ -1473,6 +1475,16 @@ tr:hover td{background:#faf9f5}
         <div id="sem-inversores" style="font-size:13px;color:var(--txts);text-align:center;padding:16px">
           Clique em "+ Adicionar Inversor" para incluir um equipamento.
         </div>
+
+        <!-- DIAGRAMA UNIFILAR -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
+          <div style="font-size:13px;font-weight:600;color:var(--az)">📐 Diagrama Unifilar</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;background:#f7f6f1;border-radius:8px;padding:12px">
+          <div id="diagrama-unifilar-atual" style="font-size:12.5px"></div>
+          <input type="file" id="p-diagrama-unifilar" accept=".pdf,.png,.jpg,.jpeg,.dwg" onchange="uploadDiagramaUnifilar(this)" style="font-size:12.5px">
+          <div id="diagrama-unifilar-status" style="font-size:11.5px"></div>
+        </div>
       </div>
 
       <div id="tab-2" class="tcon" style="display:none">
@@ -2009,6 +2021,7 @@ function openDet(id){
       :(parseFloat(p.kwp)>0?'<div class="det-row"><span>Geração Mensal (calculado)</span><span style="font-weight:600;color:#1D9E75">~'+Math.round(parseFloat(p.kwp)*5.39*30*0.79).toLocaleString('pt-BR')+' kWh</span></div>':''))
     +modulosHtml
     +inversoresHtml
+    +'<div class="det-row"><span>Diagrama Unifilar</span><span>'+(p.diagramaUnifilarUrl?'<a href="'+p.diagramaUnifilarUrl+'" target="_blank" style="color:var(--az);font-weight:600;text-decoration:none">📐 Ver/Baixar</a>':'<span style="color:var(--txts)">—</span>')+'</span></div>'
     +'<div class="det-row"><span>Tensão</span><span>'+(p.tensao||'—')+'</span></div>'
     +'<div class="det-row"><span>Montador</span><span>'+(p.montador||'—')+'</span></div>'
     +'<div class="det-row"><span>Valor</span><span style="font-weight:600">R$ '+((parseFloat(p.valor)||0).toLocaleString('pt-BR',{minimumFractionDigits:2}))+'</span></div>'
@@ -2040,6 +2053,43 @@ function closeDet(){document.getElementById('det-panel').classList.remove('open'
 // MODAIS
 // ══════════════════════════════════════════
 let editProjId = null; let editChId = null;
+let _diagramaUnifilarPendente = null;
+
+function _proxProjId(){
+  return PROJETOS.length ? Math.max(...PROJETOS.map(x=>x.id))+1 : 1;
+}
+
+function renderDiagramaUnifilarAtual(){
+  const el = document.getElementById('diagrama-unifilar-atual');
+  if(!el) return;
+  const d = _diagramaUnifilarPendente;
+  el.innerHTML = d
+    ? '<a href="'+d.url+'" target="_blank" style="color:var(--az);font-weight:600;text-decoration:none">📐 '+(d.nome||'Ver diagrama atual')+'</a>'
+    : '<span style="color:var(--txts)">Nenhum diagrama enviado ainda.</span>';
+}
+
+function uploadDiagramaUnifilar(input){
+  const file = input.files[0];
+  if(!file) return;
+  const id = editProjId || _proxProjId();
+  const statusEl = document.getElementById('diagrama-unifilar-status');
+  statusEl.textContent = 'Enviando...';
+  statusEl.style.color = 'var(--txts)';
+  const ext = (file.name.split('.').pop()||'pdf').toLowerCase();
+  const path = 'diagramas_unifilares/'+id+'_'+Date.now()+'.'+ext;
+  storage.ref().child(path).put(file)
+    .then(snap=>snap.ref.getDownloadURL())
+    .then(url=>{
+      _diagramaUnifilarPendente = {url, nome:file.name};
+      statusEl.textContent = '✅ Enviado! Clique em "Salvar Projeto" para confirmar.';
+      statusEl.style.color = 'var(--ok)';
+      renderDiagramaUnifilarAtual();
+    })
+    .catch(e=>{
+      statusEl.textContent = 'Erro ao enviar: '+e.message;
+      statusEl.style.color = 'var(--er)';
+    });
+}
 
 function openNovo() {
   const p = document.querySelector('.page.on')?.id||'';
@@ -2095,6 +2145,9 @@ function openModalProj() {
   renderListaBeneficiarios();
   renderListaModulos();
   renderListaInversores();
+  _diagramaUnifilarPendente = null;
+  document.getElementById('diagrama-unifilar-status').textContent = '';
+  renderDiagramaUnifilarAtual();
   toggleTabBen();
   setTab(0);
 }
@@ -2135,11 +2188,14 @@ function openEditProj(id) {
   renderListaModulos();
   renderListaInversores();
   recalcularKwp();
+  _diagramaUnifilarPendente = p.diagramaUnifilarUrl ? {url:p.diagramaUnifilarUrl, nome:p.diagramaUnifilarNome||'Ver diagrama atual'} : null;
+  document.getElementById('diagrama-unifilar-status').textContent = '';
+  renderDiagramaUnifilarAtual();
   closeDet(); document.getElementById('mo-proj').classList.add('open'); setTab(0);
 }
 
 function saveProjeto(){
-  const id=editProjId||(PROJETOS.length?Math.max(...PROJETOS.map(x=>x.id))+1:1);
+  const id=editProjId||_proxProjId();
   const g=i=>document.getElementById(i)?.value||'';
   const obj={
     id, cliente:g('p-cli'), nome:g('p-nome'), dataNascimento:g('p-nasc'),
@@ -2151,6 +2207,7 @@ function saveProjeto(){
     protMedidor:g('p-prot-med'), protCaDisj:g('p-prot-ca-disj'), protCaDps:g('p-prot-ca-dps'),
     dataInicio:g('p-dini'), dataLigacao:g('p-dlig'), obs:g('p-obs'),
     end:g('p-end'), lat:g('p-lat'), lng:g('p-lng'), cep:g('p-cep'),
+    diagramaUnifilarUrl: _diagramaUnifilarPendente?.url||'', diagramaUnifilarNome: _diagramaUnifilarPendente?.nome||'',
     beneficiarios:   g('p-ben')==='Sim' ? beneficiarios : [],
     modulos_list:    modulos,
     inversores_list: inversores,
