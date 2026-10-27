@@ -799,8 +799,9 @@ tr:hover td{background:#faf9f5}
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Qtd. Módulos *</label><input type="number" id="pp-modulos" placeholder="13" oninput="calcularProposta()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Módulo (Wp)</label><input type="number" id="pp-wpmod" placeholder="610" oninput="calcularProposta()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
-            <div id="pp-inv-wrap" style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Inversor</label><input type="text" id="pp-inv" placeholder="SOLPLANET" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
-            <div id="pp-pinv-wrap" style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Inversor (kW)</label><input type="number" id="pp-pinv" step="0.1" placeholder="6 KW" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div id="pp-inv-wrap" style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Inversor</label><input type="text" id="pp-inv" placeholder="SOLPLANET (ou Microinversor Deye)" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div id="pp-qtdinv-wrap" style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Qtd. Inversores</label><input type="number" id="pp-qtd-inv" min="1" step="1" placeholder="1 (ou 4 p/ microinversor)" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div id="pp-pinv-wrap" style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência por Inversor (kW)</label><input type="number" id="pp-pinv" step="0.001" placeholder="6 (ou 0.225 p/ micro)" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Geração Mensal (kWh)</label><input type="number" id="pp-geracao" placeholder="800" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tarifa kWh (R$)</label><input type="number" id="pp-tarifa" placeholder="0.85" step="0.01" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
           </div>
@@ -2390,6 +2391,7 @@ function toggleAmpliacaoForm(){
   const ampliacao=document.getElementById('pp-ampliacao')?.checked;
   const disp=ampliacao?'none':'flex';
   const invWrap=document.getElementById('pp-inv-wrap');if(invWrap)invWrap.style.display=disp;
+  const qtdInvWrap=document.getElementById('pp-qtdinv-wrap');if(qtdInvWrap)qtdInvWrap.style.display=disp;
   const pinvWrap=document.getElementById('pp-pinv-wrap');if(pinvWrap)pinvWrap.style.display=disp;
   const tabWrap=document.getElementById('pp-tabela-preco-wrap');if(tabWrap)tabWrap.style.display=ampliacao?'none':'block';
 }
@@ -2778,6 +2780,7 @@ function aplicarKitTabela(){
   set('pp-modulos', k.nMod);
   set('pp-wpmod', k.wpMod || cfg.wpModulo);
   set('pp-inv', cfg.inversor || 'SOLPLANET');
+  set('pp-qtd-inv', 1);
   set('pp-pinv', k.potInv);
   set('pp-valor', precos.total);
   set('pp-consumo', consumo||k.kwh);
@@ -2811,6 +2814,7 @@ function atualizarPreview(){
   const nome=document.getElementById('pp-nome')?.value||'';const cidade=document.getElementById('pp-cidade')?.value||'';
   const mods=parseInt(document.getElementById('pp-modulos')?.value)||0;const wp=parseInt(document.getElementById('pp-wpmod')?.value)||610;
   const inv=document.getElementById('pp-inv')?.value||'';const pinv=document.getElementById('pp-pinv')?.value||'';
+  const qtdInv=parseInt(document.getElementById('pp-qtd-inv')?.value)||1;
   const geracao=parseInt(document.getElementById('pp-geracao')?.value)||0;const valor=parseFloat(document.getElementById('pp-valor')?.value)||0;
   const tarifa=parseFloat(document.getElementById('pp-tarifa')?.value)||0;const consumo=parseInt(document.getElementById('pp-consumo')?.value)||0;
   const modalidade=document.getElementById('pp-modalidade')?.value||'avista';const kwp=(mods*wp/1000).toFixed(2);
@@ -2818,13 +2822,15 @@ function atualizarPreview(){
   if(saud){const n=nome?'<strong>'+nome+'</strong>, ':'';const ct=cidade?' em <strong>'+cidade+'</strong>':'';saud.innerHTML='Olá, '+n+'preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico'+ct+'. Confira:';}
   const kwpEl=document.getElementById('pc-kwp');if(kwpEl)kwpEl.textContent=kwp+' kWp';
   const ampliacao=document.getElementById('pp-ampliacao')?.checked;
-  const modSub=document.getElementById('pc-modulos-sub');if(modSub)modSub.textContent=(mods||'—')+'x '+(wp||'—')+'Wp'+(!ampliacao&&inv?' · '+inv+(pinv?' '+pinv+' kW':''):'');
+  const invTotalKw=pinv?(parseFloat(pinv)*qtdInv):0;
+  const invDesc=inv?((qtdInv>1?qtdInv+'x ':'')+inv+(pinv?' '+pinv+'kW'+(qtdInv>1?' cada ('+invTotalKw.toFixed(2)+'kW total)':''):'')):'';
+  const modSub=document.getElementById('pc-modulos-sub');if(modSub)modSub.textContent=(mods||'—')+'x '+(wp||'—')+'Wp'+(!ampliacao&&invDesc?' · '+invDesc:'');
   const gerEl2=document.getElementById('pc-geracao');if(gerEl2)gerEl2.textContent=geracao?geracao.toLocaleString('pt-BR')+' kWh':'— kWh';
   const gerSub=document.getElementById('pc-geracao-sub');if(gerSub&&consumo)gerSub.textContent='Cobre ~'+Math.min(100,Math.round(geracao/consumo*100))+'% do consumo';else if(gerSub)gerSub.textContent='estimado/mês';
   const irr=[4.7,4.93,5.04,4.98,5.08,5.31,5.51,5.98,6.24,5.99,5.65,5.3];
   const grafico=document.getElementById('pc-grafico');
   if(grafico&&parseFloat(kwp)>0){const gens=irr.map(i=>Math.round(parseFloat(kwp)*i*30*0.79));const maxG=Math.max(...gens);grafico.innerHTML=gens.map((g,i)=>{const h=Math.round((g/maxG)*36);const cor=i===7||i===8?'#FDC300':'#2E3486';return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px"><div style="font-size:6.5px;color:#2E3486;font-weight:600">'+g+'</div><div style="width:100%;background:'+cor+';border-radius:2px 2px 0 0;height:'+h+'px"></div></div>';}).join('');}
-  const ci=document.getElementById('pc-comp-inversor');if(ci){ci.style.display=ampliacao?'none':'block';ci.textContent='✓ Inversor '+(inv?inv+' '+pinv:'—')+' kW';}
+  const ci=document.getElementById('pc-comp-inversor');if(ci){ci.style.display=ampliacao?'none':'block';ci.textContent='✓ '+(qtdInv>1?'Inversores ':'Inversor ')+(invDesc||'—');}
   const cSb=document.getElementById('pc-comp-stringbox');if(cSb)cSb.style.display=ampliacao?'none':'block';
   const cProj=document.getElementById('pc-comp-projeto');if(cProj)cProj.style.display=ampliacao?'none':'block';
   const cm=document.getElementById('pc-comp-modulos');if(cm)cm.textContent='✓ '+(mods||'—')+' módulos '+(wp||'—')+' Wp';
@@ -2935,6 +2941,7 @@ async function gerarPNG(){
       wpMod:parseInt(document.getElementById('pp-wpmod')?.value)||0,
       inversor:document.getElementById('pp-inv')?.value||'',
       potInv:parseFloat(document.getElementById('pp-pinv')?.value)||0,
+      qtdInversores:parseInt(document.getElementById('pp-qtd-inv')?.value)||1,
       geracao:parseFloat(document.getElementById('pp-geracao')?.value)||0,
       tarifa:parseFloat(document.getElementById('pp-tarifa')?.value)||0,
       valor:parseFloat(document.getElementById('pp-valor')?.value)||0,
@@ -2966,7 +2973,7 @@ async function gerarPNG(){
     }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
-function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
+function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});atualizarPreview();}
 
 // ══════════════════════════════════════════
 // ORÇAMENTO WALLBOX
@@ -4226,7 +4233,7 @@ function reabrirProposta(id){
     const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
     s('pp-nome',o.nome); s('pp-cidade',o.cidade); s('pp-consumo',o.consumo);
     s('pp-modulos',o.modulos); s('pp-wpmod',o.wpMod); s('pp-inv',o.inversor);
-    s('pp-pinv',o.potInv); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
+    s('pp-pinv',o.potInv); s('pp-qtd-inv',o.qtdInversores||1); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
     s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
     sc('pp-hibrido',o.hibrido); s('pp-bat-marca',o.batMarca); s('pp-bat-cap',o.batCap); s('pp-bat-aut',o.batAut);
     s('pp-modalidade',o.modalidade||'avista');
