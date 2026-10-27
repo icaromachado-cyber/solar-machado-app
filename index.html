@@ -799,11 +799,7 @@ tr:hover td{background:#faf9f5}
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Qtd. Módulos *</label><input type="number" id="pp-modulos" placeholder="13" oninput="calcularProposta()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Módulo (Wp)</label><input type="number" id="pp-wpmod" placeholder="610" oninput="calcularProposta()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
-            <div id="pp-tipoinv-wrap" class="fgrp full" style="display:flex;gap:18px;align-items:center;padding:4px 2px">
-              <span style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tipo</span>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer"><input type="radio" name="pp-tipo-inv" value="string" id="pp-tipoinv-string" checked onchange="atualizarVisibilidadeInversor();atualizarPreview()"> Inversor</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer"><input type="radio" name="pp-tipo-inv" value="micro" id="pp-tipoinv-micro" onchange="atualizarVisibilidadeInversor();atualizarPreview()"> Microinversor</label>
-            </div>
+            <div id="pp-tipoinv-wrap" style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Tipo</label><select id="pp-tipo-inv" onchange="atualizarVisibilidadeInversor();atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><option value="string">Inversor</option><option value="micro">Microinversor</option></select></div>
             <div id="pp-inv-wrap" style="display:flex;flex-direction:column;gap:4px"><label id="pp-inv-label" style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Marca do Inversor</label><input type="text" id="pp-inv" placeholder="SOLPLANET" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div id="pp-qtdinv-wrap" style="display:none;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Qtd. Microinversores</label><input type="number" id="pp-qtd-inv" min="1" step="1" placeholder="4" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div id="pp-pinv-wrap" style="display:flex;flex-direction:column;gap:4px"><label id="pp-pinv-label" style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Potência Inversor (kW)</label><input type="number" id="pp-pinv" step="0.001" placeholder="6" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
@@ -2399,7 +2395,7 @@ function toggleAmpliacaoForm(){
 }
 function atualizarVisibilidadeInversor(){
   const ampliacao=document.getElementById('pp-ampliacao')?.checked;
-  const micro=document.getElementById('pp-tipoinv-micro')?.checked;
+  const micro=document.getElementById('pp-tipo-inv')?.value==='micro';
   const disp=ampliacao?'none':'flex';
   const tipoWrap=document.getElementById('pp-tipoinv-wrap');if(tipoWrap)tipoWrap.style.display=ampliacao?'none':'flex';
   const invWrap=document.getElementById('pp-inv-wrap');if(invWrap)invWrap.style.display=disp;
@@ -2795,7 +2791,7 @@ function aplicarKitTabela(){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   set('pp-modulos', k.nMod);
   set('pp-wpmod', k.wpMod || cfg.wpModulo);
-  const rs=document.getElementById('pp-tipoinv-string');if(rs)rs.checked=true;
+  const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';
   if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();
   set('pp-inv', cfg.inversor || 'SOLPLANET');
   set('pp-qtd-inv', 1);
@@ -2840,7 +2836,7 @@ function atualizarPreview(){
   if(saud){const n=nome?'<strong>'+nome+'</strong>, ':'';const ct=cidade?' em <strong>'+cidade+'</strong>':'';saud.innerHTML='Olá, '+n+'preparamos esta proposta exclusiva para o seu sistema solar fotovoltaico'+ct+'. Confira:';}
   const kwpEl=document.getElementById('pc-kwp');if(kwpEl)kwpEl.textContent=kwp+' kWp';
   const ampliacao=document.getElementById('pp-ampliacao')?.checked;
-  const microInv=document.getElementById('pp-tipoinv-micro')?.checked;
+  const microInv=document.getElementById('pp-tipo-inv')?.value==='micro';
   const invTotalKw=pinv?(parseFloat(pinv)*qtdInv):0;
   const invDesc=inv?((microInv&&qtdInv>1?qtdInv+'x ':'')+inv+(pinv?' '+pinv+'kW'+(microInv&&qtdInv>1?' cada ('+invTotalKw.toFixed(2)+'kW total)':''):'')):'';
   const modSub=document.getElementById('pc-modulos-sub');if(modSub)modSub.textContent=(mods||'—')+'x '+(wp||'—')+'Wp'+(!ampliacao&&invDesc?' · '+invDesc:'');
@@ -2961,7 +2957,7 @@ async function gerarPNG(){
       inversor:document.getElementById('pp-inv')?.value||'',
       potInv:parseFloat(document.getElementById('pp-pinv')?.value)||0,
       qtdInversores:parseInt(document.getElementById('pp-qtd-inv')?.value)||1,
-      tipoInversor:document.getElementById('pp-tipoinv-micro')?.checked?'micro':'string',
+      tipoInversor:document.getElementById('pp-tipo-inv')?.value==='micro'?'micro':'string',
       geracao:parseFloat(document.getElementById('pp-geracao')?.value)||0,
       tarifa:parseFloat(document.getElementById('pp-tarifa')?.value)||0,
       valor:parseFloat(document.getElementById('pp-valor')?.value)||0,
@@ -2993,7 +2989,7 @@ async function gerarPNG(){
     }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
-function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const rs=document.getElementById('pp-tipoinv-string');if(rs)rs.checked=true;if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
+function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
 
 // ══════════════════════════════════════════
 // ORÇAMENTO WALLBOX
@@ -4267,7 +4263,7 @@ function reabrirProposta(id){
     s('pp-fin-n4',o.finN4); s('pp-fin-v4',o.finV4); sc('pp-fin-c4',o.finC4);
     s('pp-fin-entrada',o.finEntrada); s('pp-fin-carencia',o.finCarencia);
     sc('pp-ampliacao',o.ampliacao);
-    sc('pp-tipoinv-micro',o.tipoInversor==='micro'); sc('pp-tipoinv-string',o.tipoInversor!=='micro');
+    s('pp-tipo-inv',o.tipoInversor==='micro'?'micro':'string');
     if(typeof atualizarVisibilidadeInversor==='function') atualizarVisibilidadeInversor();
     if(typeof toggleAmpliacaoForm==='function') toggleAmpliacaoForm();
     if(typeof toggleHibridoForm==='function') toggleHibridoForm();
