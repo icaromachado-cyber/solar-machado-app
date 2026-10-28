@@ -5376,11 +5376,23 @@ function salvarRelatorioEquipe(){
   }).catch(e=>{ toast('Erro: '+e.message,'er'); });
 }
 
+function _relatorioEhAutor(r){
+  return !!(r.autorUid && usuarioAtual && r.autorUid===usuarioAtual.uid);
+}
+function _relatorioDentroPrazoEdicao(r){
+  if(!r.data) return true;
+  const dias = (Date.now() - new Date(r.data+'T00:00:00').getTime()) / 86400000;
+  return dias <= 7;
+}
+function _relatorioEditavel(r){
+  return _relatorioEhAutor(r) && _relatorioDentroPrazoEdicao(r);
+}
+
 function editarRelatorioEquipe(id){
   const r = RELATORIOS.find(x=>x.id===id);
   if(!r) return;
-  const souAutor = r.autorUid && usuarioAtual && r.autorUid===usuarioAtual.uid;
-  if(!souAutor && !isAdmin){ toast('Só o autor ou um admin pode editar.', 'er'); return; }
+  if(!_relatorioEhAutor(r)){ toast('Só o autor pode editar este relatório.', 'er'); return; }
+  if(!_relatorioDentroPrazoEdicao(r)){ toast('Esse relatório tem mais de 7 dias e não pode mais ser editado.', 'er'); return; }
   _editandoRelatorioId = id;
   document.getElementById('rel-texto').value = r.texto||'';
   document.getElementById('rel-cliente').value = r.cliente||'';
@@ -5411,15 +5423,17 @@ async function excluirRelatorioEquipe(id){
 
 function _cartaoRelatorio(r){
   const hora = r.criadoEm?.toDate ? r.criadoEm.toDate().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
-  const souAutor = r.autorUid && usuarioAtual && r.autorUid===usuarioAtual.uid;
-  const podeEditar = souAutor || isAdmin;
+  const podeEditar = _relatorioEditavel(r);
+  const podeExcluir = _relatorioEhAutor(r) || isAdmin;
+  const botoes = (podeEditar?`<button onclick="editarRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#2E3486;font-size:12px">✎</button>`:'')
+    + (podeExcluir?`<button onclick="excluirRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#D85A30;font-size:12px">🗑</button>`:'');
   return `<div style="background:#fff;border:1px solid #e4e3dc;border-radius:10px;padding:12px 14px">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span style="font-size:11px;color:#999">${fmt_data(r.data)}${hora?' · '+hora:''}</span>
         ${r.editadoEm?`<span style="font-size:10.5px;color:#aaa;font-style:italic">(editado)</span>`:''}
       </div>
-      ${podeEditar?`<span style="display:flex;gap:10px;flex-shrink:0"><button onclick="editarRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#2E3486;font-size:12px">✎</button><button onclick="excluirRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#D85A30;font-size:12px">🗑</button></span>`:''}
+      ${botoes?`<span style="display:flex;gap:10px;flex-shrink:0">${botoes}</span>`:''}
     </div>
     <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${escHtml(r.texto)}</div>
     ${r.cliente?`<div style="margin-top:6px;display:inline-block;background:#eef0ff;color:#2E3486;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">👤 ${escHtml(r.cliente)}</div>`:''}
