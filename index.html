@@ -1236,6 +1236,7 @@ tr:hover td{background:#faf9f5}
     <div class="page" id="page-relatorio">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
         <h2 style="font-size:20px;font-weight:800;color:#2E3486;margin:0">📝 Relatório Diário da Equipe</h2>
+        <button onclick="copiarResumoRelatorioDia()" style="background:#1D9E75;border:none;color:#fff;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:700">📋 Copiar Resumo do Dia</button>
       </div>
       <div style="font-size:13px;color:var(--txts);margin:-10px 0 18px">Anote o que você fez e quem atendeu — fica visível pra toda a equipe, pra facilitar a comunicação.</div>
 
@@ -5438,6 +5439,34 @@ function _cartaoRelatorio(r){
     <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${escHtml(r.texto)}</div>
     ${r.cliente?`<div style="margin-top:6px;display:inline-block;background:#eef0ff;color:#2E3486;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">👤 ${escHtml(r.cliente)}</div>`:''}
   </div>`;
+}
+
+function copiarResumoRelatorioDia(){
+  const hoje = new Date().toISOString().slice(0,10);
+  const doDia = RELATORIOS.filter(r=>r.data===hoje);
+  const colunas = [...RELATORIO_COLUNAS];
+  const restante = doDia.filter(r=>!colunas.some(nome=>(r.autorNome||'').toLowerCase().includes(nome.toLowerCase())));
+  const nomesExtras = [...new Set(restante.map(r=>r.autorNome).filter(Boolean))];
+  const todasColunas = colunas.concat(nomesExtras);
+
+  let texto = '📝 *Relatório do Dia — '+fmt_data(hoje)+'*\n';
+  const semAtividade = [];
+
+  todasColunas.forEach(nome=>{
+    const itens = nomesExtras.includes(nome)
+      ? restante.filter(r=>r.autorNome===nome)
+      : doDia.filter(r=>(r.autorNome||'').toLowerCase().includes(nome.toLowerCase()));
+    if(!itens.length){ semAtividade.push(nome); return; }
+    texto += '\n*'+nome+'*\n';
+    itens.forEach(r=>{
+      texto += '• '+r.texto + (r.cliente?' ('+r.cliente+')':'') + '\n';
+    });
+  });
+
+  if(semAtividade.length) texto += '\n⚪ *Sem atividade:* '+semAtividade.join(', ')+'\n';
+  texto += '\n_Solar Machado_';
+
+  copiarTexto(texto, 'Resumo do dia');
 }
 
 function renderRelatorios(){
