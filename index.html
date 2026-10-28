@@ -1255,7 +1255,10 @@ tr:hover td{background:#faf9f5}
             <input type="date" id="rel-data" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px">
           </div>
         </div>
-        <button onclick="salvarRelatorioEquipe()" style="background:#2E3486;border:none;color:#fff;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700">📝 Publicar</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="rel-btn-salvar" onclick="salvarRelatorioEquipe()" style="background:#2E3486;border:none;color:#fff;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700">📝 Publicar</button>
+          <button id="rel-btn-cancelar" onclick="cancelarEdicaoRelatorio()" style="display:none;background:#f0efe8;border:none;color:#888;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px">Cancelar edição</button>
+        </div>
       </div>
 
       <!-- Filtros -->
@@ -5339,11 +5342,25 @@ function initRelatoriosListener(){
   }, err=>{ toast('Erro ao carregar relatórios: '+err.message,'er'); });
 }
 
+let _editandoRelatorioId = null;
+
 function salvarRelatorioEquipe(){
   const texto = document.getElementById('rel-texto').value.trim();
   if(!texto){ toast('Escreva o que você fez.', 'er'); return; }
   const cliente = document.getElementById('rel-cliente').value.trim();
   const data = document.getElementById('rel-data').value || new Date().toISOString().slice(0,10);
+
+  if(_editandoRelatorioId){
+    db.collection('relatorios_equipe').doc(_editandoRelatorioId).update({
+      texto, cliente, data,
+      editadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(()=>{
+      toast('✅ Relatório atualizado!','ok');
+      cancelarEdicaoRelatorio();
+    }).catch(e=>{ toast('Erro: '+e.message,'er'); });
+    return;
+  }
+
   const autorNome = window._nomeUsuarioLogado || document.getElementById('usr-nome')?.textContent || usuarioAtual?.email || 'Equipe';
   const obj = {
     autorNome, autorEmail: usuarioAtual?.email||'', autorUid: usuarioAtual?.uid||'',
@@ -5356,6 +5373,29 @@ function salvarRelatorioEquipe(){
     document.getElementById('rel-cliente').value='';
     document.getElementById('rel-data').value='';
   }).catch(e=>{ toast('Erro: '+e.message,'er'); });
+}
+
+function editarRelatorioEquipe(id){
+  const r = RELATORIOS.find(x=>x.id===id);
+  if(!r) return;
+  const souAutor = r.autorUid && usuarioAtual && r.autorUid===usuarioAtual.uid;
+  if(!souAutor && !isAdmin){ toast('Só o autor ou um admin pode editar.', 'er'); return; }
+  _editandoRelatorioId = id;
+  document.getElementById('rel-texto').value = r.texto||'';
+  document.getElementById('rel-cliente').value = r.cliente||'';
+  document.getElementById('rel-data').value = r.data||'';
+  document.getElementById('rel-btn-salvar').textContent = '💾 Salvar Alterações';
+  document.getElementById('rel-btn-cancelar').style.display = 'inline-block';
+  document.getElementById('rel-texto').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function cancelarEdicaoRelatorio(){
+  _editandoRelatorioId = null;
+  document.getElementById('rel-texto').value = '';
+  document.getElementById('rel-cliente').value = '';
+  document.getElementById('rel-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('rel-btn-salvar').textContent = '📝 Publicar';
+  document.getElementById('rel-btn-cancelar').style.display = 'none';
 }
 
 async function excluirRelatorioEquipe(id){
@@ -5393,14 +5433,15 @@ function renderRelatorios(){
     const itensHtml = itens.map(r=>{
       const hora = r.criadoEm?.toDate ? r.criadoEm.toDate().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
       const souAutor = r.autorUid && usuarioAtual && r.autorUid===usuarioAtual.uid;
-      const podeExcluir = souAutor || isAdmin;
+      const podeEditar = souAutor || isAdmin;
       return `<div style="background:#fff;border:1px solid #e4e3dc;border-radius:10px;padding:12px 14px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-weight:700;font-size:13px;color:#2E3486">${escHtml(r.autorNome)||'—'}</span>
             ${hora?`<span style="font-size:11px;color:#999">${hora}</span>`:''}
+            ${r.editadoEm?`<span style="font-size:10.5px;color:#aaa;font-style:italic">(editado)</span>`:''}
           </div>
-          ${podeExcluir?`<button onclick="excluirRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#D85A30;font-size:12px">🗑</button>`:''}
+          ${podeEditar?`<span style="display:flex;gap:10px"><button onclick="editarRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#2E3486;font-size:12px">✎</button><button onclick="excluirRelatorioEquipe('${r.id}')" style="background:none;border:none;cursor:pointer;color:#D85A30;font-size:12px">🗑</button></span>`:''}
         </div>
         <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${escHtml(r.texto)}</div>
         ${r.cliente?`<div style="margin-top:6px;display:inline-block;background:#eef0ff;color:#2E3486;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600">👤 ${escHtml(r.cliente)}</div>`:''}
