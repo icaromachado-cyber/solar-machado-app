@@ -824,6 +824,8 @@ tr:hover td{background:#faf9f5}
           <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--az);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--am)">💰 Investimento</div>
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor Total (R$) *</label><input type="number" id="pp-valor" placeholder="15000" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <input type="hidden" id="pp-baixar-ate">
+            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor à Vista (R$)</label><input type="number" id="pp-valor-avista" placeholder="Em branco = valor da tabela (baixar até)" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><div id="pp-avista-hint" style="font-size:10.5px;color:var(--txts)"></div></div>
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Modalidade</label>
               <select id="pp-modalidade" onchange="atualizarModalidade()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><option value="avista">À Vista</option><option value="cartao">Cartão de Crédito</option><option value="financiado">Financiado</option></select></div>
           </div>
@@ -2852,6 +2854,8 @@ function aplicarKitTabela(){
   set('pp-qtd-inv', 1);
   set('pp-pinv', k.potInv);
   set('pp-valor', precos.total);
+  set('pp-baixar-ate', precos.baixarAte);
+  set('pp-valor-avista', '');
   set('pp-consumo', consumo||k.kwh);
   calcularProposta();
 
@@ -2911,13 +2915,19 @@ function atualizarPreview(){
   const tipoEl=document.getElementById('pc-tipo');if(tipoEl)tipoEl.textContent=ampliacao?'AMPLIAÇÃO DE SISTEMA SOLAR':(hibrido?'SISTEMA SOLAR HÍBRIDO':'SISTEMA DE ENERGIA SOLAR');
   const batCard=document.getElementById('pc-bat-card');if(batCard){batCard.style.display=hibrido?'flex':'none';const bkEl=document.getElementById('pc-bat-kwh');if(bkEl)bkEl.textContent=batCap?batCap.toLocaleString('pt-BR')+' kWh':'— kWh';const bsEl=document.getElementById('pc-bat-sub');if(bsEl)bsEl.textContent=batAut?'~'+batAut+'h autonomia':(batMarca||'—');}
   const cBat=document.getElementById('pc-comp-bateria');if(cBat){cBat.style.display=hibrido?'block':'none';if(hibrido)cBat.textContent='✓ Bateria '+(batMarca||'—')+(batCap?' · '+batCap+' kWh':'');}
-  const valEl=document.getElementById('pc-valor');if(valEl)valEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
+  const baixarAte=parseFloat(document.getElementById('pp-baixar-ate')?.value)||0;
+  const valorAvistaManual=parseFloat(document.getElementById('pp-valor-avista')?.value)||0;
+  const valorAvista=valorAvistaManual||baixarAte||valor;
+  const avistaHint=document.getElementById('pp-avista-hint');
+  if(avistaHint)avistaHint.textContent=baixarAte?('Padrão da tabela: R$ '+baixarAte.toLocaleString('pt-BR')):'';
+  const headlineValor=modalidade==='avista'?valorAvista:valor;
+  const valEl=document.getElementById('pc-valor');if(valEl)valEl.textContent=headlineValor?'R$ '+headlineValor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
   const finDiv=document.getElementById('pc-fin');const parSub=document.getElementById('pc-parcela-sub');const aVistaEl=document.getElementById('pc-avista');
   if(modalidade==='avista'){if(finDiv)finDiv.style.display='none';if(parSub)parSub.textContent='';}
   else{
     if(finDiv)finDiv.style.display='block';
     const finHdr=finDiv?.querySelector('.fin-hdr');if(finHdr)finHdr.textContent=modalidade==='cartao'?'💳 Cartão de Crédito':'🏦 Financiamento';
-    if(aVistaEl)aVistaEl.textContent=valor?'R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
+    if(aVistaEl)aVistaEl.textContent=valorAvista?'R$ '+valorAvista.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
     const pRows=document.getElementById('pc-parcelas-rows');
     if(modalidade==='cartao'){
       const opcoesCc=[];
@@ -3017,6 +3027,8 @@ async function gerarPNG(){
       tarifa:parseFloat(document.getElementById('pp-tarifa')?.value)||0,
       valor:parseFloat(document.getElementById('pp-valor')?.value)||0,
       distancia:parseFloat(document.getElementById('pp-tab-dist')?.value)||0,
+      baixarAte:parseFloat(document.getElementById('pp-baixar-ate')?.value)||0,
+      valorAvista:parseFloat(document.getElementById('pp-valor-avista')?.value)||0,
       hibrido:gc('pp-hibrido'), batMarca:gv('pp-bat-marca'), batCap:gv('pp-bat-cap'), batAut:gv('pp-bat-aut'),
       ampliacao:gc('pp-ampliacao'),
       modalidade:gv('pp-modalidade')||'avista',
@@ -3044,7 +3056,7 @@ async function gerarPNG(){
     }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
-function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
+function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-valor-avista','pp-baixar-ate','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
 
 // ══════════════════════════════════════════
 // ORÇAMENTO WALLBOX
@@ -4306,6 +4318,7 @@ function reabrirProposta(id){
     s('pp-modulos',o.modulos); s('pp-wpmod',o.wpMod); s('pp-inv',o.inversor);
     s('pp-pinv',o.potInv); s('pp-qtd-inv',o.qtdInversores||1); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
     s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
+    s('pp-baixar-ate',o.baixarAte); s('pp-valor-avista',o.valorAvista);
     sc('pp-hibrido',o.hibrido); s('pp-bat-marca',o.batMarca); s('pp-bat-cap',o.batCap); s('pp-bat-aut',o.batAut);
     s('pp-modalidade',o.modalidade||'avista');
     s('pp-cc-n1',o.ccN1); sc('pp-cc-c1',o.ccC1);
