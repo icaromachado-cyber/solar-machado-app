@@ -5443,7 +5443,7 @@ function _cartaoRelatorio(r){
 }
 
 function copiarResumoRelatorioDia(){
-  const hoje = hojeLocal();
+  const hoje = document.getElementById('rel-f-data')?.value || hojeLocal();
   const doDia = RELATORIOS.filter(r=>r.data===hoje);
   const colunas = [...RELATORIO_COLUNAS];
   const restante = doDia.filter(r=>!colunas.some(nome=>(r.autorNome||'').toLowerCase().includes(nome.toLowerCase())));
