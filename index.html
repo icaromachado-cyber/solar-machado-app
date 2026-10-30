@@ -825,7 +825,7 @@ tr:hover td{background:#faf9f5}
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor Total (R$) *</label><input type="number" id="pp-valor" placeholder="15000" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <input type="hidden" id="pp-baixar-ate">
-            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor à Vista (R$)</label><input type="number" id="pp-valor-avista" placeholder="Em branco = valor da tabela (baixar até)" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><div id="pp-avista-hint" style="font-size:10.5px;color:var(--txts)"></div></div>
+            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Valor à Vista (R$)</label><input type="number" id="pp-valor-avista" placeholder="Em branco = Valor Total" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><div id="pp-avista-hint" style="font-size:10.5px;color:var(--txts)"></div></div>
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Modalidade</label>
               <select id="pp-modalidade" onchange="atualizarModalidade()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"><option value="avista">À Vista</option><option value="cartao">Cartão de Crédito</option><option value="financiado">Financiado</option></select></div>
           </div>
@@ -2916,11 +2916,11 @@ function atualizarPreview(){
   const batCard=document.getElementById('pc-bat-card');if(batCard){batCard.style.display=hibrido?'flex':'none';const bkEl=document.getElementById('pc-bat-kwh');if(bkEl)bkEl.textContent=batCap?batCap.toLocaleString('pt-BR')+' kWh':'— kWh';const bsEl=document.getElementById('pc-bat-sub');if(bsEl)bsEl.textContent=batAut?'~'+batAut+'h autonomia':(batMarca||'—');}
   const cBat=document.getElementById('pc-comp-bateria');if(cBat){cBat.style.display=hibrido?'block':'none';if(hibrido)cBat.textContent='✓ Bateria '+(batMarca||'—')+(batCap?' · '+batCap+' kWh':'');}
   const baixarAteTabela=parseFloat(document.getElementById('pp-baixar-ate')?.value)||0;
-  const baixarAtePadrao=baixarAteTabela||(valor>1000?valor-1000:valor);
+  const baixarAteSugestao=baixarAteTabela||(valor>1000?valor-1000:valor);
   const valorAvistaManual=parseFloat(document.getElementById('pp-valor-avista')?.value)||0;
-  const valorAvista=valorAvistaManual||baixarAtePadrao;
+  const valorAvista=valorAvistaManual||valor;
   const avistaHint=document.getElementById('pp-avista-hint');
-  if(avistaHint)avistaHint.textContent=valor?('Padrão: R$ '+baixarAtePadrao.toLocaleString('pt-BR')):'';
+  if(avistaHint)avistaHint.textContent=(valor&&!valorAvistaManual)?('Sugestão: R$ '+baixarAteSugestao.toLocaleString('pt-BR')):'';
   const headlineValor=modalidade==='avista'?valorAvista:valor;
   const valEl=document.getElementById('pc-valor');if(valEl)valEl.textContent=headlineValor?'R$ '+headlineValor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
   const finDiv=document.getElementById('pc-fin');const parSub=document.getElementById('pc-parcela-sub');const aVistaEl=document.getElementById('pc-avista');
