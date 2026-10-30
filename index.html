@@ -1265,7 +1265,7 @@ tr:hover td{background:#faf9f5}
       <!-- Filtros -->
       <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:16px;border:1px solid #e4e3dc;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
         <input type="date" id="rel-f-data" onchange="renderRelatorios()" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
-        <button onclick="document.getElementById('rel-f-data').value=new Date().toISOString().slice(0,10);renderRelatorios()" style="background:#f0efe8;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#888">↺ Hoje</button>
+        <button onclick="document.getElementById('rel-f-data').value=hojeLocal();renderRelatorios()" style="background:#f0efe8;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#888">↺ Hoje</button>
         <button onclick="document.getElementById('rel-f-data').value='';renderRelatorios()" style="background:#f0efe8;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#888">Ver histórico completo</button>
       </div>
 
@@ -1796,9 +1796,9 @@ function go(p) {
   if(p==='agenda') setTimeout(renderAgenda, 50);
   if(p==='relatorio'){
     const relData=document.getElementById('rel-data');
-    if(relData && !relData.value) relData.value=new Date().toISOString().slice(0,10);
+    if(relData && !relData.value) relData.value=hojeLocal();
     const relFData=document.getElementById('rel-f-data');
-    if(relFData && !relFData.value) relFData.value=new Date().toISOString().slice(0,10);
+    if(relFData && !relFData.value) relFData.value=hojeLocal();
     setTimeout(renderRelatorios, 50);
   }
   if(p==='historico') renderOrcamentos();
@@ -2285,7 +2285,7 @@ function openModalChamado(projetoId) {
   ['mc-avulso','mc-desc','mc-res'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
-  document.getElementById('mc-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('mc-data').value = hojeLocal();
   document.getElementById('mc-pri').value = 'Normal';
   document.getElementById('mc-st').value = 'Aberto';
   document.getElementById('mc-tipo').value = 'Manutenção Preventiva';
@@ -2308,7 +2308,7 @@ function saveChamado(){
   // Registrar data de resolução quando muda para Resolvido
   const chAnterior = CHAMADOS.find(c => c.id === id);
   if (novoStatus === 'Resolvido' && chAnterior?.status !== 'Resolvido') {
-    obj.dataResolucao = new Date().toISOString().slice(0,10);
+    obj.dataResolucao = hojeLocal();
   }
   if(!editChId&&typeof usuarioAtual!=='undefined'&&usuarioAtual){obj.abertoPorId=usuarioAtual.uid;obj.abertoPorEmail=usuarioAtual.email;obj.abertoPorNome=document.getElementById('usr-nome')?.textContent||usuarioAtual.email;obj.dataAbertura=new Date().toISOString();}
   fbWrite('chamados',id,obj).then(()=>{toast('Chamado salvo!','ok');closeMo('mo-ch');});
@@ -2460,6 +2460,9 @@ function atualizarVisibilidadeInversor(){
   if(!micro){const q=document.getElementById('pp-qtd-inv');if(q)q.value='';}
 }
 function fmt_data(d){if(!d)return'—'; return new Date(d+'T12:00').toLocaleDateString('pt-BR');}
+function hojeLocal(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function diaLocalMaisDias(n){const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dataLocalDeDate(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
 function fmt(v){return(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2});}
 function toast(msg,type){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>{t.className='toast';},2800);}
 
@@ -3601,8 +3604,8 @@ function fecharNotifChamados(){
 
 function verificarVisitasAmanha(){
   if(window._notifVisitasFechada) return;
-  const hoje  = new Date().toISOString().slice(0,10);
-  const amanha = new Date(Date.now() + 864e5).toISOString().slice(0,10);
+  const hoje  = hojeLocal();
+  const amanha = diaLocalMaisDias(1);
   const ativas = v => v.status !== 'Realizada' && v.status !== 'Cancelada';
   const visitasHoje   = VISITAS.filter(v => v.data === hoje   && ativas(v));
   const visitasAmanha = VISITAS.filter(v => v.data === amanha && ativas(v));
@@ -4034,7 +4037,7 @@ function renderFinChart(ano) {
 function openModalMovimentacao() {
   editMovId = null;
   document.getElementById('mov-titulo').textContent = 'Nova Movimentação';
-  document.getElementById('mov-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('mov-data').value = hojeLocal();
   document.getElementById('mov-tipo').value = 'Entrada';
   document.getElementById('mov-valor').value = '';
   document.getElementById('mov-desc').value = '';
@@ -4156,7 +4159,7 @@ function initOrcamentosListener(){
 async function limparOrcamentosDuplicados(){
   const grupos={};
   ORCAMENTOS.forEach(o=>{
-    const dia=o.geradoEm?.toDate?o.geradoEm.toDate().toISOString().slice(0,10):'';
+    const dia=o.geradoEm?.toDate?dataLocalDeDate(o.geradoEm.toDate()):'';
     const chave=[o.nome,o.cidade,o.consumo,o.modulos,o.wpMod,o.inversor,o.potInv,o.valor,dia].join('|');
     (grupos[chave]=grupos[chave]||[]).push(o);
   });
@@ -4888,7 +4891,7 @@ function _abrirModalRegistroLeitura(){
     `<div style="font-weight:700;font-size:14px">${d.nome}</div>`+
     `<div style="font-size:12px;color:#555;margin-top:3px">${d.cliente} · UC: ${d.uc||'—'}</div>`+
     (d.benEnd?`<div style="font-size:12px;color:#888;margin-top:1px">📍 ${d.benEnd}</div>`:'');
-  document.getElementById('rl-data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('rl-data').value=hojeLocal();
   document.getElementById('rl-geracao').value='';
   document.getElementById('rl-consumo').value='';
   document.getElementById('rl-valor').value='';
@@ -5062,9 +5065,7 @@ function abrirRegistroBenDoHistorico(agendaId, benUc, benEnd, nomeTitular){
 }
 
 async function marcarLeituraFeita(id){
-  const hoje=new Date();
-  const prox=new Date(hoje); prox.setDate(prox.getDate()+30);
-  const proxStr=prox.toISOString().slice(0,10);
+  const proxStr=diaLocalMaisDias(30);
   try{await db.collection('agenda_leituras').doc(id).update({status:'ok',proxLeitura:proxStr});toast('✅ Leitura marcada como feita!','ok');}
   catch(e){toast('Erro','er');}
 }
@@ -5117,8 +5118,8 @@ function renderAgenda() {
   }
 
   // KPIs sempre pelo total
-  const hoje = new Date().toISOString().slice(0,10);
-  const semana = new Date(Date.now() + 7*864e5).toISOString().slice(0,10);
+  const hoje = hojeLocal();
+  const semana = diaLocalMaisDias(7);
   const kpiEl = document.getElementById('agenda-kpis');
   if (kpiEl) {
     const agendadas   = VISITAS.filter(v => v.status === 'Agendada').length;
@@ -5199,7 +5200,7 @@ function renderAgenda() {
 function renderDashVisitas() {
   const cont = document.getElementById('dash-visitas-hoje');
   if (!cont) return;
-  const hoje = new Date().toISOString().slice(0,10);
+  const hoje = hojeLocal();
   const proximas = VISITAS.filter(v => v.data >= hoje && v.status === 'Agendada').slice(0, 5);
   if (!proximas.length) { cont.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Nenhuma visita agendada.</div>'; return; }
   const STATUS_COR = { Agendada:'#2E3486', Realizada:'#1D9E75', Cancelada:'#D85A30', Reagendada:'#f59e0b' };
@@ -5237,7 +5238,7 @@ function openModalVisita(id) {
   const tipo = v?.tipo || 'Técnica';
   document.querySelectorAll('input[name="visita-tipo"]').forEach(r => { r.checked = r.value === tipo; });
 
-  document.getElementById('v-data').value   = v?.data       || new Date().toISOString().slice(0,10);
+  document.getElementById('v-data').value   = v?.data       || hojeLocal();
   document.getElementById('v-hora').value   = v?.hora       || '09:00';
   document.getElementById('v-status').value = v?.status     || 'Agendada';
   document.getElementById('v-obs').value    = v?.obs        || '';
@@ -5350,7 +5351,7 @@ function salvarRelatorioEquipe(){
   const texto = document.getElementById('rel-texto').value.trim();
   if(!texto){ toast('Escreva o que você fez.', 'er'); return; }
   const cliente = document.getElementById('rel-cliente').value.trim();
-  const data = document.getElementById('rel-data').value || new Date().toISOString().slice(0,10);
+  const data = document.getElementById('rel-data').value || hojeLocal();
 
   if(_editandoRelatorioId){
     db.collection('relatorios_equipe').doc(_editandoRelatorioId).update({
@@ -5407,7 +5408,7 @@ function cancelarEdicaoRelatorio(){
   _editandoRelatorioId = null;
   document.getElementById('rel-texto').value = '';
   document.getElementById('rel-cliente').value = '';
-  document.getElementById('rel-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('rel-data').value = hojeLocal();
   document.getElementById('rel-btn-salvar').textContent = '📝 Publicar';
   document.getElementById('rel-btn-cancelar').style.display = 'none';
 }
@@ -5442,7 +5443,7 @@ function _cartaoRelatorio(r){
 }
 
 function copiarResumoRelatorioDia(){
-  const hoje = new Date().toISOString().slice(0,10);
+  const hoje = hojeLocal();
   const doDia = RELATORIOS.filter(r=>r.data===hoje);
   const colunas = [...RELATORIO_COLUNAS];
   const restante = doDia.filter(r=>!colunas.some(nome=>(r.autorNome||'').toLowerCase().includes(nome.toLowerCase())));
