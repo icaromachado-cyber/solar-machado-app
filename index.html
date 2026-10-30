@@ -2915,11 +2915,12 @@ function atualizarPreview(){
   const tipoEl=document.getElementById('pc-tipo');if(tipoEl)tipoEl.textContent=ampliacao?'AMPLIAÇÃO DE SISTEMA SOLAR':(hibrido?'SISTEMA SOLAR HÍBRIDO':'SISTEMA DE ENERGIA SOLAR');
   const batCard=document.getElementById('pc-bat-card');if(batCard){batCard.style.display=hibrido?'flex':'none';const bkEl=document.getElementById('pc-bat-kwh');if(bkEl)bkEl.textContent=batCap?batCap.toLocaleString('pt-BR')+' kWh':'— kWh';const bsEl=document.getElementById('pc-bat-sub');if(bsEl)bsEl.textContent=batAut?'~'+batAut+'h autonomia':(batMarca||'—');}
   const cBat=document.getElementById('pc-comp-bateria');if(cBat){cBat.style.display=hibrido?'block':'none';if(hibrido)cBat.textContent='✓ Bateria '+(batMarca||'—')+(batCap?' · '+batCap+' kWh':'');}
-  const baixarAte=parseFloat(document.getElementById('pp-baixar-ate')?.value)||0;
+  const baixarAteTabela=parseFloat(document.getElementById('pp-baixar-ate')?.value)||0;
+  const baixarAtePadrao=baixarAteTabela||(valor>1000?valor-1000:valor);
   const valorAvistaManual=parseFloat(document.getElementById('pp-valor-avista')?.value)||0;
-  const valorAvista=valorAvistaManual||baixarAte||valor;
+  const valorAvista=valorAvistaManual||baixarAtePadrao;
   const avistaHint=document.getElementById('pp-avista-hint');
-  if(avistaHint)avistaHint.textContent=baixarAte?('Padrão da tabela: R$ '+baixarAte.toLocaleString('pt-BR')):'';
+  if(avistaHint)avistaHint.textContent=valor?('Padrão: R$ '+baixarAtePadrao.toLocaleString('pt-BR')):'';
   const headlineValor=modalidade==='avista'?valorAvista:valor;
   const valEl=document.getElementById('pc-valor');if(valEl)valEl.textContent=headlineValor?'R$ '+headlineValor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ —';
   const finDiv=document.getElementById('pc-fin');const parSub=document.getElementById('pc-parcela-sub');const aVistaEl=document.getElementById('pc-avista');
