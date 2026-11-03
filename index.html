@@ -793,6 +793,10 @@ tr:hover td{background:#faf9f5}
               </div>
               <button type="button" onclick="aplicarKitTabela()" style="background:#2E3486;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">✅ Aplicar</button>
             </div>
+            <label id="pp-tab-inv-maior-wrap" style="display:none;align-items:center;gap:6px;margin-top:8px;cursor:pointer">
+              <input type="checkbox" id="pp-tab-inv-maior" onchange="selecionarKitTabela()">
+              <span style="font-size:11.5px;color:#8a6d00;font-weight:600">🔧 Usar Inversor Maior (entradas livres p/ ampliação) — mesmo tamanho de kit</span>
+            </label>
             <div id="pp-tab-info" style="margin-top:8px;font-size:11px;color:var(--txts);display:none"></div>
           </div>
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -2814,17 +2818,19 @@ function carregarTabelaFirestore(){
   }, ()=>{});
 }
 function _kitsFiltrados(consumo){
-  return {
-    p: (window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo),
-    m: (window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR).filter(k=>k.kwh>=consumo)
-  };
+  return (window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
 }
-function _kitPorValue(value, consumo){
-  const comp=_kitsFiltrados(consumo);
-  const [tipo, idxStr]=String(value||'').split('-');
-  const idx=parseInt(idxStr);
-  const lista=tipo==='m'?comp.m:comp.p;
-  return (!isNaN(idx)&&lista[idx])?lista[idx]:null;
+function _kitInversorMaiorPareado(k){
+  if(!k)return null;
+  return (window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR).find(m=>m.kwh===k.kwh)||null;
+}
+function _kitEfetivo(idx, consumo){
+  const lista=_kitsFiltrados(consumo);
+  const k=(!isNaN(idx)&&lista[idx])?lista[idx]:null;
+  if(!k)return {k:null, par:null, usarMaior:false};
+  const par=_kitInversorMaiorPareado(k);
+  const quer=document.getElementById('pp-tab-inv-maior')?.checked;
+  return {k: (quer&&par)?par:k, par, usarMaior: !!(quer&&par)};
 }
 function buscarTabelaPreview(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
@@ -2832,19 +2838,25 @@ function buscarTabelaPreview(){
   const info=document.getElementById('pp-tab-info');
   if(!sel)return;
   if(consumo<100){sel.innerHTML='<option value="">— Digite o consumo —</option>';if(info)info.style.display='none';return;}
-  const comp=_kitsFiltrados(consumo);
-  if(!comp.p.length&&!comp.m.length){sel.innerHTML='<option value="">Consumo acima da tabela</option>';if(info)info.style.display='none';return;}
-  const optP=comp.p.map((k,i)=>'<option value="p-'+i+'"'+(i===0?' selected':'')+'>'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
-  const optM=comp.m.map((k,i)=>'<option value="m-'+i+'">'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · Inv. '+k.potInv+'kW · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
-  sel.innerHTML=(optP?'<optgroup label="Padrão">'+optP+'</optgroup>':'')+(optM?'<optgroup label="Inversor Maior (entradas livres p/ ampliação)">'+optM+'</optgroup>':'');
-  const primeiro=comp.p[0]||comp.m[0];
-  mostrarInfoKit(primeiro, !comp.p.length);if(info)info.style.display='block';
+  const lista=_kitsFiltrados(consumo);
+  if(!lista.length){sel.innerHTML='<option value="">Consumo acima da tabela</option>';if(info)info.style.display='none';return;}
+  sel.innerHTML=lista.map((k,i)=>'<option value="'+i+'"'+(i===0?' selected':'')+'>'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
+  const maiorChk=document.getElementById('pp-tab-inv-maior');if(maiorChk)maiorChk.checked=false;
+  selecionarKitTabela();
+  if(info)info.style.display='block';
 }
 function selecionarKitTabela(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
   const sel=document.getElementById('pp-tab-sugestao');
-  const k=_kitPorValue(sel?.value, consumo);
-  if(k)mostrarInfoKit(k, sel.value.startsWith('m-'));
+  const idx=parseInt(sel?.value);
+  const lista=_kitsFiltrados(consumo);
+  const kPadrao=(!isNaN(idx)&&lista[idx])?lista[idx]:null;
+  const par=_kitInversorMaiorPareado(kPadrao);
+  const wrap=document.getElementById('pp-tab-inv-maior-wrap');
+  if(wrap)wrap.style.display=par?'flex':'none';
+  if(!par){const chk=document.getElementById('pp-tab-inv-maior');if(chk)chk.checked=false;}
+  const ef=_kitEfetivo(idx, consumo);
+  if(ef.k)mostrarInfoKit(ef.k, ef.usarMaior);
 }
 function mostrarInfoKit(k, inversorMaior){
   const info=document.getElementById('pp-tab-info');if(!info)return;
@@ -2874,10 +2886,11 @@ function calcularPrecoComDistancia(k) {
 
 function aplicarKitTabela(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
-  const selVal=document.getElementById('pp-tab-sugestao')?.value;
-  const k=_kitPorValue(selVal, consumo);
+  const idx=parseInt(document.getElementById('pp-tab-sugestao')?.value);
+  const ef=_kitEfetivo(idx, consumo);
+  const k=ef.k;
   if(!k){toast('Selecione um kit.','er');return;}
-  const inversorMaior=String(selVal||'').startsWith('m-');
+  const inversorMaior=ef.usarMaior;
   const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', wpModulo: k.wpMod};
   const precos = calcularPrecoComDistancia(k);
   const dist = parseFloat(cfg.distancia) || 0;
