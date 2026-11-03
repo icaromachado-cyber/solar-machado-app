@@ -2628,6 +2628,20 @@ const TABELA_SOLAR = [
   {kwh:3000,wpMod:610, nMod:39, potInv:20,  kwp:23.8, kit:29600, total:42500, baixarAte:41500},
   {kwh:3500,wpMod:610, nMod:46, potInv:20,  kwp:28.1, kit:34100, total:48000, baixarAte:47000}
 ];
+// ══ TABELA DE KITS PARA AMPLIAÇÃO (inversor maior, entradas livres p/ ampliação futura) ══
+// Atualizado em 03/11/2026 — Fonte: planilha interna (Google Sheets) colada pelo Ícaro
+const TABELA_INVERSOR_MAIOR = [
+  {kwh:600,  wpMod:610, nMod:8,  potInv:7.5, kwp:4.9,  kit:8700,  total:14500, baixarAte:13500},
+  {kwh:700,  wpMod:710, nMod:8,  potInv:7.5, kwp:5.7,  kit:11000, total:16500, baixarAte:15500},
+  {kwh:800,  wpMod:610, nMod:11, potInv:7.5, kwp:6.7,  kit:10700, total:16500, baixarAte:15500},
+  {kwh:900,  wpMod:610, nMod:12, potInv:7.5, kwp:7.3,  kit:11300, total:17500, baixarAte:16500},
+  {kwh:1000, wpMod:620, nMod:13, potInv:7.5, kwp:8.1,  kit:12300, total:20000, baixarAte:19000},
+  {kwh:1200, wpMod:610, nMod:16, potInv:9.1, kwp:9.8,  kit:14100, total:22000, baixarAte:21000},
+  {kwh:1300, wpMod:610, nMod:17, potInv:9.1, kwp:10.4, kit:15000, total:23000, baixarAte:22000},
+  {kwh:1500, wpMod:610, nMod:20, potInv:12,  kwp:12.2, kit:22400, total:30500, baixarAte:29500},
+  {kwh:1800, wpMod:610, nMod:24, potInv:12,  kwp:14.6, kit:26200, total:34500, baixarAte:33500},
+  {kwh:2000, wpMod:610, nMod:26, potInv:12,  kwp:15.9, kit:28200, total:38000, baixarAte:37000}
+];
 // Tabela real de fatores do cartão de crédito (maquininha) — total_a_cobrar = Valor Total × fator(n)
 // Reverse-engenheirada a partir de dois cenários reais (receber R$40.000 e R$51.000): o fator bate
 // exatamente igual nos dois, confirmando que é tabela fixa por nº de parcelas, não juro composto simples.
@@ -2799,27 +2813,44 @@ function carregarTabelaFirestore(){
     }catch(e){}
   }, ()=>{});
 }
+function _kitsFiltrados(consumo){
+  return {
+    p: (window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo),
+    m: (window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR).filter(k=>k.kwh>=consumo)
+  };
+}
+function _kitPorValue(value, consumo){
+  const comp=_kitsFiltrados(consumo);
+  const [tipo, idxStr]=String(value||'').split('-');
+  const idx=parseInt(idxStr);
+  const lista=tipo==='m'?comp.m:comp.p;
+  return (!isNaN(idx)&&lista[idx])?lista[idx]:null;
+}
 function buscarTabelaPreview(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
   const sel=document.getElementById('pp-tab-sugestao');
   const info=document.getElementById('pp-tab-info');
   if(!sel)return;
   if(consumo<100){sel.innerHTML='<option value="">— Digite o consumo —</option>';if(info)info.style.display='none';return;}
-  const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
-  if(!comp.length){sel.innerHTML='<option value="">Consumo acima da tabela</option>';if(info)info.style.display='none';return;}
-  sel.innerHTML=comp.map((k,i)=>'<option value="'+i+'"'+(i===0?' selected':'')+'>'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
-  mostrarInfoKit(comp[0]);if(info)info.style.display='block';
+  const comp=_kitsFiltrados(consumo);
+  if(!comp.p.length&&!comp.m.length){sel.innerHTML='<option value="">Consumo acima da tabela</option>';if(info)info.style.display='none';return;}
+  const optP=comp.p.map((k,i)=>'<option value="p-'+i+'"'+(i===0?' selected':'')+'>'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
+  const optM=comp.m.map((k,i)=>'<option value="m-'+i+'">'+(k.nMod)+'x '+(k.wpMod)+'Wp · '+(k.kwp)+' kWp · Inv. '+k.potInv+'kW · R$ '+k.total.toLocaleString('pt-BR')+'</option>').join('');
+  sel.innerHTML=(optP?'<optgroup label="Padrão">'+optP+'</optgroup>':'')+(optM?'<optgroup label="Inversor Maior (entradas livres p/ ampliação)">'+optM+'</optgroup>':'');
+  const primeiro=comp.p[0]||comp.m[0];
+  mostrarInfoKit(primeiro, !comp.p.length);if(info)info.style.display='block';
 }
 function selecionarKitTabela(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
-  const idx=parseInt(document.getElementById('pp-tab-sugestao')?.value);
-  const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
-  if(!isNaN(idx)&&comp[idx])mostrarInfoKit(comp[idx]);
+  const sel=document.getElementById('pp-tab-sugestao');
+  const k=_kitPorValue(sel?.value, consumo);
+  if(k)mostrarInfoKit(k, sel.value.startsWith('m-'));
 }
-function mostrarInfoKit(k){
+function mostrarInfoKit(k, inversorMaior){
   const info=document.getElementById('pp-tab-info');if(!info)return;
   info.style.display='block';
-  info.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">'
+  info.innerHTML=(inversorMaior?'<div style="font-size:10.5px;font-weight:700;color:#8a6d00;background:#fff8e0;border:1px solid #fac775;border-radius:6px;padding:4px 8px;display:inline-block;margin-bottom:6px">🔧 Inversor Maior — entradas livres p/ ampliação futura</div>':'')
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">'
     +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Módulos</div><div style="font-size:13px;font-weight:700;color:#2E3486">'+k.nMod+'x '+k.wpMod+'Wp</div></div>'
     +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">kWp</div><div style="font-size:13px;font-weight:700;color:#2E3486">'+k.kwp+'</div></div>'
     +'<div style="background:#fff;border-radius:6px;padding:6px 8px;text-align:center"><div style="font-size:9px;color:#888">Inversor</div><div style="font-size:13px;font-weight:700;color:#2E3486">'+k.potInv+' kW</div></div>'
@@ -2843,10 +2874,10 @@ function calcularPrecoComDistancia(k) {
 
 function aplicarKitTabela(){
   const consumo=parseInt(document.getElementById('pp-tab-consumo')?.value)||0;
-  const idx=parseInt(document.getElementById('pp-tab-sugestao')?.value);
-  const comp=(window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
-  if(isNaN(idx)||!comp[idx]){toast('Selecione um kit.','er');return;}
-  const k=comp[idx];
+  const selVal=document.getElementById('pp-tab-sugestao')?.value;
+  const k=_kitPorValue(selVal, consumo);
+  if(!k){toast('Selecione um kit.','er');return;}
+  const inversorMaior=String(selVal||'').startsWith('m-');
   const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', wpModulo: k.wpMod};
   const precos = calcularPrecoComDistancia(k);
   const dist = parseFloat(cfg.distancia) || 0;
@@ -2866,7 +2897,8 @@ function aplicarKitTabela(){
   calcularProposta();
 
   const distInfo = dist > 0 ? ' · 📍 '+dist+'km de Teresina' : '';
-  toast('✅ Kit aplicado! '+k.nMod+'x '+(k.wpMod||cfg.wpModulo)+'Wp · R$ '+precos.total.toLocaleString('pt-BR')+distInfo,'ok');
+  const maiorInfo = inversorMaior ? ' · 🔧 Inversor Maior' : '';
+  toast('✅ Kit aplicado! '+k.nMod+'x '+(k.wpMod||cfg.wpModulo)+'Wp · R$ '+precos.total.toLocaleString('pt-BR')+distInfo+maiorInfo,'ok');
 }
 
 // ══ PROPOSTAS ══
