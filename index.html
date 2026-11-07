@@ -254,6 +254,7 @@ tr:hover td{background:#faf9f5}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
@@ -927,6 +928,9 @@ tr:hover td{background:#faf9f5}
           <div style="display:flex;gap:10px">
             <button class="btn btn-y" onclick="gerarPNG()" style="flex:1;justify-content:center">📥 Baixar PNG para WhatsApp</button>
             <button class="btn btn-g" onclick="limparProposta()">🗑</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <button class="btn btn-p" onclick="gerarPDF()" style="flex:1;justify-content:center">🖨 Baixar PDF (A4)</button>
           </div>
         </div>
         <!-- PREVIEW -->
@@ -3052,6 +3056,30 @@ async function salvarOuCompartilharImagem(blob,nomeArquivo,tituloShare){
   link.click();
   link.remove();
   toast('✅ Imagem baixada!','ok');
+}
+async function gerarPDF(){
+  const card=document.getElementById('prop-card');
+  if(!card)return;
+  const nome=document.getElementById('pp-nome')?.value||'cliente';
+  const nomeArquivo='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.pdf';
+  toast('Gerando PDF...','');
+  try{
+    const canvas=await html2canvas(card,{backgroundColor:'#ffffff',scale:2,useCORS:true,logging:false});
+    const imgData=canvas.toDataURL('image/png');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pageW=210, pageH=297, margin=10;
+    const maxW=pageW-margin*2, maxH=pageH-margin*2;
+    const ratio=canvas.height/canvas.width;
+    let imgW=maxW, imgH=imgW*ratio;
+    if(imgH>maxH){imgH=maxH; imgW=imgH/ratio;}
+    const x=(pageW-imgW)/2;
+    pdf.addImage(imgData,'PNG',x,margin,imgW,imgH);
+    pdf.save(nomeArquivo);
+    toast('✅ PDF gerado!','ok');
+  }catch(e){
+    toast('Erro ao gerar PDF: '+e.message,'er');
+  }
 }
 async function gerarPNG(){
   const card=document.getElementById('prop-card');
