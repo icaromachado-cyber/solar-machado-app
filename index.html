@@ -342,8 +342,41 @@ tr:hover td{background:#faf9f5}
           <tbody id="tabela-tbody"></tbody>
         </table>
       </div>
-      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" onclick="adicionarLinhaTabela()" style="background:var(--cz);color:var(--txt);font-size:12px;padding:7px 14px">+ Adicionar linha</button>
+      </div>
+
+      <div style="margin:22px 0 14px;border-top:2px dashed #e4e3dc"></div>
+      <div style="font-size:13px;font-weight:700;color:#8a6d00;margin-bottom:10px">🔧 Kits para Ampliação — Inversor Maior (entradas livres)</div>
+      <div style="background:#fff8e0;border:1px solid #fac775;border-radius:8px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#8a6d00;margin-bottom:6px">📋 Colar da Planilha (Excel/Google Sheets)</div>
+        <div style="font-size:11px;color:#6b5a1f;margin-bottom:8px">Cole as linhas do bloco "KITS PARA AMPLIAÇÃO" da planilha (mesmas colunas da tabela padrão).</div>
+        <textarea id="tabela-amp-colar" placeholder="Cole aqui as linhas da planilha..." style="width:100%;min-height:70px;padding:8px 10px;border:1px solid #fac775;border-radius:6px;font-size:11.5px;font-family:'IBM Plex Mono',monospace;resize:vertical"></textarea>
+        <button type="button" onclick="importarTabelaAmpliacaoColada()" style="margin-top:8px;background:#8a6d00;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer">⬇ Importar da Planilha</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:#8a6d00;color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">
+              <th style="padding:7px 6px;text-align:left">kWh/mês</th>
+              <th style="padding:7px 6px;text-align:left">Wp/Mód</th>
+              <th style="padding:7px 6px;text-align:left">Nº Mód</th>
+              <th style="padding:7px 6px;text-align:left">Inv (kW)</th>
+              <th style="padding:7px 6px;text-align:left">kWp</th>
+              <th style="padding:7px 6px;text-align:left">Kit (R$)</th>
+              <th style="padding:7px 6px;text-align:left">Total (R$)</th>
+              <th style="padding:7px 6px;text-align:left">Baixar até</th>
+              <th style="padding:7px 6px"></th>
+            </tr>
+          </thead>
+          <tbody id="tabela-amp-tbody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn" onclick="adicionarLinhaTabelaAmpliacao()" style="background:var(--cz);color:var(--txt);font-size:12px;padding:7px 14px">+ Adicionar linha</button>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
         <div style="flex:1"></div>
         <button class="btn" onclick="document.getElementById('mo-tabela').style.display='none'" style="background:var(--cz);color:var(--txt);font-size:12px;padding:7px 14px">Cancelar</button>
         <button class="btn btn-p" onclick="salvarEFecharTabela()" style="font-size:12px;padding:7px 14px">💾 Salvar no Firebase</button>
@@ -1733,6 +1766,7 @@ function setFbStatus(ok) {
 function initFirebaseListeners() {
   // Carregar tabela de preços do Firestore
   carregarTabelaFirestore();
+  carregarTabelaAmpliacaoFirestore();
   // Iniciar listener financeiro
   initFinanceiroListener();
   initAgendaListener();
@@ -2822,6 +2856,19 @@ function carregarTabelaFirestore(){
     }catch(e){}
   }, ()=>{});
 }
+function carregarTabelaAmpliacaoFirestore(){
+  const ref=db.collection('config').doc('tabela_precos_ampliacao');
+  ref.onSnapshot(async doc=>{
+    try{
+      if(doc.exists && doc.data().itens?.length) window.TABELA_INVERSOR_MAIOR=[...doc.data().itens];
+      if(isAdmin && doc.data()?.versaoTabela!==TABELA_VERSAO_ATUAL){
+        await ref.set({itens:TABELA_INVERSOR_MAIOR,versaoTabela:TABELA_VERSAO_ATUAL,atualizadoEm:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        window.TABELA_INVERSOR_MAIOR=[...TABELA_INVERSOR_MAIOR];
+      }
+      if(document.getElementById('pp-tab-consumo')?.value && typeof buscarTabelaPreview==='function') buscarTabelaPreview();
+    }catch(e){}
+  }, ()=>{});
+}
 function _kitsFiltrados(consumo){
   return (window.TABELA_SOLAR||TABELA_SOLAR).filter(k=>k.kwh>=consumo);
 }
@@ -3752,6 +3799,7 @@ function abrirConsultaTabela(){
 function abrirEditarTabela(){
   const modal=document.getElementById('mo-tabela');if(!modal)return;
   renderEditarTabela();
+  renderEditarTabelaAmpliacao();
   // Preencher campos de config com valores salvos
   const cfg = window.TABELA_CONFIG || {inversor:'SOLPLANET', modulo:'RENEPV', wpModulo:710, distancia:0};
   const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
@@ -3802,6 +3850,36 @@ function importarTabelaColada(){
 function renderEditarTabela(){const tbody=document.getElementById('tabela-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_SOLAR||TABELA_SOLAR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kit||0}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].kit=+this.value" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_SOLAR||TABELA_SOLAR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabela(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
 function adicionarLinhaTabela(){(window.TABELA_SOLAR||TABELA_SOLAR).push({kwh:0,wpMod:615,nMod:0,potInv:0,kwp:0,kit:0,total:0,baixarAte:0});renderEditarTabela();}
 function removerLinhaTabela(i){(window.TABELA_SOLAR||TABELA_SOLAR).splice(i,1);renderEditarTabela();}
+
+function importarTabelaAmpliacaoColada(){
+  const texto=document.getElementById('tabela-amp-colar')?.value||'';
+  if(!texto.trim()){toast('Cole a tabela de ampliação antes de importar.','er');return;}
+  const linhas=texto.split(/\r?\n/).map(l=>l.split('\t')).filter(cols=>cols.length>=8);
+  const itens=[];
+  linhas.forEach(cols=>{
+    const kwh=_parseNumBR(cols[1]);
+    if(!kwh||kwh<=0) return;
+    itens.push({
+      kwh,
+      wpMod:_parseNumBR(cols[2]),
+      nMod:_parseNumBR(cols[3]),
+      potInv:_parseNumBR(cols[4]),
+      kwp:_parseNumBR(cols[5]),
+      kit:_parseNumBR(cols[6]),
+      total:_parseNumBR(cols[13]),
+      baixarAte:_parseNumBR(cols[14])
+    });
+  });
+  if(!itens.length){toast('Não consegui reconhecer nenhuma linha válida. Confira se colou o bloco inteiro.','er');return;}
+  itens.sort((a,b)=>a.kwh-b.kwh);
+  window.TABELA_INVERSOR_MAIOR=itens;
+  renderEditarTabelaAmpliacao();
+  toast('✅ '+itens.length+' linha(s) de ampliação importada(s)! Confira e clique em Salvar no Firebase.','ok');
+}
+function renderEditarTabelaAmpliacao(){const tbody=document.getElementById('tabela-amp-tbody');if(!tbody)return;tbody.innerHTML=(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR).map((k,i)=>`<tr style="font-size:12px"><td style="padding:5px 6px"><input type="number" value="${k.kwh}" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].kwh=+this.value" style="width:60px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.wpMod}" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].wpMod=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.nMod}" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].nMod=+this.value" style="width:45px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.potInv}" step="0.1" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].potInv=+this.value" style="width:50px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kwp}" step="0.1" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].kwp=+this.value" style="width:55px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.kit||0}" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].kit=+this.value" style="width:70px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.total}" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].total=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px"><input type="number" value="${k.baixarAte}" onchange="(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR)[${i}].baixarAte=+this.value" style="width:75px;padding:4px;border:1px solid #ddd;border-radius:5px;font-size:12px"></td><td style="padding:5px 6px;text-align:center"><button onclick="removerLinhaTabelaAmpliacao(${i})" style="background:#fdf0ec;border:1px solid #f5b8a0;color:#D85A30;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('');}
+function adicionarLinhaTabelaAmpliacao(){(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR).push({kwh:0,wpMod:620,nMod:0,potInv:0,kwp:0,kit:0,total:0,baixarAte:0});renderEditarTabelaAmpliacao();}
+function removerLinhaTabelaAmpliacao(i){(window.TABELA_INVERSOR_MAIOR||TABELA_INVERSOR_MAIOR).splice(i,1);renderEditarTabelaAmpliacao();}
+
 async function salvarEFecharTabela(){
   const tab = window.TABELA_SOLAR || TABELA_SOLAR;
   tab.sort((a,b) => a.kwh - b.kwh);
@@ -3812,6 +3890,8 @@ async function salvarEFecharTabela(){
     distancia: parseFloat(document.getElementById('cfg-dist')?.value) || 0
   };
   window.TABELA_CONFIG = cfg;
+  const tabAmp = window.TABELA_INVERSOR_MAIOR || TABELA_INVERSOR_MAIOR;
+  tabAmp.sort((a,b) => a.kwh - b.kwh);
   try {
     await db.collection('config').doc('tabela_precos').set({
       itens: tab,
@@ -3819,7 +3899,12 @@ async function salvarEFecharTabela(){
       versaoTabela: TABELA_VERSAO_ATUAL,
       atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge:true});
-    toast('✅ Tabela e configurações salvas!', 'ok');
+    await db.collection('config').doc('tabela_precos_ampliacao').set({
+      itens: tabAmp,
+      versaoTabela: TABELA_VERSAO_ATUAL,
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+    toast('✅ Tabelas e configurações salvas!', 'ok');
   } catch(e) {
     toast('Erro ao salvar: ' + e.message, 'er');
   }
