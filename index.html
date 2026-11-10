@@ -3115,16 +3115,14 @@ async function garantirNumeroProposta(){
   if(_numeroPropostaAtual) return _numeroPropostaAtual;
   const hoje=new Date();
   const chave=String(hoje.getMonth()+1).padStart(2,'0')+String(hoje.getFullYear()).slice(-2);
-  const ref=db.collection('config').doc('contador_propostas');
-  const seq=await db.runTransaction(async tx=>{
-    const snap=await tx.get(ref);
-    const dados=snap.exists?snap.data():{};
-    const atual=dados[chave]||0;
-    const prox=atual+1;
-    tx.set(ref,{[chave]:prox},{merge:true});
-    return prox;
-  });
-  _numeroPropostaAtual=chave+String(seq).padStart(2,'0');
+  const maxAtual=ORCAMENTOS.reduce((m,o)=>{
+    if(typeof o.numero==='string'&&o.numero.startsWith(chave)){
+      const seq=parseInt(o.numero.slice(chave.length))||0;
+      return Math.max(m,seq);
+    }
+    return m;
+  },0);
+  _numeroPropostaAtual=chave+String(maxAtual+1).padStart(2,'0');
   if(!_dataPropostaAtual) _dataPropostaAtual=hojeLocal();
   atualizarPreview();
   return _numeroPropostaAtual;
