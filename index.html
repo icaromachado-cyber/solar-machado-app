@@ -1316,6 +1316,7 @@ tr:hover td{background:#faf9f5}
         <input type="date" id="rel-f-data" onchange="renderRelatorios()" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px">
         <button onclick="document.getElementById('rel-f-data').value=hojeLocal();renderRelatorios()" style="background:#f0efe8;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#888">↺ Hoje</button>
         <button onclick="document.getElementById('rel-f-data').value='';renderRelatorios()" style="background:#f0efe8;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;color:#888">Ver histórico completo</button>
+        <button id="btn-mesclar-relatorios" onclick="mesclarRelatoriosDuplicados()" style="display:none;background:#fff;border:1.5px solid var(--am);color:#8a6d00;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;font-weight:600">🔗 Mesclar Duplicados</button>
       </div>
 
       <!-- Quadro por pessoa -->
@@ -2573,6 +2574,8 @@ auth.onAuthStateChanged(async user=>{
       if (btnLimpAg) btnLimpAg.style.display = 'inline-block';
       const btnUcProj = document.getElementById('btn-corrigir-uc-agenda');
       if (btnUcProj) btnUcProj.style.display = 'inline-block';
+      const btnMesclarRel = document.getElementById('btn-mesclar-relatorios');
+      if (btnMesclarRel) btnMesclarRel.style.display = 'inline-block';
     }
     // Iniciar listeners AGORA com nome já definido
     initFirebaseListeners();
@@ -5638,6 +5641,39 @@ function _cartaoRelatorio(r){
   </div>`;
 }
 
+async function mesclarRelatoriosDuplicados(){
+  const grupos={};
+  RELATORIOS.forEach(r=>{
+    const chave=(r.autorUid||r.autorNome||'?')+'|'+(r.data||'');
+    (grupos[chave]=grupos[chave]||[]).push(r);
+  });
+  const duplicados=Object.values(grupos).filter(g=>g.length>1);
+  if(!duplicados.length){ toast('Nenhum relatório duplicado encontrado.','ok'); return; }
+  const totalRegistros=duplicados.reduce((s,g)=>s+g.length,0);
+  const resumo=duplicados.slice(0,15).map(g=>'• '+(g[0].autorNome||'?')+' — '+fmt_data(g[0].data)+' ('+g.length+' cards)').join('\n')
+    +(duplicados.length>15?'\n... e mais '+(duplicados.length-15)+' grupo(s)':'');
+  if(!confirm('Encontrados '+duplicados.length+' grupo(s) de relatórios duplicados ('+totalRegistros+' registros no total):\n\n'+resumo+'\n\nMesclar cada grupo num card só (mantendo tudo que foi escrito, em ordem cronológica)? Essa ação não pode ser desfeita.')) return;
+
+  let ok=0, err=0;
+  for(const grupo of duplicados){
+    try{
+      const ordenado=[...grupo].sort((a,b)=>(a.criadoEm?.toMillis?.()||0)-(b.criadoEm?.toMillis?.()||0));
+      const keeper=ordenado[0];
+      const resto=ordenado.slice(1);
+      const textoFinal=ordenado.map(r=>r.texto||'').filter(Boolean).join('\n\n');
+      const clienteFinal=[...new Set(ordenado.map(r=>r.cliente).filter(Boolean))].join(', ');
+      const batch=db.batch();
+      batch.update(db.collection('relatorios_equipe').doc(keeper.id), {
+        texto: textoFinal, cliente: clienteFinal,
+        editadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      resto.forEach(r=>batch.delete(db.collection('relatorios_equipe').doc(r.id)));
+      await batch.commit();
+      ok++;
+    }catch(e){ err++; }
+  }
+  toast('✅ '+ok+' grupo(s) mesclado(s)'+(err?', '+err+' erro(s)':''),'ok');
+}
 function copiarResumoRelatorioDia(){
   const hoje = document.getElementById('rel-f-data')?.value || hojeLocal();
   const doDia = RELATORIOS.filter(r=>r.data===hoje);
