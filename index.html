@@ -5544,6 +5544,23 @@ function salvarRelatorioEquipe(){
   }
 
   const autorNome = window._nomeUsuarioLogado || document.getElementById('usr-nome')?.textContent || usuarioAtual?.email || 'Equipe';
+
+  // Já existe um relatório desse autor nesse dia? Acrescenta nele em vez de criar outro card.
+  const existente = usuarioAtual ? RELATORIOS.find(r=>r.data===data && r.autorUid===usuarioAtual.uid) : null;
+  if(existente){
+    const textoFinal = (existente.texto||'') + '\n\n' + texto;
+    const clienteFinal = cliente ? [existente.cliente, cliente].filter(Boolean).join(', ') : (existente.cliente||'');
+    db.collection('relatorios_equipe').doc(existente.id).update({
+      texto: textoFinal, cliente: clienteFinal,
+      editadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(()=>{
+      toast('✅ Adicionado ao seu relatório do dia!','ok');
+      document.getElementById('rel-texto').value='';
+      document.getElementById('rel-cliente').value='';
+    }).catch(e=>{ toast('Erro: '+e.message,'er'); });
+    return;
+  }
+
   const obj = {
     autorNome, autorEmail: usuarioAtual?.email||'', autorUid: usuarioAtual?.uid||'',
     texto, cliente, data,
