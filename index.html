@@ -3133,7 +3133,7 @@ async function gerarPDF(){
   const card=document.getElementById('prop-card');
   if(!card)return;
   const nome=document.getElementById('pp-nome')?.value||'cliente';
-  await garantirNumeroProposta();
+  try{ await garantirNumeroProposta(); }catch(e){ console.warn('Não foi possível reservar o número da proposta:', e.message); }
   const nomeArquivo='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.pdf';
   toast('Gerando PDF...','');
   try{
@@ -3158,7 +3158,7 @@ async function gerarPNG(){
   const card=document.getElementById('prop-card');
   if(!card)return;
   const nome=document.getElementById('pp-nome')?.value||'cliente';
-  await garantirNumeroProposta();
+  try{ await garantirNumeroProposta(); }catch(e){ console.warn('Não foi possível reservar o número da proposta:', e.message); }
   const nomeArquivo='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';
   toast('Gerando imagem...','');
   try{
