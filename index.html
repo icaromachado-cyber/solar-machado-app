@@ -3019,7 +3019,7 @@ function atualizarPreview(){
   const batCap=parseFloat(document.getElementById('pp-bat-cap')?.value)||0;
   const batAut=parseFloat(document.getElementById('pp-bat-aut')?.value)||0;
   const tipoEl=document.getElementById('pc-tipo');if(tipoEl)tipoEl.textContent=ampliacao?'AMPLIAÇÃO DE SISTEMA SOLAR':(hibrido?'SISTEMA SOLAR HÍBRIDO':'SISTEMA DE ENERGIA SOLAR');
-  const numEl=document.getElementById('pc-numero-data');if(numEl)numEl.textContent=(_numeroPropostaAtual?('Nº '+String(_numeroPropostaAtual).padStart(4,'0')):'Nº —')+' · '+fmt_data(_dataPropostaAtual||hojeLocal());
+  const numEl=document.getElementById('pc-numero-data');if(numEl)numEl.textContent=(_numeroPropostaAtual?('Nº '+_numeroPropostaAtual):'Nº —')+' · '+fmt_data(_dataPropostaAtual||hojeLocal());
   const batCard=document.getElementById('pc-bat-card');if(batCard){batCard.style.display=hibrido?'flex':'none';const bkEl=document.getElementById('pc-bat-kwh');if(bkEl)bkEl.textContent=batCap?batCap.toLocaleString('pt-BR')+' kWh':'— kWh';const bsEl=document.getElementById('pc-bat-sub');if(bsEl)bsEl.textContent=batAut?'~'+batAut+'h autonomia':(batMarca||'—');}
   const cBat=document.getElementById('pc-comp-bateria');if(cBat){cBat.style.display=hibrido?'block':'none';if(hibrido)cBat.textContent='✓ Bateria '+(batMarca||'—')+(batCap?' · '+batCap+' kWh':'');}
   const baixarAteTabela=parseFloat(document.getElementById('pp-baixar-ate')?.value)||0;
@@ -3113,18 +3113,21 @@ let _numeroPropostaAtual=null;
 let _dataPropostaAtual=null;
 async function garantirNumeroProposta(){
   if(_numeroPropostaAtual) return _numeroPropostaAtual;
+  const hoje=new Date();
+  const chave=String(hoje.getMonth()+1).padStart(2,'0')+String(hoje.getFullYear()).slice(-2);
   const ref=db.collection('config').doc('contador_propostas');
-  const novo=await db.runTransaction(async tx=>{
+  const seq=await db.runTransaction(async tx=>{
     const snap=await tx.get(ref);
-    const atual=(snap.exists&&snap.data().ultimo)||0;
+    const dados=snap.exists?snap.data():{};
+    const atual=dados[chave]||0;
     const prox=atual+1;
-    tx.set(ref,{ultimo:prox},{merge:true});
+    tx.set(ref,{[chave]:prox},{merge:true});
     return prox;
   });
-  _numeroPropostaAtual=novo;
+  _numeroPropostaAtual=chave+String(seq).padStart(2,'0');
   if(!_dataPropostaAtual) _dataPropostaAtual=hojeLocal();
   atualizarPreview();
-  return novo;
+  return _numeroPropostaAtual;
 }
 async function gerarPDF(){
   const card=document.getElementById('prop-card');
@@ -4423,7 +4426,7 @@ function renderOrcamentos(){
       <!-- Linha principal -->
       <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:180px">
-          <div style="font-weight:700;font-size:14px;color:var(--az)">${o.numero?'Nº '+String(o.numero).padStart(4,'0')+' · ':''}${o.nome||'—'}</div>
+          <div style="font-weight:700;font-size:14px;color:var(--az)">${o.numero?'Nº '+o.numero+' · ':''}${o.nome||'—'}</div>
           <div style="font-size:12px;color:var(--txts);margin-top:2px">${o.cidade||'—'} · ${o.consumo||0} kWh · ${o.modulos||0} módulos · ${o.inversor||''}</div>
           <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${o.geradoPor||'—'} · ${dt}</div>
         </div>
