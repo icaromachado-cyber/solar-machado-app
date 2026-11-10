@@ -582,7 +582,7 @@ tr:hover td{background:#faf9f5}
       <div class="ic">🗺</div><span>Mapa de Clientes</span>
     </div>
     <div class="nav-sec">Comercial Solar</div>
-    <div class="ni" onclick="_editandoOrcamentoId=null;go('propostas');toggleMenu(false)">
+    <div class="ni" onclick="_editandoOrcamentoId=null;_numeroPropostaAtual=null;_dataPropostaAtual=null;go('propostas');toggleMenu(false)">
       <div class="ic">📋</div><span>Propostas</span>
     </div>
     <div class="ni" onclick="go('historico');toggleMenu(false)">
@@ -982,7 +982,7 @@ tr:hover td{background:#faf9f5}
                     <div style="font-size:9px;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase;margin-top:2px">Energia solar e soluções elétricas</div>
                   </div>
                 </div>
-                <div style="text-align:right"><div style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px">PROPOSTA COMERCIAL</div><div id="pc-tipo" style="font-size:8.5px;color:rgba(255,255,255,.5);margin-top:2px">SISTEMA DE ENERGIA SOLAR</div></div>
+                <div style="text-align:right"><div style="font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px">PROPOSTA COMERCIAL</div><div id="pc-tipo" style="font-size:8.5px;color:rgba(255,255,255,.5);margin-top:2px">SISTEMA DE ENERGIA SOLAR</div><div id="pc-numero-data" style="font-size:8.5px;color:rgba(255,255,255,.55);margin-top:2px">Nº — · —</div></div>
               </div>
               <div style="padding:12px 18px 8px;font-size:11px;color:#333;line-height:1.6;border-bottom:1px solid #f0efe8" id="pc-saud">Segue abaixo a proposta personalizada para o seu sistema fotovoltaico.</div>
               <div style="padding:10px 18px 8px">
@@ -3019,6 +3019,7 @@ function atualizarPreview(){
   const batCap=parseFloat(document.getElementById('pp-bat-cap')?.value)||0;
   const batAut=parseFloat(document.getElementById('pp-bat-aut')?.value)||0;
   const tipoEl=document.getElementById('pc-tipo');if(tipoEl)tipoEl.textContent=ampliacao?'AMPLIAÇÃO DE SISTEMA SOLAR':(hibrido?'SISTEMA SOLAR HÍBRIDO':'SISTEMA DE ENERGIA SOLAR');
+  const numEl=document.getElementById('pc-numero-data');if(numEl)numEl.textContent=(_numeroPropostaAtual?('Nº '+String(_numeroPropostaAtual).padStart(4,'0')):'Nº —')+' · '+fmt_data(_dataPropostaAtual||hojeLocal());
   const batCard=document.getElementById('pc-bat-card');if(batCard){batCard.style.display=hibrido?'flex':'none';const bkEl=document.getElementById('pc-bat-kwh');if(bkEl)bkEl.textContent=batCap?batCap.toLocaleString('pt-BR')+' kWh':'— kWh';const bsEl=document.getElementById('pc-bat-sub');if(bsEl)bsEl.textContent=batAut?'~'+batAut+'h autonomia':(batMarca||'—');}
   const cBat=document.getElementById('pc-comp-bateria');if(cBat){cBat.style.display=hibrido?'block':'none';if(hibrido)cBat.textContent='✓ Bateria '+(batMarca||'—')+(batCap?' · '+batCap+' kWh':'');}
   const baixarAteTabela=parseFloat(document.getElementById('pp-baixar-ate')?.value)||0;
@@ -3108,10 +3109,28 @@ async function salvarOuCompartilharImagem(blob,nomeArquivo,tituloShare){
   link.remove();
   toast('✅ Imagem baixada!','ok');
 }
+let _numeroPropostaAtual=null;
+let _dataPropostaAtual=null;
+async function garantirNumeroProposta(){
+  if(_numeroPropostaAtual) return _numeroPropostaAtual;
+  const ref=db.collection('config').doc('contador_propostas');
+  const novo=await db.runTransaction(async tx=>{
+    const snap=await tx.get(ref);
+    const atual=(snap.exists&&snap.data().ultimo)||0;
+    const prox=atual+1;
+    tx.set(ref,{ultimo:prox},{merge:true});
+    return prox;
+  });
+  _numeroPropostaAtual=novo;
+  if(!_dataPropostaAtual) _dataPropostaAtual=hojeLocal();
+  atualizarPreview();
+  return novo;
+}
 async function gerarPDF(){
   const card=document.getElementById('prop-card');
   if(!card)return;
   const nome=document.getElementById('pp-nome')?.value||'cliente';
+  await garantirNumeroProposta();
   const nomeArquivo='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.pdf';
   toast('Gerando PDF...','');
   try{
@@ -3136,6 +3155,7 @@ async function gerarPNG(){
   const card=document.getElementById('prop-card');
   if(!card)return;
   const nome=document.getElementById('pp-nome')?.value||'cliente';
+  await garantirNumeroProposta();
   const nomeArquivo='Proposta_SolarMachado_'+nome.replace(/\s+/g,'_')+'.png';
   toast('Gerando imagem...','');
   try{
@@ -3171,7 +3191,8 @@ async function gerarPNG(){
       finN2:gv('pp-fin-n2'), finV2:gv('pp-fin-v2'), finC2:gc('pp-fin-c2'),
       finN3:gv('pp-fin-n3'), finV3:gv('pp-fin-v3'), finC3:gc('pp-fin-c3'),
       finN4:gv('pp-fin-n4'), finV4:gv('pp-fin-v4'), finC4:gc('pp-fin-c4'),
-      finEntrada:gv('pp-fin-entrada'), finCarencia:gv('pp-fin-carencia')
+      finEntrada:gv('pp-fin-entrada'), finCarencia:gv('pp-fin-carencia'),
+      numero:_numeroPropostaAtual||null, dataProposta:_dataPropostaAtual||hojeLocal()
     };
     if(_editandoOrcamentoId){
       await db.collection('orcamentos').doc(_editandoOrcamentoId).update({
@@ -3187,7 +3208,7 @@ async function gerarPNG(){
     }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
-function limparProposta(){_editandoOrcamentoId=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-valor-avista','pp-baixar-ate','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
+function limparProposta(){_editandoOrcamentoId=null;_numeroPropostaAtual=null;_dataPropostaAtual=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-valor-avista','pp-baixar-ate','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
 
 // ══════════════════════════════════════════
 // ORÇAMENTO WALLBOX
@@ -4402,7 +4423,7 @@ function renderOrcamentos(){
       <!-- Linha principal -->
       <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:180px">
-          <div style="font-weight:700;font-size:14px;color:var(--az)">${o.nome||'—'}</div>
+          <div style="font-weight:700;font-size:14px;color:var(--az)">${o.numero?'Nº '+String(o.numero).padStart(4,'0')+' · ':''}${o.nome||'—'}</div>
           <div style="font-size:12px;color:var(--txts);margin-top:2px">${o.cidade||'—'} · ${o.consumo||0} kWh · ${o.modulos||0} módulos · ${o.inversor||''}</div>
           <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${o.geradoPor||'—'} · ${dt}</div>
         </div>
@@ -4479,6 +4500,8 @@ function reabrirProposta(id){
   const o=ORCAMENTOS.find(x=>x.id===id);
   if(!o)return;
   _editandoOrcamentoId=id;
+  _numeroPropostaAtual=o.numero||null;
+  _dataPropostaAtual=o.dataProposta||(o.geradoEm?.toDate?dataLocalDeDate(o.geradoEm.toDate()):null);
   go('propostas');
   setTimeout(()=>{
     const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
