@@ -2178,22 +2178,37 @@ function uploadDiagramaUnifilar(input){
   if(!file) return;
   const id = editProjId || _proxProjId();
   const statusEl = document.getElementById('diagrama-unifilar-status');
-  statusEl.textContent = 'Enviando...';
+  statusEl.textContent = 'Enviando... 0%';
   statusEl.style.color = 'var(--txts)';
   const ext = (file.name.split('.').pop()||'pdf').toLowerCase();
   const path = 'diagramas_unifilares/'+id+'_'+Date.now()+'.'+ext;
-  storage.ref().child(path).put(file)
-    .then(snap=>snap.ref.getDownloadURL())
-    .then(url=>{
-      _diagramaUnifilarPendente = {url, nome:file.name};
-      statusEl.textContent = '✅ Enviado! Clique em "Salvar Projeto" para confirmar.';
-      statusEl.style.color = 'var(--ok)';
-      renderDiagramaUnifilarAtual();
-    })
-    .catch(e=>{
-      statusEl.textContent = 'Erro ao enviar: '+e.message;
-      statusEl.style.color = 'var(--er)';
-    });
+  try{
+    const task = storage.ref().child(path).put(file);
+    task.on('state_changed',
+      snap=>{
+        const pct = snap.totalBytes ? Math.round((snap.bytesTransferred/snap.totalBytes)*100) : 0;
+        statusEl.textContent = 'Enviando... '+pct+'%';
+      },
+      e=>{
+        statusEl.textContent = 'Erro ao enviar: '+(e.message||e.code||'desconhecido');
+        statusEl.style.color = 'var(--er)';
+      },
+      ()=>{
+        task.snapshot.ref.getDownloadURL().then(url=>{
+          _diagramaUnifilarPendente = {url, nome:file.name};
+          statusEl.textContent = '✅ Enviado! Clique em "Salvar Projeto" para confirmar.';
+          statusEl.style.color = 'var(--ok)';
+          renderDiagramaUnifilarAtual();
+        }).catch(e=>{
+          statusEl.textContent = 'Erro ao obter link: '+e.message;
+          statusEl.style.color = 'var(--er)';
+        });
+      }
+    );
+  }catch(e){
+    statusEl.textContent = 'Erro ao iniciar envio: '+e.message;
+    statusEl.style.color = 'var(--er)';
+  }
 }
 
 function openNovo() {
