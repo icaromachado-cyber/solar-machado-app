@@ -6411,12 +6411,26 @@ async function gerarPdfContrato(blocos, nomeArquivo){
     const r=b.getBoundingClientRect();
     const bottomPx=Math.round((r.bottom-contRect.top)*scale);
     if(bottomPx-pageStart>usablePx){
-      const cut=lastGood>pageStart?lastGood:bottomPx;
-      cuts.push(cut); pageStart=cut;
+      if(lastGood>pageStart){
+        cuts.push(lastGood); pageStart=lastGood;
+      }
+      // Bloco único (ex.: tabela grande) maior que uma página inteira: fatia em pedaços
+      // do tamanho da área útil, em vez de descartar o que sobra.
+      while(bottomPx-pageStart>usablePx){
+        pageStart+=usablePx;
+        cuts.push(pageStart);
+      }
     }
     lastGood=bottomPx;
   });
-  if(!cuts.length||cuts[cuts.length-1]<canvas.height) cuts.push(canvas.height);
+  if(!cuts.length||cuts[cuts.length-1]<canvas.height){
+    let base=cuts.length?cuts[cuts.length-1]:0;
+    while(canvas.height-base>usablePx){
+      base+=usablePx;
+      cuts.push(base);
+    }
+    cuts.push(canvas.height);
+  }
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   let prev=0;
