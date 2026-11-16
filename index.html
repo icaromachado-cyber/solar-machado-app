@@ -255,6 +255,7 @@ tr:hover td{background:#faf9f5}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
@@ -594,6 +595,10 @@ tr:hover td{background:#faf9f5}
     </div>
     <div class="ni" onclick="go('historicoWallbox');toggleMenu(false)">
       <div class="ic">🗂</div><span>Histórico</span>
+    </div>
+    <div class="nav-sec">Jurídico</div>
+    <div class="ni" onclick="go('contratos');toggleMenu(false)">
+      <div class="ic">📜</div><span>Contratos</span>
     </div>
     <div class="nav-sec" id="sep-financeiro" style="display:none">Financeiro</div>
     <div class="ni" id="nav-financeiro" onclick="go('financeiro');toggleMenu(false)" style="display:none">
@@ -1177,6 +1182,23 @@ tr:hover td{background:#faf9f5}
       </div>
     </div>
 
+    <!-- PAGE CONTRATOS -->
+    <div id="page-contratos" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--az)">📜 Contratos</h1>
+          <div style="font-size:13px;color:var(--txts);margin-top:4px">Gere contratos de prestação de serviços a partir dos modelos da Solar Machado</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="ctr-busca" type="text" placeholder="🔍 Buscar cliente..." oninput="renderContratos()" style="padding:8px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;min-width:160px">
+          <button class="btn btn-y" onclick="abrirNovoContrato()">+ Novo Contrato</button>
+        </div>
+      </div>
+      <div id="ctr-lista" style="display:flex;flex-direction:column;gap:10px">
+        <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
+      </div>
+    </div>
+
     <!-- PAGE FINANCEIRO -->
     <div id="page-financeiro" class="page">
       <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
@@ -1728,6 +1750,42 @@ tr:hover td{background:#faf9f5}
   </div>
 </div>
 
+<div class="mo" id="mo-contrato">
+  <div class="mbox" style="max-width:860px">
+    <div class="mhdr">
+      <h3 id="ctr-titulo-modal">Novo Contrato</h3>
+      <button class="mcls" onclick="closeMo('mo-contrato')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="fg">
+        <div class="fgrp full">
+          <label>Modelo de Contrato *</label>
+          <select id="ctr-modelo" onchange="selecionarModeloContrato(this.value)">
+            <option value="">Selecione...</option>
+            <option value="av_digi">Pessoa Física — Financiamento à Vista (AV. DIGI)</option>
+            <option value="finan_digi">Pessoa Física — Financiamento + Parcela Pós-Instalação (FINAN. DIGI)</option>
+            <option value="pj">Pessoa Jurídica (PJ)</option>
+            <option value="ampliacao">Ampliação de Sistema</option>
+            <option value="consorcio">Consórcio — Financiamento à Vista</option>
+            <option value="desm_mont">Desmontagem e Montagem</option>
+          </select>
+        </div>
+      </div>
+      <div id="ctr-form-dynamic"></div>
+      <div id="ctr-preview-wrap" style="display:none;margin-top:16px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:8px">Pré-visualização</div>
+        <div id="ctr-preview" style="border:1px solid #e4e3dc;border-radius:8px;max-height:420px;overflow:auto;padding:16px;background:#fff;font-family:'Times New Roman',Georgia,serif"></div>
+      </div>
+    </div>
+    <div class="mftr" style="flex-wrap:wrap">
+      <button class="btn btn-g" onclick="closeMo('mo-contrato')">Cancelar</button>
+      <button class="btn btn-g" onclick="prevVisualizarContrato()">👁 Pré-visualizar</button>
+      <button class="btn btn-p" onclick="salvarEExportarContrato('pdf')">📄 Gerar PDF</button>
+      <button class="btn btn-p" onclick="salvarEExportarContrato('docx')">📝 Gerar Word</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1773,6 +1831,7 @@ function initFirebaseListeners() {
   initAgendaListener();
   initOrcamentosListener();
   initOrcamentosWallboxListener();
+  initContratosListener();
   initAgendaLeiturasListener();
   initHistoricoLeiturasListener();
   initRelatoriosListener();
@@ -1829,7 +1888,7 @@ function go(p) {
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
   window.scrollTo(0,0);
-  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Orçamento Wallbox',historico:'Histórico',historicoWallbox:'Histórico Wallbox',financeiro:'Financeiro',agenda:'Agenda',relatorio:'Relatório Diário'};
+  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Orçamento Wallbox',historico:'Histórico',historicoWallbox:'Histórico Wallbox',financeiro:'Financeiro',agenda:'Agenda',relatorio:'Relatório Diário',contratos:'Contratos'};
   document.getElementById('tb-title').textContent = titles[p]||p;
   // Destacar item ativo na sidebar
   document.querySelectorAll('.ni').forEach(n => {
@@ -1854,6 +1913,7 @@ function go(p) {
   }
   if(p==='historico') renderOrcamentos();
   if(p==='historicoWallbox') renderOrcamentosWallbox();
+  if(p==='contratos') renderContratos();
   atualizarBtnNovo(p);
 }
 
@@ -5841,6 +5901,687 @@ function atualizarDistanciaProposta() {
   window.TABELA_CONFIG.distancia = dist;
   // Refazer preview do kit selecionado
   selecionarKitTabela();
+}
+
+// ══════════════════════════════════════════
+// CONTRATOS — gerador de contratos (PDF + Word)
+// ══════════════════════════════════════════
+
+// ---- Número e data por extenso ----
+const _EXT_UNI=['','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
+const _EXT_DEZ=['dez','onze','doze','treze','catorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+const _EXT_DEZM=['','dez','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+const _EXT_CEM=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+function _extensoAte999(n){
+  if(n===0) return '';
+  if(n===100) return 'cem';
+  const partes=[];
+  const c=Math.floor(n/100), r=n%100;
+  if(c) partes.push(_EXT_CEM[c]);
+  if(r){
+    if(r<10) partes.push(_EXT_UNI[r]);
+    else if(r<20) partes.push(_EXT_DEZ[r-10]);
+    else{
+      const dz=Math.floor(r/10), u=r%10;
+      partes.push(_EXT_DEZM[dz]+(u?' e '+_EXT_UNI[u]:''));
+    }
+  }
+  return partes.join(' e ');
+}
+function numeroPorExtenso(n){
+  n=Math.round(Math.abs(n||0));
+  if(n===0) return 'zero';
+  const milhoes=Math.floor(n/1000000);
+  const milhares=Math.floor((n%1000000)/1000);
+  const resto=n%1000;
+  const partes=[];
+  if(milhoes) partes.push(milhoes===1?'um milhão':_extensoAte999(milhoes)+' milhões');
+  if(milhares) partes.push(milhares===1?'mil':_extensoAte999(milhares)+' mil');
+  if(resto) partes.push(_extensoAte999(resto));
+  return partes.join(' e ');
+}
+function valorPorExtenso(valor){
+  valor=Number(valor)||0;
+  const inteiro=Math.floor(valor);
+  const centavos=Math.round((valor-inteiro)*100);
+  let txt=numeroPorExtenso(inteiro)+' '+(inteiro===1?'real':'reais');
+  if(centavos) txt+=' e '+numeroPorExtenso(centavos)+' '+(centavos===1?'centavo':'centavos');
+  return txt.toUpperCase();
+}
+const MESES_EXT=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+function dataPorExtenso(iso){
+  if(!iso) return 'Teresina, ___ de ___________ de ______.';
+  const d=new Date(iso+'T12:00');
+  return 'Teresina, '+String(d.getDate()).padStart(2,'0')+' de '+MESES_EXT[d.getMonth()]+' de '+d.getFullYear()+'.';
+}
+function _fmtMoedaContrato(v){ return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// ---- Representação intermediária (IR) dos blocos do contrato ----
+function cP(x){return {t:'p',x};}
+function cB(x){return {t:'b',x};}
+function cH(x){return {t:'h',x};}
+function cTitle(x){return {t:'title',x};}
+function cTable(rows){return {t:'table',rows};}
+function cSig(nome,papel){return {t:'sig',nome,papel};}
+function cSp(){return {t:'sp'};}
+
+const CONTRATADA_BLOCO_TXT='CONTRATADA: SOLAR MACHADO INSTALAÇÕES E MANUTENÇÕES ELÉTRICAS LTDA, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 34.757.760/0001-60, com sede na Rua Professor José Amável, nº 799, Bairro Cabral, CEP 64.000-550, Teresina-PI, neste ato representada por seu proprietário Ícaro Caio de Sousa Machado, brasileiro, casado, Engenheiro Eletricista, portador da cédula de identidade e inscrito no CPF sob o nº 055.069.043-39, doravante denominada simplesmente CONTRATADA.';
+
+const DADOS_BANCARIOS_TEXTO=[
+ 'Opção 1 – Caixa Econômica Federal','Agência: 3389','Conta Corrente: 591812871-5','Titular: Ícaro Caio de Sousa Machado','CPF: 055.069.043-39','',
+ 'Opção 2 – Banco do Brasil','Agência: 5602-2','Conta Corrente: 38405-4','Titular: Ícaro Caio de Sousa Machado','CPF: 055.069.043-39','',
+ 'Opção 3 – Nubank','Transferência via PIX','Chave PIX (CNPJ): 34.757.760/0001-60','Titular: Solar Machado Instalações e Manutenções Elétricas LTDA','',
+ 'Opção 4 – PagBank','Transferência via PIX','Chave PIX: 86 98137-4037','Titular: Solar Machado Instalações e Manutenções Elétricas LTDA'
+];
+
+const OBRIGACOES_CONTRATANTE=[
+ 'a) Efetuar os pagamentos nas datas e condições estabelecidas na Cláusula Segunda;',
+ 'b) Fornecer à CONTRATADA todas as informações e documentos necessários para a elaboração do projeto e homologação junto à concessionária;',
+ 'c) Garantir o livre acesso da equipe da CONTRATADA ao local da instalação, durante o horário comercial;',
+ 'd) Disponibilizar um ponto de água e energia para a execução dos serviços;',
+ 'e) Responsabilizar-se pela integridade estrutural do telhado ou local onde o sistema será instalado, declarando que o mesmo suporta a carga dos equipamentos;',
+ 'f) Acompanhar a execução dos serviços e informar imediatamente à CONTRATADA sobre qualquer eventual problema ou dúvida.'
+];
+const OBRIG_CONTRATADA_FULL=[
+ 'a) Executar todos os serviços descritos neste contrato com zelo, qualidade e em conformidade com as normas técnicas aplicáveis (ABNT NBR 16690, NBR 16149, NBR 16150, e resoluções da ANEEL);',
+ 'b) Fornecer equipamentos novos, de primeira linha e em perfeito estado de funcionamento, conforme especificado no anexo técnico;',
+ 'c) Fornecer toda a mão de obra necessária para execução do objeto contratado, com profissionais qualificados e devidamente treinados;',
+ 'd) Fornecer todos os Equipamentos de Proteção Individual (EPIs) e Coletiva (EPCs) para sua equipe;',
+ 'e) Responsabilizar-se pela emissão da Anotação de Responsabilidade Técnica (ART) junto ao CREA, referente ao projeto e à execução da obra;',
+ 'f) Realizar a homologação do sistema junto à concessionária de energia;',
+ 'g) Prestar ao(à) CONTRATANTE todas as informações sobre o andamento dos serviços e o funcionamento do sistema;',
+ 'h) Manter o local da obra limpo e organizado, removendo todo o entulho e resíduos ao final dos trabalhos.'
+];
+const OBRIG_CONTRATADA_SEM_EQUIP=[
+ 'a) Executar todos os serviços descritos neste contrato com zelo, qualidade e em conformidade com as normas técnicas aplicáveis (ABNT NBR 16690, NBR 16149, NBR 16150, e resoluções da ANEEL);',
+ 'b) Fornecer toda a mão de obra necessária para execução do objeto contratado, com profissionais qualificados e devidamente treinados;',
+ 'c) Fornecer todos os Equipamentos de Proteção Individual (EPIs) e Coletiva (EPCs) para sua equipe;',
+ 'd) Responsabilizar-se pela emissão da Anotação de Responsabilidade Técnica (ART) junto ao CREA, referente ao projeto e à execução da obra;',
+ 'e) Realizar a homologação do sistema junto à concessionária de energia;',
+ 'f) Prestar ao(à) CONTRATANTE todas as informações sobre o andamento dos serviços e o funcionamento do sistema;',
+ 'g) Manter o local da obra limpo e organizado, removendo todo o entulho e resíduos ao final dos trabalhos.'
+];
+const OBRIG_CONTRATADA_SEM_HOMOLOG=[
+ 'a) Executar todos os serviços descritos neste contrato com zelo, qualidade e em conformidade com as normas técnicas aplicáveis (ABNT NBR 16690, NBR 16149, NBR 16150, e resoluções da ANEEL);',
+ 'b) Fornecer equipamentos novos, de primeira linha e em perfeito estado de funcionamento, conforme especificado no anexo técnico;',
+ 'c) Fornecer toda a mão de obra necessária para execução do objeto contratado, com profissionais qualificados e devidamente treinados;',
+ 'd) Fornecer todos os Equipamentos de Proteção Individual (EPIs) e Coletiva (EPCs) para sua equipe;',
+ 'e) Prestar ao(à) CONTRATANTE todas as informações sobre o andamento dos serviços e o funcionamento do sistema;',
+ 'f) Manter o local da obra limpo e organizado, removendo todo o entulho e resíduos ao final dos trabalhos.'
+];
+const _BLOCOS_7_8=[
+  cH('CLÁUSULA SÉTIMA - DAS DISPOSIÇÕES GERAIS'),
+  cP('7.1. A CONTRATADA poderá subcontratar parte dos serviços, desde que sob sua total responsabilidade e sem prejuízo da qualidade e dos prazos aqui estabelecidos.'),
+  cP('7.2. Este contrato não estabelece qualquer vínculo empregatício entre o(a) CONTRATANTE e os funcionários ou prepostos da CONTRATADA.'),
+  cP('7.3. Qualquer tolerância das partes quanto ao descumprimento das cláusulas deste contrato será considerada mera liberalidade, não implicando em novação ou renúncia de direitos.'),
+  cH('CLÁUSULA OITAVA - DO FORO'),
+  cP('8.1. Para dirimir quaisquer controvérsias oriundas do presente contrato, as partes elegem o foro da comarca de Teresina, Piauí, com expressa renúncia a qualquer outro, por mais privilegiado que seja.'),
+  cP('E, por estarem assim justas e contratadas, as partes assinam o presente contrato em 2 (duas) vias de igual teor e forma, na presença das testemunhas abaixo.')
+];
+
+function _blocoContratante(d){
+  if(d.tipoCliente==='pj'){
+    return cP(`CONTRATANTE: ${d.razaoSocial}, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº ${d.cnpj}, com sede na ${d.enderecoSede||d.endereco}, neste ato representada por seu ${d.representanteCargo||'Sócio-Administrador'}, ${d.representanteNome}, brasileiro(a), portador(a) da cédula de identidade e inscrito(a) no CPF sob o nº ${d.representanteCpf}, doravante denominada simplesmente CONTRATANTE.`);
+  }
+  return cP(`CONTRATANTE: ${d.nome}, brasileiro(a), ${d.estadoCivil||'casado(a)'}, portador(a) da cédula de identidade e inscrito(a) no CPF sob o nº ${d.cpf}, residente e domiciliado(a) na ${d.endereco}, doravante denominado(a) simplesmente CONTRATANTE.`);
+}
+function _blocosPagamento(d){
+  const linhas=(d.pagamento||[]).map((l,i)=>cP(String.fromCharCode(97+i)+') '+l));
+  return [
+    cH('CLÁUSULA SEGUNDA - DO PREÇO E DAS CONDIÇÕES DE PAGAMENTO'),
+    cP(`2.1. O valor total do presente contrato é de R$${_fmtMoedaContrato(d.valorTotal)} (${d.valorExtenso}), referente ${d.forneceEquipamento?'ao fornecimento de todos os equipamentos e à prestação de todos os serviços':'exclusivamente à prestação de todos os serviços'} descritos na Cláusula Primeira.`),
+    cP('2.2. O pagamento será realizado da seguinte forma:'),
+    ...linhas,
+    cP('2.3. Os pagamentos deverão ser efetuados para conta de titularidade da CONTRATADA ou, alternativamente, para conta de titularidade de seu representante legal, conforme as opções de dados bancários abaixo:'),
+    ...DADOS_BANCARIOS_TEXTO.map(l=>cP(l)),
+    cP('2.4. Em caso de atraso no pagamento de qualquer parcela, sobre o valor devido incidirá: a) Multa moratória de 2% (dois por cento); b) Juros de mora de 1% (um por cento) ao mês, calculados pro rata die; c) Correção monetária pelo Índice Nacional de Preços ao Consumidor Amplo (IPCA), ou outro que venha a substituí-lo.')
+  ];
+}
+function _blocosPrazo(d,cfg){
+  return [
+    cH('CLÁUSULA TERCEIRA - DOS PRAZOS E DO CRONOGRAMA'),
+    cP('3.1. A CONTRATADA se compromete a executar os serviços objeto deste contrato conforme o cronograma detalhado no '+cfg.anexoCronogramaNome+', que é parte integrante deste instrumento.'),
+    cP(`3.2. O prazo total para a conclusão dos serviços${cfg.precisaHomologacao?', incluindo a homologação junto à concessionária,':''} é de ${d.prazoDias} dias úteis, contados a partir da confirmação do pagamento do sinal (item 2.2.a).`),
+    cP('3.3. O prazo de que trata o item 3.2 será suspenso em caso de: a) Atraso de pagamento por parte do(a) CONTRATANTE; b) Demora na aprovação do projeto pela concessionária de energia, por motivos alheios à CONTRATADA; c) Condições climáticas adversas que impeçam a execução segura dos trabalhos; d) Caso fortuito ou força maior, devidamente comprovados.')
+  ];
+}
+function _blocosGarantia(d,cfg){
+  const out=[cH('CLÁUSULA QUINTA - DAS GARANTIAS')];
+  if(cfg.garantiaTipo==='desmontagem'){
+    out.push(cP('5.1. Garantia dos Serviços de Instalação: A CONTRATADA oferece garantia de 06 (seis) meses exclusivamente para os serviços de montagem e instalação, contados a partir da data de entrega final do sistema. Esta garantia cobre estritamente vícios ou defeitos diretamente relacionados à mão de obra empregada pela CONTRATADA.'));
+    out.push(cP('5.2. Considerando que os equipamentos (módulos fotovoltaicos, inversores, estruturas e demais componentes) são preexistentes e de propriedade do CONTRATANTE, a CONTRATADA não oferece qualquer tipo de garantia sobre estes materiais. A responsabilidade por acionar garantias junto aos fabricantes originários, em caso de falhas ou defeitos nos equipamentos, é de exclusiva competência do CONTRATANTE.'));
+    out.push(cP('5.3. Exclusões da Garantia de Serviço: A garantia de instalação não cobrirá danos causados por: a) Desgaste natural dos componentes e equipamentos do CONTRATANTE; b) Falhas ou defeitos inerentes aos equipamentos fornecidos pelo CONTRATANTE; c) Uso inadequado, negligência ou modificações no sistema realizadas por terceiros não autorizados pela CONTRATADA; d) Surtos de tensão na rede elétrica, descargas atmosféricas (raios), vendavais, granizo e outros eventos da natureza caracterizados como caso fortuito ou força maior; e) Falta de limpeza e manutenção periódica dos módulos fotovoltaicos por parte do(a) CONTRATANTE; f) Problemas decorrentes da infraestrutura elétrica preexistente do imóvel.'));
+    out.push(cP('5.4. Suporte e Manutenções Periódicas: A CONTRATADA coloca-se à disposição do CONTRATANTE para a prestação de serviços adicionais, tais como: a) Auxílio técnico para acionamento de garantias de equipamentos junto aos fabricantes; b) Revisão de rateio de créditos de energia junto à concessionária; c) Manutenções preventivas, corretivas e limpeza periódica dos módulos. Parágrafo Único: Os serviços descritos neste item 5.4 não estão cobertos pela garantia de instalação e, caso solicitados, serão orçados e cobrados à parte, conforme a tabela de preços vigente da CONTRATADA no momento da solicitação.'));
+    return out;
+  }
+  const temInversor=cfg.garantiaTipo==='padrao';
+  out.push(cP('5.1. Garantia dos Equipamentos: A CONTRATADA repassa integralmente ao(à) CONTRATANTE as garantias oferecidas pelos fabricantes dos equipamentos, conforme os seguintes prazos mínimos: a) Módulos Fotovoltaicos: '+d.garantiaModulosAnos+' ('+numeroPorExtenso(d.garantiaModulosAnos)+') anos de garantia de performance.'+(temInversor?' b) Inversor Fotovoltaico: '+d.garantiaInversorAnos+' ('+numeroPorExtenso(d.garantiaInversorAnos)+') anos contra defeitos de fabricação.':'')));
+  out.push(cP('5.2. Garantia da Instalação: A CONTRATADA oferece garantia de 01 (um) ano para os serviços de instalação, contados a partir da data de entrega final do sistema. Esta garantia cobre quaisquer vícios ou defeitos relacionados à mão de obra empregada.'));
+  out.push(cP('5.3. Exclusões da Garantia: A garantia não cobrirá danos causados por: a) Desgaste natural dos componentes; b) Uso inadequado, negligência ou modificações no sistema realizadas por terceiros não autorizados pela CONTRATADA; c) Surtos de tensão na rede elétrica, descargas atmosféricas (raios), vendavais, granizo e outros eventos da natureza caracterizados como caso fortuito ou força maior; d) Falta de limpeza e manutenção periódica dos módulos fotovoltaicos por parte do(a) CONTRATANTE.'));
+  return out;
+}
+function _blocosRescisao(cfg){
+  return [
+    cH('CLÁUSULA SEXTA - DA RESCISÃO'),
+    cP('6.1. O presente contrato poderá ser rescindido de pleno direito, por qualquer das partes, em caso de inadimplemento da outra, mediante notificação, concedendo o prazo de 30 (trinta) dias para a regularização da pendência.'),
+    cP('6.2. Caso o(a) CONTRATANTE decida rescindir o contrato sem justa causa, ficará sujeito(a) ao pagamento de multa de 10% (dez por cento) sobre o valor restante dos serviços ainda não prestados do contrato, sem prejuízo do pagamento pelos serviços já executados'+(cfg.forneceEquipamento?' e equipamentos já adquiridos pela CONTRATADA':'')+' até a data da rescisão, mediante comprovação.'),
+    cP('6.3. Caso a CONTRATADA descumpra o prazo de conclusão dos serviços por motivos não justificados no item 3.3, e após notificação do(a) CONTRATANTE concedendo prazo adicional de 30 (trinta) dias, poderá o(a) CONTRATANTE rescindir o contrato, recebendo de volta os valores já pagos pelos serviços ainda não prestados, devidamente corrigidos, e fazendo jus a uma multa de 10% (dez por cento) sobre o valor dos serviços ainda não prestados.')
+  ];
+}
+function _tabelaModulo(m){
+  const kwp=((parseFloat(m.qtd)||0)*(parseFloat(m.potenciaWp)||0)/1000).toFixed(2).replace('.',',');
+  return cTable([['Característica','Especificação'],['Fabricante',m.fabricante||'—'],['Modelo',m.modelo||'—'],['Potência de Pico (Wp)',(m.potenciaWp||'—')+' Wp'],['Quantidade',(m.qtd||'—')+' unidades'],['Potência Total do Arranjo',kwp+' kWp']]);
+}
+function _tabelaInversor(inv){
+  return cTable([['Característica','Especificação'],['Fabricante',inv.fabricante||'—'],['Modelo',inv.modelo||'—'],['Potência Nominal de Saída (CA)',(inv.potenciaKw||'—')+' kW'],['Número de MPPTs',inv.mppts||'—'],['Número de Entradas por MPPT',inv.entradasPorMppt||'—'],['MPPT Livre para Expansão',inv.mpptLivre||'-']]);
+}
+function _tabelaComponentes(comps){
+  return cTable([['Componente','Quantidade','Especificação'],...comps.map(c=>[c[0]||'',c[1]||'',c[2]||''])]);
+}
+
+// ---- Cláusula 1 (objeto) — específica por modelo ----
+function clause1Padrao(d,cfg){
+  return [
+    cH('CLÁUSULA PRIMEIRA - DO OBJETO'),
+    cP(`1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, dos serviços de fornecimento de equipamentos e instalação de um sistema de microgeração solar fotovoltaica, em regime de empreitada total, na unidade consumidora do(a) CONTRATANTE, localizada no endereço ${d.endereco}.`),
+    cP('1.2. O objeto deste contrato compreende os seguintes itens e etapas: a) Elaboração do projeto de microgeração distribuída e dimensionamento do sistema fotovoltaico; b) Fornecimento de todos os equipamentos, materiais e componentes que compõem o sistema, conforme detalhado no '+cfg.anexoTecnicoNome+'; c) Instalação completa e interligação eletromecânica dos equipamentos; d) Homologação do sistema de microgeração junto à concessionária de energia local (Equatorial Piauí); e) Realização de testes, comissionamento e entrega final do sistema em pleno funcionamento (start-up).'),
+    cP(`1.3. As especificações técnicas detalhadas dos equipamentos, incluindo fabricante, modelo, quantidade, potência e características técnicas, encontram-se no ${cfg.anexoTecnicoNome}, sendo parte integrante e inseparável deste contrato.`)
+  ];
+}
+function clause1Ampliacao(d,cfg){
+  return [
+    cH('CLÁUSULA PRIMEIRA - DO OBJETO'),
+    cP(`1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, dos serviços de fornecimento de equipamentos e instalação de placas solares fotovoltaicas, em regime de empreitada total, na unidade consumidora do(a) CONTRATANTE, localizada no endereço ${d.endereco}, com produção média estimada de ${d.geracaoMediaEstimada||'—'} kWh/mês, conforme projeto elétrico e condições de irradiação local.`),
+    cP('1.2. O objeto deste contrato compreende os seguintes itens e etapas: a) Dimensionamento da ampliação do sistema fotovoltaico; b) Fornecimento de todos os equipamentos, materiais e componentes necessários para a ampliação do sistema, conforme detalhado no '+cfg.anexoTecnicoNome+'; c) Instalação completa e interligação eletromecânica dos equipamentos; d) Realização de testes, comissionamento e entrega final do sistema em pleno funcionamento (start-up).'),
+    cP(`1.3. As especificações técnicas detalhadas dos equipamentos, incluindo fabricante, modelo, quantidade, potência e características técnicas, encontram-se no ${cfg.anexoTecnicoNome}, sendo parte integrante e inseparável deste contrato.`)
+  ];
+}
+function clause1Consorcio(d,cfg){
+  return [
+    cH('CLÁUSULA PRIMEIRA - DO OBJETO'),
+    cP(`1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, dos serviços de fornecimento de equipamentos e instalação de um sistema de microgeração solar fotovoltaica, em regime de empreitada total, na unidade consumidora do(a) CONTRATANTE, localizada no endereço ${d.endereco}.`),
+    cP('1.2. O objeto deste contrato compreende os seguintes itens e etapas, a contar após a conclusão do pagamento da entrada prevista neste instrumento: a) Elaboração do projeto de microgeração distribuída e dimensionamento do sistema fotovoltaico; b) Fornecimento de todos os equipamentos, materiais e componentes que compõem o sistema fotovoltaico, cujas especificações técnicas serão detalhadas em anexo próprio, disponibilizado à CONTRATANTE após a conclusão do pagamento da entrada; c) Instalação completa e interligação eletromecânica dos equipamentos; d) Homologação do sistema de microgeração junto à concessionária de energia local (Equatorial Piauí); e) Realização de testes, comissionamento e entrega final do sistema em pleno funcionamento (start-up).'),
+    cP('1.3. As especificações técnicas detalhadas dos equipamentos serão entregues em anexo próprio após a conclusão do pagamento da entrada, passando a fazer parte integrante deste contrato.'),
+    cP(`1.4. A CONTRATANTE está adquirindo um sistema de microgeração solar fotovoltaica com potência instalada aproximada de ${d.potenciaAproxKwp||'—'} kWp, dimensionado para atender a uma geração média estimada de ${d.geracaoMediaEstimada||'—'} kWh/mês, conforme estudo técnico realizado pela CONTRATADA.`),
+    cP('1.5. A definição final de fabricante, modelo e demais características dos componentes estará condicionada à disponibilidade de mercado no momento da confirmação do pagamento da entrada, comprometendo-se a CONTRATADA a fornecer equipamentos de qualidade equivalente ou superior aos originalmente previstos, sem prejuízo da potência instalada contratada e do desempenho técnico do sistema dimensionado.'),
+    cP('1.6. Em nenhuma hipótese eventual alteração de fabricante, modelo ou lote dos equipamentos, decorrente de indisponibilidade de mercado, implicará redução da potência instalada contratada ou das características técnicas essenciais do sistema fotovoltaico objeto deste contrato.')
+  ];
+}
+function clause1DesmMont(d,cfg){
+  return [
+    cH('CLÁUSULA PRIMEIRA - DO OBJETO'),
+    cP(`1.1. O presente contrato tem por objeto a prestação, pela CONTRATADA, dos serviços de montagem e desmontagem de um sistema de microgeração solar fotovoltaica existente, bem como a homologação do sistema junto à concessionária de energia, na unidade consumidora do(a) CONTRATANTE, localizada no endereço ${d.endereco}.`),
+    cP(`1.2. O objeto deste contrato compreende os seguintes itens e etapas: a) Desmontagem do sistema de microgeração solar fotovoltaica existente, localizado no endereço ${d.enderecoOrigemDesmontagem||d.endereco}; b) Montagem e instalação completa e interligação eletromecânica dos equipamentos já pertencentes ao CONTRATANTE, no endereço de homologação do sistema; c) Elaboração do projeto de microgeração distribuída e dimensionamento do sistema fotovoltaico para fins de regularização; d) Homologação do sistema de microgeração junto à concessionária de energia local (Equatorial Piauí); e) Realização de testes, comissionamento e entrega final do sistema em pleno funcionamento (start-up).`),
+    cP(`1.3. Fica expressamente consignado que o presente contrato abrange exclusivamente a prestação de serviços, não incluindo o fornecimento de equipamentos, materiais elétricos adicionais e componentes, os quais são de propriedade preexistente do CONTRATANTE, conforme detalhado no ${cfg.anexoTecnicoNome}.`)
+  ];
+}
+
+// ---- Configuração dos 6 modelos ----
+const CRONOGRAMA_PADRAO_7=[
+  ['1. Assinatura do Contrato e Pagamento do Sinal','Dia 0'],
+  ['2. Elaboração do Projeto Executivo','Até 5 dias úteis após a etapa 1'],
+  ['3. Recebimento dos Equipamentos','Prazo até 25 dias úteis após a etapa 1 - prazo do fornecedor'],
+  ['4. Instalação do Sistema Fotovoltaico','Até 05 dias úteis após a etapa 3'],
+  ['5. Solicitação de Vistoria à Concessionária','Até 3 dias úteis após a etapa 4'],
+  ['6. Vistoria e Homologação pela Concessionária','Até 5 dias úteis - prazo da concessionária'],
+  ['7. Testes e Entrega Final','Até 7 dias úteis após a etapa 6']
+];
+const COMPONENTES_PADRAO=[['Cabeamento CC','','4 mm'],['Conectores MC4 (macho + fêmea)','2','1500V'],['Sistema de Monitoramento','1','Incluso no Inversor'],['Estrutura de Suporte','','Prisioneiro para madeira com perfil H1 em PRFV p/ telhados com telhas cerâmicas/metálica/fibrocimento']];
+
+const CONTRATO_MODELOS={
+  av_digi:{
+    label:'Pessoa Física — Financiamento à Vista',
+    tipoCliente:'pf', forneceEquipamento:true, precisaHomologacao:true,
+    temAnexoTecnico:true, temInversorAnexo:true, temComponentesAnexo:true,
+    garantiaTipo:'padrao', obrigacaoTipo:'full',
+    tituloContrato:'CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE FORNECIMENTO E INSTALAÇÃO DE SISTEMA DE MICROGERAÇÃO SOLAR FOTOVOLTAICA',
+    anexoTecnicoNome:'ANEXO I - ESPECIFICAÇÕES TÉCNICAS', anexoCronogramaNome:'ANEXO II - CRONOGRAMA DE EXECUÇÃO',
+    prazoDiasDefault:45, garantiaModulosAnosDefault:20, garantiaInversorAnosDefault:10,
+    clause1:clause1Padrao, cronogramaDefault:CRONOGRAMA_PADRAO_7, componentesDefault:COMPONENTES_PADRAO
+  },
+  finan_digi:{
+    label:'Pessoa Física — Financiamento + Parcela Pós-Instalação',
+    tipoCliente:'pf', forneceEquipamento:true, precisaHomologacao:true,
+    temAnexoTecnico:true, temInversorAnexo:true, temComponentesAnexo:true,
+    garantiaTipo:'padrao', obrigacaoTipo:'full',
+    tituloContrato:'CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE FORNECIMENTO E INSTALAÇÃO DE SISTEMA DE MICROGERAÇÃO SOLAR FOTOVOLTAICA',
+    anexoTecnicoNome:'ANEXO I - ESPECIFICAÇÕES TÉCNICAS', anexoCronogramaNome:'ANEXO II - CRONOGRAMA DE EXECUÇÃO',
+    prazoDiasDefault:45, garantiaModulosAnosDefault:30, garantiaInversorAnosDefault:10,
+    clause1:clause1Padrao, cronogramaDefault:CRONOGRAMA_PADRAO_7, componentesDefault:COMPONENTES_PADRAO
+  },
+  pj:{
+    label:'Pessoa Jurídica',
+    tipoCliente:'pj', forneceEquipamento:true, precisaHomologacao:true,
+    temAnexoTecnico:true, temInversorAnexo:true, temComponentesAnexo:true,
+    garantiaTipo:'padrao', obrigacaoTipo:'full',
+    tituloContrato:'CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE FORNECIMENTO E INSTALAÇÃO DE SISTEMA DE MICROGERAÇÃO SOLAR FOTOVOLTAICA',
+    anexoTecnicoNome:'ANEXO I - ESPECIFICAÇÕES TÉCNICAS', anexoCronogramaNome:'ANEXO II - CRONOGRAMA DE EXECUÇÃO',
+    prazoDiasDefault:60, garantiaModulosAnosDefault:30, garantiaInversorAnosDefault:10,
+    clause1:clause1Padrao, cronogramaDefault:CRONOGRAMA_PADRAO_7, componentesDefault:COMPONENTES_PADRAO
+  },
+  ampliacao:{
+    label:'Ampliação de Sistema',
+    tipoCliente:'pf', forneceEquipamento:true, precisaHomologacao:false,
+    temAnexoTecnico:true, temInversorAnexo:false, temComponentesAnexo:true,
+    garantiaTipo:'semInversor', obrigacaoTipo:'semHomolog',
+    tituloContrato:'CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE FORNECIMENTO E INSTALAÇÃO DE SISTEMA DE MICROGERAÇÃO SOLAR FOTOVOLTAICA',
+    anexoTecnicoNome:'ANEXO I - ESPECIFICAÇÕES TÉCNICAS', anexoCronogramaNome:'ANEXO II - CRONOGRAMA DE EXECUÇÃO',
+    prazoDiasDefault:20, garantiaModulosAnosDefault:30, camposExtras:['geracaoMediaEstimada'],
+    clause1:clause1Ampliacao,
+    cronogramaDefault:[['1. Assinatura do Contrato e Pagamento do Sinal','Dia 0'],['2. Recebimento dos Equipamentos','Prazo até 10 dias úteis após a etapa 1 - prazo do fornecedor'],['3. Instalação do Sistema Fotovoltaico','Até 05 dias úteis após a etapa 2'],['4. Testes e Entrega Final','Até 5 dias úteis após a etapa 3']],
+    componentesDefault:[['Cabeamento CC','','4 mm'],['Conectores MC4 (macho + fêmea)','','1500V'],['Estrutura de Suporte','','Prisioneiro para madeira com perfil H1 em PRFV p/ telhados com telhas cerâmicas/metálica/fibrocimento']]
+  },
+  consorcio:{
+    label:'Consórcio — Financiamento à Vista',
+    tipoCliente:'pf', forneceEquipamento:true, precisaHomologacao:true,
+    temAnexoTecnico:false, temInversorAnexo:false, temComponentesAnexo:false,
+    garantiaTipo:'padrao', obrigacaoTipo:'full',
+    tituloContrato:'CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE FORNECIMENTO E INSTALAÇÃO DE SISTEMA DE MICROGERAÇÃO SOLAR FOTOVOLTAICA',
+    anexoTecnicoNome:'anexo próprio', anexoCronogramaNome:'ANEXO I - CRONOGRAMA DE EXECUÇÃO',
+    prazoDiasDefault:45, garantiaModulosAnosDefault:20, garantiaInversorAnosDefault:10,
+    camposExtras:['potenciaAproxKwp','geracaoMediaEstimada'],
+    clause1:clause1Consorcio,
+    cronogramaDefault:[['1. Assinatura do Contrato e Pagamento do Sinal','Dia 0 ou conforme previsto'],['2. Elaboração do Projeto Executivo','Até 5 dias úteis após a conclusão da etapa 1'],['3. Recebimento dos Equipamentos','Prazo até 25 dias úteis após a etapa 1 - prazo do fornecedor'],['4. Instalação do Sistema Fotovoltaico','Até 05 dias úteis após a etapa 3'],['5. Solicitação de Vistoria à Concessionária','Até 3 dias úteis após a etapa 4 e aprovação da etapa 2'],['6. Vistoria e Homologação pela Concessionária','Até 5 dias úteis - prazo da concessionária, após a etapa 5'],['7. Testes e Entrega Final','Até 7 dias úteis após a etapa 6']]
+  },
+  desm_mont:{
+    label:'Desmontagem e Montagem',
+    tipoCliente:'pf', forneceEquipamento:false, precisaHomologacao:true,
+    temAnexoTecnico:true, temInversorAnexo:true, temComponentesAnexo:false,
+    garantiaTipo:'desmontagem', obrigacaoTipo:'semEquip',
+    tituloContrato:'CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE MONTAGEM, DESMONTAGEM E HOMOLOGAÇÃO DE SISTEMA DE MICROGERAÇÃO SOLAR FOTOVOLTAICA',
+    anexoTecnicoNome:'ANEXO I - ESPECIFICAÇÕES TÉCNICAS', anexoCronogramaNome:'ANEXO II - CRONOGRAMA DE EXECUÇÃO',
+    prazoDiasDefault:27, camposExtras:['enderecoOrigemDesmontagem'],
+    clause1:clause1DesmMont,
+    cronogramaDefault:[['1. Assinatura do Contrato e Pagamento do Sinal','Dia 0'],['2. Elaboração do Projeto e Entrada na Concessionária','Até 5 dias úteis após a etapa 1'],['3. Desmontagem do Sistema Existente (se aplicável)','Prazo até 05 dias úteis após a etapa 1'],['4. Montagem e Instalação Mecânica/Elétrica','Até 05 dias úteis após a etapa 3'],['5. Homologação pela Concessionária','Até 15 dias úteis - prazo da concessionária, após a etapa 2'],['6. Solicitação de Vistoria à Concessionária','Até 01 dia útil após aprovação da etapa 5'],['7. Testes e Entrega Final','Até 5 dias úteis após a etapa 6']]
+  }
+};
+
+// ---- Montagem do contrato completo em blocos ----
+function montarBlocosContrato(d){
+  const cfg=CONTRATO_MODELOS[d.modelo];
+  const blocos=[];
+  blocos.push(cTitle(cfg.tituloContrato));
+  blocos.push(cSp());
+  blocos.push(_blocoContratante(d));
+  blocos.push(cSp());
+  blocos.push(cP(CONTRATADA_BLOCO_TXT));
+  blocos.push(cSp());
+  blocos.push(cP('As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Prestação de Serviços, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.'));
+  blocos.push(...cfg.clause1(d,cfg));
+  blocos.push(..._blocosPagamento(d));
+  blocos.push(..._blocosPrazo(d,cfg));
+  blocos.push(cH('CLÁUSULA QUARTA - DAS OBRIGAÇÕES'));
+  blocos.push(cP('4.1. São obrigações da CONTRATADA:'));
+  const listaObrig=cfg.obrigacaoTipo==='full'?OBRIG_CONTRATADA_FULL:cfg.obrigacaoTipo==='semEquip'?OBRIG_CONTRATADA_SEM_EQUIP:OBRIG_CONTRATADA_SEM_HOMOLOG;
+  blocos.push(...listaObrig.map(cP));
+  blocos.push(cP('4.2. São obrigações do CONTRATANTE:'));
+  blocos.push(...OBRIGACOES_CONTRATANTE.map(cP));
+  if(d.modelo==='desm_mont'){
+    blocos.push(cP('4.3. Isenção de Responsabilidade sobre Materiais e Instalações Preexistentes: a) A CONTRATADA declara expressamente que não se responsabiliza pela qualidade, procedência, estado de conservação ou eventuais vícios ocultos dos equipamentos e materiais fornecidos pelo CONTRATANTE para a montagem do sistema; b) A CONTRATADA não assume qualquer responsabilidade sobre as instalações elétricas preexistentes no imóvel do CONTRATANTE, limitando-se sua atuação exclusivamente à interligação do sistema fotovoltaico ao ponto de conexão estabelecido no projeto; c) Quaisquer adequações necessárias na infraestrutura elétrica do imóvel para viabilizar a instalação e homologação do sistema, se não previstas neste contrato, serão de inteira responsabilidade e ônus do CONTRATANTE.'));
+  }
+  blocos.push(..._blocosGarantia(d,cfg));
+  blocos.push(..._blocosRescisao(cfg));
+  blocos.push(..._BLOCOS_7_8);
+  blocos.push(cP(dataPorExtenso(d.dataAssinatura)));
+  blocos.push(cSig(d.tipoCliente==='pj'?d.representanteNome:d.nome,'Contratante'));
+  blocos.push(cSig('Ícaro Caio de Sousa Machado','Solar Machado Instalações e Manutenções Elétricas LTDA — Contratada'));
+  if(cfg.temAnexoTecnico){
+    blocos.push(cSp());
+    blocos.push(cH(cfg.anexoTecnicoNome));
+    blocos.push(cP('Este anexo é parte integrante do contrato firmado entre as partes.'));
+    blocos.push(cB('1. MÓDULOS FOTOVOLTAICOS'));
+    blocos.push(_tabelaModulo(d.modulo||{}));
+    if(cfg.temInversorAnexo){
+      blocos.push(cB('2. INVERSOR FOTOVOLTAICO'));
+      blocos.push(_tabelaInversor(d.inversor||{}));
+    }
+    if(cfg.temComponentesAnexo && (d.componentes||[]).length){
+      blocos.push(cB((cfg.temInversorAnexo?'3':'2')+'. DEMAIS COMPONENTES'));
+      blocos.push(_tabelaComponentes(d.componentes));
+    }
+  }
+  blocos.push(cSp());
+  blocos.push(cH(cfg.anexoCronogramaNome));
+  blocos.push(cP('Este anexo é parte integrante do contrato firmado entre as partes.'));
+  blocos.push(cTable([['Etapa','Prazo Previsto'],...(d.cronograma||[])]));
+  blocos.push(cP(`Prazo Total Estimado: ${d.prazoDias} dias úteis.`));
+  blocos.push(cP('Observação: Os prazos podem variar conforme a entrega do material pelo fornecedor, disponibilidade da concessionária de energia e as condições climáticas na montagem do sistema de energia.'));
+  return blocos;
+}
+
+// ---- Renderização em HTML (para PDF) ----
+function contratoBlocosParaHtml(blocos){
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const nl2br=s=>esc(s).replace(/\n/g,'<br>');
+  return blocos.map(b=>{
+    if(b.t==='title') return `<div data-blk style="font-weight:800;font-size:13.5px;text-align:center;text-transform:uppercase;margin:0 0 14px;color:#111">${esc(b.x)}</div>`;
+    if(b.t==='h') return `<div data-blk style="font-weight:800;font-size:12px;margin:16px 0 8px;color:#111">${esc(b.x)}</div>`;
+    if(b.t==='b') return `<div data-blk style="font-weight:700;font-size:11.5px;line-height:1.5;margin:0 0 8px;color:#111">${nl2br(b.x)}</div>`;
+    if(b.t==='p') return `<div data-blk style="font-size:11.5px;line-height:1.5;text-align:justify;margin:0 0 8px;color:#222">${nl2br(b.x)}</div>`;
+    if(b.t==='table'){
+      const rows=b.rows.map((r,i)=>'<tr>'+r.map(c=>`<td style="border:1px solid #999;padding:5px 8px;font-size:10.5px;text-align:center;${i===0?'font-weight:700;background:#f2f2f2':''}">${esc(c)}</td>`).join('')+'</tr>').join('');
+      return `<table data-blk style="width:100%;border-collapse:collapse;margin:0 0 12px">${rows}</table>`;
+    }
+    if(b.t==='sig') return `<div data-blk style="text-align:center;margin:28px 0 4px;font-size:11px">______________________________________________<br><b>${esc(b.nome||'')}</b><br>${esc(b.papel)}</div>`;
+    if(b.t==='sp') return `<div data-blk style="height:10px"></div>`;
+    return '';
+  }).join('');
+}
+function _containerContratoEl(){
+  let el=document.getElementById('contrato-render-offscreen');
+  if(!el){
+    el=document.createElement('div');
+    el.id='contrato-render-offscreen';
+    el.style.position='fixed'; el.style.left='-99999px'; el.style.top='0';
+    el.style.width='210mm'; el.style.background='#ffffff'; el.style.padding='18mm 16mm';
+    el.style.fontFamily="'Times New Roman',Georgia,serif";
+    document.body.appendChild(el);
+  }
+  return el;
+}
+async function gerarPdfContrato(blocos, nomeArquivo){
+  const el=_containerContratoEl();
+  el.innerHTML=contratoBlocosParaHtml(blocos);
+  await new Promise(r=>setTimeout(r,80));
+  const scale=2;
+  const canvas=await html2canvas(el,{scale,backgroundColor:'#ffffff',useCORS:true,logging:false});
+  const pageWmm=210, pageHmm=297;
+  const pageHeightPx=Math.floor(canvas.width/pageWmm*pageHmm);
+  const contRect=el.getBoundingClientRect();
+  const blkEls=[...el.querySelectorAll('[data-blk]')];
+  const cuts=[];
+  let pageStart=0, lastGood=0;
+  blkEls.forEach(b=>{
+    const r=b.getBoundingClientRect();
+    const bottomPx=Math.round((r.bottom-contRect.top)*scale);
+    if(bottomPx-pageStart>pageHeightPx){
+      const cut=lastGood>pageStart?lastGood:bottomPx;
+      cuts.push(cut); pageStart=cut;
+    }
+    lastGood=bottomPx;
+  });
+  if(!cuts.length||cuts[cuts.length-1]<canvas.height) cuts.push(canvas.height);
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  let prev=0;
+  cuts.forEach((cut,i)=>{
+    const sliceH=cut-prev;
+    const pageCanvas=document.createElement('canvas');
+    pageCanvas.width=canvas.width; pageCanvas.height=pageHeightPx;
+    const ctx=pageCanvas.getContext('2d');
+    ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,pageCanvas.width,pageCanvas.height);
+    ctx.drawImage(canvas,0,prev,canvas.width,sliceH,0,0,canvas.width,sliceH);
+    const img=pageCanvas.toDataURL('image/jpeg',0.95);
+    if(i>0) pdf.addPage();
+    pdf.addImage(img,'JPEG',0,0,pageWmm,pageHmm);
+    prev=cut;
+  });
+  pdf.save(nomeArquivo);
+  el.innerHTML='';
+}
+
+// ---- Renderização em OOXML (para Word/.docx) ----
+function _escXml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function _wRun(text,opts){
+  opts=opts||{};
+  const lines=String(text==null?'':text).split('\n');
+  const rPr=`<w:rPr>${opts.bold?'<w:b/>':''}<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="${opts.size||22}"/></w:rPr>`;
+  const body=lines.map((l,i)=>(i>0?'<w:br/>':'')+(l?`<w:t xml:space="preserve">${_escXml(l)}</w:t>`:'')).join('');
+  return `<w:r>${rPr}${body}</w:r>`;
+}
+function _wP(text,opts){
+  opts=opts||{};
+  const align=opts.align||'both';
+  const spacingAfter=opts.spacingAfter==null?160:opts.spacingAfter;
+  return `<w:p><w:pPr><w:jc w:val="${align}"/><w:spacing w:after="${spacingAfter}"/></w:pPr>${_wRun(text,opts)}</w:p>`;
+}
+function _wTable(rows){
+  const cols=rows[0].length;
+  const grid=`<w:tblGrid>${Array(cols).fill('<w:gridCol w:w="2500"/>').join('')}</w:tblGrid>`;
+  const borders='<w:tblBorders>'+['top','left','bottom','right','insideH','insideV'].map(s=>`<w:${s} w:val="single" w:sz="4" w:space="0" w:color="999999"/>`).join('')+'</w:tblBorders>';
+  const trs=rows.map((r,i)=>'<w:tr>'+r.map(c=>`<w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/></w:tcPr>${_wP(c,{bold:i===0,align:'center',size:20,spacingAfter:0})}</w:tc>`).join('')+'</w:tr>').join('');
+  return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${borders}</w:tblPr>${grid}${trs}</w:tbl>`;
+}
+function contratoBlocosParaOoxml(blocos){
+  return blocos.map(b=>{
+    if(b.t==='title') return _wP(b.x,{bold:true,align:'center',size:26,spacingAfter:240});
+    if(b.t==='h') return _wP(b.x,{bold:true,align:'left',size:24,spacingAfter:160});
+    if(b.t==='b') return _wP(b.x,{bold:true,align:'left',size:22});
+    if(b.t==='p') return _wP(b.x,{align:'both',size:22});
+    if(b.t==='table') return _wTable(b.rows);
+    if(b.t==='sig') return _wP('______________________________________________\n'+(b.nome||'')+'\n'+b.papel,{align:'center',size:22,spacingAfter:0});
+    if(b.t==='sp') return _wP('',{size:22,spacingAfter:0});
+    return '';
+  }).join('');
+}
+async function gerarDocxContrato(blocos, nomeArquivo){
+  const bodyXml=contratoBlocosParaOoxml(blocos);
+  const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+bodyXml+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1133" w:bottom="1417" w:left="1700" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+  const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>';
+  const rootRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',contentTypes);
+  zip.folder('_rels').file('.rels',rootRels);
+  zip.folder('word').file('document.xml',documentXml);
+  const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=nomeArquivo;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
+// ---- Formulário dinâmico ----
+function renderFormDinamicoContrato(modeloKey){
+  const wrap=document.getElementById('ctr-form-dynamic');
+  if(!wrap) return;
+  if(!modeloKey){wrap.innerHTML='';document.getElementById('ctr-preview-wrap').style.display='none';return;}
+  const cfg=CONTRATO_MODELOS[modeloKey];
+  const extras=cfg.camposExtras||[];
+  let html='<div class="fg">';
+  if(cfg.tipoCliente==='pj'){
+    html+=`
+      <div class="fgrp full"><label>Razão Social *</label><input id="ctrd-razaoSocial" type="text"></div>
+      <div class="fgrp"><label>CNPJ *</label><input id="ctrd-cnpj" type="text" placeholder="00.000.000/0000-00"></div>
+      <div class="fgrp full"><label>Endereço da Sede *</label><input id="ctrd-enderecoSede" type="text"></div>
+      <div class="fgrp"><label>Representante (Nome) *</label><input id="ctrd-representanteNome" type="text"></div>
+      <div class="fgrp"><label>CPF do Representante *</label><input id="ctrd-representanteCpf" type="text"></div>
+      <div class="fgrp"><label>Cargo do Representante</label><input id="ctrd-representanteCargo" type="text" value="Sócio-Administrador"></div>`;
+  }else{
+    html+=`
+      <div class="fgrp full"><label>Nome Completo do Cliente *</label><input id="ctrd-nome" type="text"></div>
+      <div class="fgrp"><label>CPF *</label><input id="ctrd-cpf" type="text" placeholder="000.000.000-00"></div>
+      <div class="fgrp"><label>Estado Civil</label><select id="ctrd-estadoCivil"><option value="solteiro(a)">Solteiro(a)</option><option value="casado(a)" selected>Casado(a)</option><option value="divorciado(a)">Divorciado(a)</option><option value="viúvo(a)">Viúvo(a)</option><option value="em união estável">União Estável</option></select></div>`;
+  }
+  html+=`<div class="fgrp full"><label>Endereço Completo da Unidade Consumidora *</label><input id="ctrd-endereco" type="text" placeholder="Rua, nº, bairro, CEP, cidade - UF"></div>`;
+  if(extras.includes('geracaoMediaEstimada')) html+=`<div class="fgrp"><label>Geração Média Estimada (kWh/mês)</label><input id="ctrd-geracaoMediaEstimada" type="number" step="1"></div>`;
+  if(extras.includes('potenciaAproxKwp')) html+=`<div class="fgrp"><label>Potência Instalada Aproximada (kWp)</label><input id="ctrd-potenciaAproxKwp" type="number" step="0.01"></div>`;
+  if(extras.includes('enderecoOrigemDesmontagem')) html+=`<div class="fgrp full"><label>Endereço de Origem do Sistema a Desmontar (se diferente)</label><input id="ctrd-enderecoOrigemDesmontagem" type="text"></div>`;
+  html+=`
+    <div class="fgrp"><label>Valor Total do Contrato (R$) *</label><input id="ctrd-valorTotal" type="number" step="0.01" oninput="sugerirValorExtenso()"></div>
+    <div class="fgrp full"><label>Valor em Extenso (confira antes de gerar) *</label><input id="ctrd-valorExtenso" type="text"></div>
+    <div class="fgrp full"><label>Forma de Pagamento — uma condição por linha (serão numeradas a, b, c…) *</label><textarea id="ctrd-pagamento" rows="4" placeholder="Ex: Valor de R$12.000,00 (DOZE MIL REAIS) na assinatura deste contrato, a ser pago através de financiamento bancário, no banco SOLFÁCIL para a CONTRATADA."></textarea></div>
+    <div class="fgrp"><label>Prazo de Execução (dias úteis)</label><input id="ctrd-prazoDias" type="number" value="${cfg.prazoDiasDefault}"></div>
+    <div class="fgrp"><label>Data de Assinatura *</label><input id="ctrd-dataAssinatura" type="date" value="${hojeLocal()}"></div>`;
+  if(cfg.garantiaTipo!=='desmontagem'){
+    html+=`<div class="fgrp"><label>Garantia dos Módulos (anos)</label><input id="ctrd-garantiaModulosAnos" type="number" value="${cfg.garantiaModulosAnosDefault||20}"></div>`;
+    if(cfg.garantiaTipo==='padrao') html+=`<div class="fgrp"><label>Garantia do Inversor (anos)</label><input id="ctrd-garantiaInversorAnos" type="number" value="${cfg.garantiaInversorAnosDefault||10}"></div>`;
+  }
+  html+='</div>';
+  if(cfg.temAnexoTecnico){
+    html+=`<div style="font-size:13px;font-weight:600;color:var(--az);margin:16px 0 8px">☀️ Anexo Técnico — Módulos${cfg.temInversorAnexo?' e Inversor':''}</div>
+    <div class="fg">
+      <div class="fgrp"><label>Módulo — Fabricante</label><input id="ctrd-mod-fabricante" type="text"></div>
+      <div class="fgrp"><label>Módulo — Modelo</label><input id="ctrd-mod-modelo" type="text"></div>
+      <div class="fgrp"><label>Potência de Pico (Wp)</label><input id="ctrd-mod-wp" type="number"></div>
+      <div class="fgrp"><label>Quantidade de Módulos</label><input id="ctrd-mod-qtd" type="number"></div>`;
+    if(cfg.temInversorAnexo){
+      html+=`
+      <div class="fgrp"><label>Inversor — Fabricante</label><input id="ctrd-inv-fabricante" type="text"></div>
+      <div class="fgrp"><label>Inversor — Modelo</label><input id="ctrd-inv-modelo" type="text"></div>
+      <div class="fgrp"><label>Potência Nominal CA (kW)</label><input id="ctrd-inv-kw" type="text"></div>
+      <div class="fgrp"><label>Número de MPPTs</label><input id="ctrd-inv-mppts" type="text"></div>
+      <div class="fgrp"><label>Entradas por MPPT</label><input id="ctrd-inv-entradas" type="text"></div>
+      <div class="fgrp"><label>MPPT Livre p/ Expansão</label><input id="ctrd-inv-livre" type="text"></div>`;
+    }
+    html+='</div>';
+    if(cfg.temComponentesAnexo){
+      const compDefault=(cfg.componentesDefault||[]).map(c=>c.join(' | ')).join('\n');
+      html+=`<div class="fgrp full" style="margin-top:8px"><label>Demais Componentes — um por linha (formato: Nome | Quantidade | Especificação)</label><textarea id="ctrd-componentes" rows="4">${compDefault}</textarea></div>`;
+    }
+  }
+  const cronoDefault=(cfg.cronogramaDefault||[]).map(c=>c.join(' | ')).join('\n');
+  html+=`<div style="font-size:13px;font-weight:600;color:var(--az);margin:16px 0 8px">📅 Cronograma de Execução — um por linha (formato: Etapa | Prazo)</div>
+    <textarea id="ctrd-cronograma" rows="7" style="width:100%">${cronoDefault}</textarea>`;
+  wrap.innerHTML=html;
+  document.getElementById('ctr-preview-wrap').style.display='none';
+}
+function selecionarModeloContrato(modeloKey){ renderFormDinamicoContrato(modeloKey); }
+function sugerirValorExtenso(){
+  const v=parseFloat(document.getElementById('ctrd-valorTotal')?.value)||0;
+  const el=document.getElementById('ctrd-valorExtenso');
+  if(el && v>0) el.value=valorPorExtenso(v);
+}
+function coletarDadosFormContrato(){
+  const modeloEl=document.getElementById('ctr-modelo');
+  const modelo=modeloEl?modeloEl.value:'';
+  const cfg=CONTRATO_MODELOS[modelo];
+  if(!cfg){toast('Selecione um modelo de contrato.','er');return null;}
+  const gv=id=>{const el=document.getElementById(id);return el?String(el.value||'').trim():'';};
+  const d={modelo, tipoCliente:cfg.tipoCliente, forneceEquipamento:cfg.forneceEquipamento, precisaHomologacao:cfg.precisaHomologacao};
+  if(cfg.tipoCliente==='pj'){
+    d.razaoSocial=gv('ctrd-razaoSocial'); d.cnpj=gv('ctrd-cnpj'); d.enderecoSede=gv('ctrd-enderecoSede');
+    d.representanteNome=gv('ctrd-representanteNome'); d.representanteCpf=gv('ctrd-representanteCpf'); d.representanteCargo=gv('ctrd-representanteCargo')||'Sócio-Administrador';
+    if(!d.razaoSocial||!d.cnpj||!d.representanteNome||!d.representanteCpf){toast('Preencha os dados da empresa contratante.','er');return null;}
+  }else{
+    d.nome=gv('ctrd-nome'); d.cpf=gv('ctrd-cpf'); d.estadoCivil=document.getElementById('ctrd-estadoCivil')?.value||'casado(a)';
+    if(!d.nome||!d.cpf){toast('Preencha nome e CPF do(a) contratante.','er');return null;}
+  }
+  d.endereco=gv('ctrd-endereco');
+  if(!d.endereco){toast('Preencha o endereço da unidade consumidora.','er');return null;}
+  d.geracaoMediaEstimada=gv('ctrd-geracaoMediaEstimada');
+  d.potenciaAproxKwp=gv('ctrd-potenciaAproxKwp');
+  d.enderecoOrigemDesmontagem=gv('ctrd-enderecoOrigemDesmontagem');
+  d.valorTotal=parseFloat(document.getElementById('ctrd-valorTotal')?.value)||0;
+  d.valorExtenso=gv('ctrd-valorExtenso');
+  if(!d.valorTotal||!d.valorExtenso){toast('Preencha o valor total e o valor em extenso.','er');return null;}
+  d.pagamento=gv('ctrd-pagamento').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!d.pagamento.length){toast('Descreva a forma de pagamento.','er');return null;}
+  d.prazoDias=parseInt(document.getElementById('ctrd-prazoDias')?.value)||cfg.prazoDiasDefault;
+  d.dataAssinatura=document.getElementById('ctrd-dataAssinatura')?.value||hojeLocal();
+  d.garantiaModulosAnos=parseInt(document.getElementById('ctrd-garantiaModulosAnos')?.value)||cfg.garantiaModulosAnosDefault||0;
+  d.garantiaInversorAnos=parseInt(document.getElementById('ctrd-garantiaInversorAnos')?.value)||cfg.garantiaInversorAnosDefault||0;
+  d.componentes=[];
+  if(cfg.temAnexoTecnico){
+    d.modulo={fabricante:gv('ctrd-mod-fabricante'),modelo:gv('ctrd-mod-modelo'),potenciaWp:parseFloat(document.getElementById('ctrd-mod-wp')?.value)||0,qtd:parseInt(document.getElementById('ctrd-mod-qtd')?.value)||0};
+    if(cfg.temInversorAnexo){
+      d.inversor={fabricante:gv('ctrd-inv-fabricante'),modelo:gv('ctrd-inv-modelo'),potenciaKw:gv('ctrd-inv-kw'),mppts:gv('ctrd-inv-mppts'),entradasPorMppt:gv('ctrd-inv-entradas'),mpptLivre:gv('ctrd-inv-livre')};
+    }
+    if(cfg.temComponentesAnexo){
+      d.componentes=gv('ctrd-componentes').split('\n').map(l=>l.split('|').map(s=>s.trim())).filter(parts=>parts[0]);
+    }
+  }
+  d.cronograma=gv('ctrd-cronograma').split('\n').map(l=>l.split('|').map(s=>s.trim())).filter(parts=>parts[0]&&parts.length>1);
+  if(!d.cronograma.length){toast('Preencha o cronograma de execução.','er');return null;}
+  return d;
+}
+function prevVisualizarContrato(){
+  const d=coletarDadosFormContrato();
+  if(!d) return;
+  const blocos=montarBlocosContrato(d);
+  document.getElementById('ctr-preview').innerHTML=contratoBlocosParaHtml(blocos);
+  document.getElementById('ctr-preview-wrap').style.display='block';
+}
+let editandoContratoId=null;
+async function salvarEExportarContrato(formato){
+  const d=coletarDadosFormContrato();
+  if(!d) return;
+  const blocos=montarBlocosContrato(d);
+  const nomeCliente=(d.tipoCliente==='pj'?d.razaoSocial:d.nome)||'cliente';
+  const nomeBase='Contrato_'+CONTRATO_MODELOS[d.modelo].label.replace(/[^a-zA-Z0-9]+/g,'_')+'_'+nomeCliente.replace(/[^a-zA-Z0-9]+/g,'_');
+  try{
+    if(formato==='pdf') await gerarPdfContrato(blocos, nomeBase+'.pdf');
+    else await gerarDocxContrato(blocos, nomeBase+'.docx');
+  }catch(e){ toast('Erro ao gerar arquivo: '+e.message,'er'); return; }
+  try{
+    const registro={
+      modelo:d.modelo, modeloLabel:CONTRATO_MODELOS[d.modelo].label,
+      clienteNome:nomeCliente, clienteDoc:d.tipoCliente==='pj'?d.cnpj:d.cpf,
+      endereco:d.endereco, valorTotal:d.valorTotal, valorExtenso:d.valorExtenso,
+      dataAssinatura:d.dataAssinatura, prazoDias:d.prazoDias,
+      geradoPor:(usuarioAtual&&(usuarioAtual.displayName||usuarioAtual.email))||'?',
+      geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
+      dadosCompletos:d
+    };
+    if(editandoContratoId){ await db.collection('contratos').doc(editandoContratoId).set(registro,{merge:true}); }
+    else { await db.collection('contratos').add(registro); }
+    toast('✅ Contrato gerado e salvo no histórico!','ok');
+  }catch(e){ toast('Arquivo gerado, mas não foi possível salvar no histórico: '+e.message,'er'); }
+}
+function abrirNovoContrato(){
+  editandoContratoId=null;
+  document.getElementById('ctr-titulo-modal').textContent='Novo Contrato';
+  document.getElementById('ctr-modelo').value='';
+  renderFormDinamicoContrato('');
+  document.getElementById('mo-contrato').classList.add('open');
+}
+function editarContrato(id){
+  const c=CONTRATOS.find(x=>x.id===id); if(!c) return;
+  editandoContratoId=id;
+  document.getElementById('ctr-titulo-modal').textContent='Editar / Regerar Contrato';
+  document.getElementById('mo-contrato').classList.add('open');
+  document.getElementById('ctr-modelo').value=c.modelo;
+  renderFormDinamicoContrato(c.modelo);
+  const d=c.dadosCompletos||{};
+  const sf=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v==null?'':v);};
+  if(c.modelo && CONTRATO_MODELOS[c.modelo] && CONTRATO_MODELOS[c.modelo].tipoCliente==='pj'){
+    sf('ctrd-razaoSocial',d.razaoSocial); sf('ctrd-cnpj',d.cnpj); sf('ctrd-enderecoSede',d.enderecoSede);
+    sf('ctrd-representanteNome',d.representanteNome); sf('ctrd-representanteCpf',d.representanteCpf); sf('ctrd-representanteCargo',d.representanteCargo);
+  }else{
+    sf('ctrd-nome',d.nome); sf('ctrd-cpf',d.cpf); sf('ctrd-estadoCivil',d.estadoCivil);
+  }
+  sf('ctrd-endereco',d.endereco); sf('ctrd-geracaoMediaEstimada',d.geracaoMediaEstimada); sf('ctrd-potenciaAproxKwp',d.potenciaAproxKwp); sf('ctrd-enderecoOrigemDesmontagem',d.enderecoOrigemDesmontagem);
+  sf('ctrd-valorTotal',d.valorTotal); sf('ctrd-valorExtenso',d.valorExtenso);
+  sf('ctrd-pagamento',(d.pagamento||[]).join('\n'));
+  sf('ctrd-prazoDias',d.prazoDias); sf('ctrd-dataAssinatura',d.dataAssinatura);
+  sf('ctrd-garantiaModulosAnos',d.garantiaModulosAnos); sf('ctrd-garantiaInversorAnos',d.garantiaInversorAnos);
+  if(d.modulo){ sf('ctrd-mod-fabricante',d.modulo.fabricante); sf('ctrd-mod-modelo',d.modulo.modelo); sf('ctrd-mod-wp',d.modulo.potenciaWp); sf('ctrd-mod-qtd',d.modulo.qtd); }
+  if(d.inversor){ sf('ctrd-inv-fabricante',d.inversor.fabricante); sf('ctrd-inv-modelo',d.inversor.modelo); sf('ctrd-inv-kw',d.inversor.potenciaKw); sf('ctrd-inv-mppts',d.inversor.mppts); sf('ctrd-inv-entradas',d.inversor.entradasPorMppt); sf('ctrd-inv-livre',d.inversor.mpptLivre); }
+  if(d.componentes && d.componentes.length) sf('ctrd-componentes',d.componentes.map(c=>c.join(' | ')).join('\n'));
+  if(d.cronograma && d.cronograma.length) sf('ctrd-cronograma',d.cronograma.map(c=>c.join(' | ')).join('\n'));
+}
+async function deletarContrato(id){
+  if(!confirm('Excluir este contrato do histórico?')) return;
+  try{ await db.collection('contratos').doc(id).delete(); toast('Contrato excluído.','ok'); }
+  catch(e){ toast('Erro ao excluir: '+e.message,'er'); }
+}
+let CONTRATOS=[];
+function initContratosListener(){
+  db.collection('contratos').orderBy('geradoEm','desc').limit(100).onSnapshot(snap=>{
+    CONTRATOS=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderContratos();
+  });
+}
+function renderContratos(){
+  const el=document.getElementById('ctr-lista');
+  if(!el) return;
+  const busca=(document.getElementById('ctr-busca')?.value||'').trim().toLowerCase();
+  let lista=CONTRATOS;
+  if(busca) lista=lista.filter(c=>(c.clienteNome||'').toLowerCase().includes(busca));
+  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Nenhum contrato gerado ainda.</div>'; return; }
+  el.innerHTML=lista.map(c=>{
+    const dt=c.geradoEm?.toDate?c.geradoEm.toDate().toLocaleDateString('pt-BR'):'—';
+    const val=c.valorTotal?'R$ '+Number(c.valorTotal).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—';
+    return `<div style="background:var(--br);border:1px solid #e4e3dc;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:700;font-size:14px;color:var(--az)">${c.clienteNome||'—'}</div>
+        <div style="font-size:12px;color:var(--txts);margin-top:2px">${c.modeloLabel||c.modelo||''} · ${c.clienteDoc||''}</div>
+        <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${c.geradoPor||'—'} · ${dt}</div>
+      </div>
+      <div style="font-weight:700;font-size:15px;color:var(--az);white-space:nowrap">${val}</div>
+      <button onclick="editarContrato('${c.id}')" style="background:none;border:1px solid var(--az);color:var(--az);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">✎ Editar / Regerar</button>
+      <button onclick="deletarContrato('${c.id}')" style="background:none;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1">🗑</button>
+    </div>`;
+  }).join('');
 }
 </script>
 </body>
