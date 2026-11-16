@@ -6308,8 +6308,8 @@ function contratoBlocosParaHtml(blocos){
   const nl2br=s=>esc(s).replace(/\n/g,'<br>');
   return blocos.map(b=>{
     if(b.t==='title') return `<div data-blk style="font-weight:800;font-size:14px;text-align:center;text-transform:uppercase;letter-spacing:.3px;margin:0 0 4px;color:#2E3486">${esc(b.x)}</div><div data-blk style="height:2px;width:64px;background:#FDC300;margin:0 auto 16px"></div>`;
-    if(b.t==='h') return `<div data-blk style="font-weight:800;font-size:12px;letter-spacing:.3px;margin:18px 0 9px;padding-left:9px;border-left:3px solid #FDC300;color:#2E3486">${esc(b.x)}</div>`;
-    if(b.t==='b') return `<div data-blk style="font-weight:700;font-size:11.5px;line-height:1.6;margin:10px 0 6px;color:#2E3486">${nl2br(b.x)}</div>`;
+    if(b.t==='h') return `<div data-blk data-h="1" style="font-weight:800;font-size:12px;letter-spacing:.3px;margin:18px 0 9px;padding-left:9px;border-left:3px solid #FDC300;color:#2E3486">${esc(b.x)}</div>`;
+    if(b.t==='b') return `<div data-blk data-h="1" style="font-weight:700;font-size:11.5px;line-height:1.6;margin:10px 0 6px;color:#2E3486">${nl2br(b.x)}</div>`;
     if(b.t==='p') return `<div data-blk style="font-size:11.5px;line-height:1.6;text-align:justify;margin:0 0 9px;color:#242424">${nl2br(b.x)}</div>`;
     if(b.t==='li') return `<div data-blk style="font-size:11.5px;line-height:1.6;text-align:justify;margin:0 0 6px;padding-left:20px;text-indent:-20px;color:#242424">${nl2br(b.x)}</div>`;
     if(b.t==='table'){
@@ -6407,9 +6407,22 @@ async function gerarPdfContrato(blocos, nomeArquivo){
   const blkEls=[...el.querySelectorAll('[data-blk]')];
   const cuts=[];
   let pageStart=0, lastGood=0;
-  blkEls.forEach(b=>{
+  for(let i=0;i<blkEls.length;i++){
+    const b=blkEls[i];
     const r=b.getBoundingClientRect();
     const bottomPx=Math.round((r.bottom-contRect.top)*scale);
+    // Evita "título órfão": se este é um título/subtítulo (data-h) que ainda caberia aqui,
+    // mas o bloco seguinte não caberia na mesma página, manda o título junto para a próxima página.
+    if(b.hasAttribute('data-h') && lastGood>pageStart && bottomPx-pageStart<=usablePx){
+      const prox=blkEls[i+1];
+      if(prox){
+        const rp=prox.getBoundingClientRect();
+        const proxBottomPx=Math.round((rp.bottom-contRect.top)*scale);
+        if(proxBottomPx-pageStart>usablePx){
+          cuts.push(lastGood); pageStart=lastGood;
+        }
+      }
+    }
     if(bottomPx-pageStart>usablePx){
       if(lastGood>pageStart){
         cuts.push(lastGood); pageStart=lastGood;
@@ -6422,7 +6435,7 @@ async function gerarPdfContrato(blocos, nomeArquivo){
       }
     }
     lastGood=bottomPx;
-  });
+  }
   if(!cuts.length||cuts[cuts.length-1]<canvas.height){
     let base=cuts.length?cuts[cuts.length-1]:0;
     while(canvas.height-base>usablePx){
