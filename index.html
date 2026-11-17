@@ -640,6 +640,11 @@ tr:hover td{background:#faf9f5}
       <div class="kpi-grid" id="dash-kpis"></div>
 
       <div class="card" style="margin-bottom:22px">
+        <div class="ph" style="margin-bottom:12px"><h2>⚠️ Precisa de Atenção</h2></div>
+        <div id="dash-pendencias" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:22px">
         <div class="ph">
           <h2>🔗 Links Úteis</h2>
           <button class="btn btn-g" onclick="toggleFormLinkUtil()">+ Adicionar</button>
@@ -1973,11 +1978,12 @@ function renderDash() {
   const chAbertos = CHAMADOS.filter(c=>c.status!=='Resolvido').length;
   
   document.getElementById('dash-kpis').innerHTML = `
-    <div class="kpi"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${PROJETOS.length}</div></div>
-    <div class="kpi"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
-    <div class="kpi"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} kWp</div></div>
-    <div class="kpi"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
+    <div class="kpi" onclick="go('projetos')" style="cursor:pointer"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${PROJETOS.length}</div></div>
+    <div class="kpi" onclick="go('projetos')" style="cursor:pointer"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
+    <div class="kpi" onclick="go('projetos')" style="cursor:pointer"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} kWp</div></div>
+    <div class="kpi" onclick="go('chamados')" style="cursor:pointer"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
   `;
+  renderPendencias();
 
   // Kanban mini no dashboard
   const COLS_DASH=[
@@ -2015,6 +2021,64 @@ function renderDash() {
   renderCharts();
   renderDashChamadosEquipe(window._nomeUsuarioLogado);
   renderDashLeiturasSemana();
+}
+
+function renderPendencias(){
+  const el=document.getElementById('dash-pendencias');
+  if(!el) return;
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+
+  // 1) Chamados urgentes em aberto
+  const chamadosUrgentes=CHAMADOS.filter(c=>c.status!=='Resolvido'&&c.prioridade==='Urgente');
+
+  // 2) Leituras atrasadas
+  const leiturasAtrasadas=AGENDA_LEITURAS.filter(c=>{
+    if(c.status==='ok'||!c.proxLeitura) return false;
+    if(typeof agendaTemProjeto==='function'&&!agendaTemProjeto(c)) return false;
+    return new Date(c.proxLeitura+'T00:00:00')<hoje;
+  });
+
+  // 3) Projetos parados há mais de 60 dias (não concluídos, com data de início)
+  const projetosParados=PROJETOS.filter(p=>{
+    if(p.etapa==='Concluído'||!p.dataInicio) return false;
+    const dias=Math.round((hoje-new Date(p.dataInicio))/86400000);
+    return dias>60;
+  }).map(p=>({...p, _dias:Math.round((hoje-new Date(p.dataInicio))/86400000)}))
+    .sort((a,b)=>b._dias-a._dias);
+
+  function painel(titulo, icone, itens, cor, bg, renderItem, aoClicarVerTodos){
+    const corpo=itens.length
+      ? itens.slice(0,3).map(renderItem).join('')
+        + (itens.length>3?`<div style="font-size:11px;color:var(--txts);text-align:center;padding:4px;cursor:pointer" onclick="${aoClicarVerTodos}">+${itens.length-3} mais</div>`:'')
+      : `<div style="font-size:12px;color:#1D9E75;text-align:center;padding:14px;font-weight:600">✅ Tudo em dia</div>`;
+    return `<div style="border:1px solid #e4e3dc;border-radius:10px;overflow:hidden">
+      <div style="background:${bg};padding:8px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="${aoClicarVerTodos}">
+        <span style="font-size:12px;font-weight:700;color:${cor}">${icone} ${titulo}</span>
+        <span style="background:${cor};color:#fff;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700">${itens.length}</span>
+      </div>
+      <div style="padding:8px 10px;background:#fff">${corpo}</div>
+    </div>`;
+  }
+
+  el.innerHTML=
+    painel('Chamados Urgentes','🔴', chamadosUrgentes, '#D85A30', '#fdecea',
+      c=>{
+        const proj=PROJETOS.find(p=>p.id===c.projetoId);
+        return `<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer" onclick="abrirDetChamado(${c.id})">
+          <div style="font-size:12px;font-weight:600">${c.tipo||'Chamado'}</div>
+          <div style="font-size:11px;color:#888">${proj?proj.cliente:(c.clienteAvulso||'—')}</div>
+        </div>`;
+      }, "go('chamados')")
+    + painel('Leituras Atrasadas','🟡', leiturasAtrasadas, '#B8860B', '#fff8e0',
+      c=>`<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer" onclick="go('leituras')">
+          <div style="font-size:12px;font-weight:600">${c.cliente||'—'}</div>
+          <div style="font-size:11px;color:#888">Prevista para ${fmt_data(c.proxLeitura)}</div>
+        </div>`, "go('leituras')")
+    + painel('Projetos Parados','🟠', projetosParados, '#D2691E', '#fff1e6',
+      p=>`<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer" onclick="go('projetos')">
+          <div style="font-size:12px;font-weight:600">${p.cliente||'—'}</div>
+          <div style="font-size:11px;color:#888">${p.etapa} há ${p._dias} dias</div>
+        </div>`, "go('projetos')");
 }
 
 function renderCharts() {
