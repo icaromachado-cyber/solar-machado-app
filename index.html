@@ -81,7 +81,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 
 /* ── KPI GRID ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-.kpi{background:var(--br);border-radius:12px;border:1px solid #e4e3dc;padding:18px 20px}
+.kpi{background:var(--br);border-radius:12px;border:1px solid #e4e3dc;border-left:4px solid transparent;padding:18px 20px;transition:transform .15s ease,box-shadow .15s ease}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.09)}
+.kpi.kpi-ib{border-left-color:var(--az)}
+.kpi.kpi-ig{border-left-color:#1D9E75}
+.kpi.kpi-iy{border-left-color:#e0a500}
+.kpi.kpi-ir{border-left-color:var(--er)}
 .kpi .ki{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
 .kpi .kl{font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.7px;color:var(--txts);margin-bottom:5px}
 .kpi .kv{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--az);line-height:1}
@@ -637,6 +642,7 @@ tr:hover td{background:#faf9f5}
     
     <!-- DASHBOARD -->
     <div id="page-dash" class="page on">
+      <div id="dash-saudacao" style="margin-bottom:18px"></div>
       <div class="kpi-grid" id="dash-kpis"></div>
 
       <div class="card" style="margin-bottom:22px">
@@ -644,47 +650,49 @@ tr:hover td{background:#faf9f5}
         <div id="dash-pendencias" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px"></div>
       </div>
 
-      <div class="card" style="margin-bottom:22px">
-        <div class="ph">
-          <h2>🔗 Links Úteis</h2>
-          <button class="btn btn-g" onclick="toggleFormLinkUtil()">+ Adicionar</button>
-        </div>
-        <div id="links-uteis-form" style="display:none;margin-bottom:14px;padding:12px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px">
-          <div class="fg">
-            <div class="fgrp"><label>Nome</label><input type="text" id="lu-label" placeholder="Ex: Agência Virtual Equatorial"></div>
-            <div class="fgrp"><label>Link (URL)</label><input type="url" id="lu-url" placeholder="https://..."></div>
-            <div class="fgrp"><label>Categoria</label><input type="text" id="lu-categoria" placeholder="Ex: Portais" value="Geral"></div>
-            <div class="fgrp"><label>Ícone (emoji)</label><input type="text" id="lu-icone" placeholder="🔗" value="🔗" maxlength="4"></div>
+      <div class="charts-row">
+        <div class="card">
+          <div class="ph">
+            <h2>🔗 Links Úteis</h2>
+            <button class="btn btn-g" onclick="toggleFormLinkUtil()">+ Adicionar</button>
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-p" onclick="salvarLinkUtil()">Salvar Link</button>
-            <button class="btn btn-g" onclick="toggleFormLinkUtil()">Cancelar</button>
+          <div id="links-uteis-form" style="display:none;margin-bottom:14px;padding:12px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px">
+            <div class="fg">
+              <div class="fgrp"><label>Nome</label><input type="text" id="lu-label" placeholder="Ex: Agência Virtual Equatorial"></div>
+              <div class="fgrp"><label>Link (URL)</label><input type="url" id="lu-url" placeholder="https://..."></div>
+              <div class="fgrp"><label>Categoria</label><input type="text" id="lu-categoria" placeholder="Ex: Portais" value="Geral"></div>
+              <div class="fgrp"><label>Ícone (emoji)</label><input type="text" id="lu-icone" placeholder="🔗" value="🔗" maxlength="4"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-p" onclick="salvarLinkUtil()">Salvar Link</button>
+              <button class="btn btn-g" onclick="toggleFormLinkUtil()">Cancelar</button>
+            </div>
+          </div>
+          <div id="links-uteis-lista" style="display:flex;flex-direction:column;gap:14px">
+            <div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Carregando...</div>
           </div>
         </div>
-        <div id="links-uteis-lista" style="display:flex;flex-direction:column;gap:14px">
-          <div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Carregando...</div>
-        </div>
-      </div>
 
-      <div class="card" style="margin-bottom:22px">
-        <div class="ph">
-          <h2>📡 Monitoramento de Sistema</h2>
-          <button class="btn btn-g" onclick="toggleFormMonitoramento()">+ Adicionar</button>
-        </div>
-        <div id="monitoramento-form" style="display:none;margin-bottom:14px;padding:12px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px">
-          <div class="fg">
-            <div class="fgrp"><label>Plataforma</label><input type="text" id="mo-label" placeholder="Ex: Solplanet"></div>
-            <div class="fgrp"><label>Link de Login (URL)</label><input type="url" id="mo-url" placeholder="https://..."></div>
-            <div class="fgrp"><label>E-mail / Usuário</label><input type="text" id="mo-email" placeholder="usuario@exemplo.com"></div>
-            <div class="fgrp"><label>Senha</label><input type="text" id="mo-senha" placeholder="Senha"></div>
+        <div class="card">
+          <div class="ph">
+            <h2>📡 Monitoramento de Sistema</h2>
+            <button class="btn btn-g" onclick="toggleFormMonitoramento()">+ Adicionar</button>
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-p" onclick="salvarMonitoramento()">Salvar</button>
-            <button class="btn btn-g" onclick="toggleFormMonitoramento()">Cancelar</button>
+          <div id="monitoramento-form" style="display:none;margin-bottom:14px;padding:12px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px">
+            <div class="fg">
+              <div class="fgrp"><label>Plataforma</label><input type="text" id="mo-label" placeholder="Ex: Solplanet"></div>
+              <div class="fgrp"><label>Link de Login (URL)</label><input type="url" id="mo-url" placeholder="https://..."></div>
+              <div class="fgrp"><label>E-mail / Usuário</label><input type="text" id="mo-email" placeholder="usuario@exemplo.com"></div>
+              <div class="fgrp"><label>Senha</label><input type="text" id="mo-senha" placeholder="Senha"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-p" onclick="salvarMonitoramento()">Salvar</button>
+              <button class="btn btn-g" onclick="toggleFormMonitoramento()">Cancelar</button>
+            </div>
           </div>
-        </div>
-        <div id="monitoramento-lista" style="display:flex;flex-direction:column;gap:10px">
-          <div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Carregando...</div>
+          <div id="monitoramento-lista" style="display:flex;flex-direction:column;gap:10px">
+            <div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Carregando...</div>
+          </div>
         </div>
       </div>
 
@@ -1976,12 +1984,23 @@ function renderDash() {
   const conc = PROJETOS.filter(p=>p.etapa==='Concluído').length;
   const kwp = PROJETOS.reduce((s,p)=>s+(p.kwp||0),0);
   const chAbertos = CHAMADOS.filter(c=>c.status!=='Resolvido').length;
-  
+
+  const saudEl=document.getElementById('dash-saudacao');
+  if(saudEl){
+    const agora=new Date();
+    const hora=agora.getHours();
+    const saudacao=hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
+    const primeiroNome=(window._nomeUsuarioLogado||'').split(' ')[0]||'';
+    const dataExtenso=agora.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+    saudEl.innerHTML=`<div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--az)">${saudacao}${primeiroNome?', '+primeiroNome:''} 👋</div>
+      <div style="font-size:12.5px;color:var(--txts);margin-top:2px;text-transform:capitalize">${dataExtenso}</div>`;
+  }
+
   document.getElementById('dash-kpis').innerHTML = `
-    <div class="kpi" onclick="go('projetos')" style="cursor:pointer"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${PROJETOS.length}</div></div>
-    <div class="kpi" onclick="go('projetos')" style="cursor:pointer"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
-    <div class="kpi" onclick="go('projetos')" style="cursor:pointer"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} kWp</div></div>
-    <div class="kpi" onclick="go('chamados')" style="cursor:pointer"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
+    <div class="kpi kpi-ib" onclick="go('projetos')" style="cursor:pointer"><div class="ki ib">📂</div><div class="kl">Total Projetos</div><div class="kv">${PROJETOS.length}</div></div>
+    <div class="kpi kpi-ig" onclick="go('projetos')" style="cursor:pointer"><div class="ki ig">✅</div><div class="kl">Concluídos</div><div class="kv">${conc}</div></div>
+    <div class="kpi kpi-iy" onclick="go('projetos')" style="cursor:pointer"><div class="ki iy">⚡</div><div class="kl">Potência Total</div><div class="kv">${kwp.toFixed(1)} kWp</div></div>
+    <div class="kpi kpi-ir" onclick="go('chamados')" style="cursor:pointer"><div class="ki ir">🛠</div><div class="kl">Chamados Ativos</div><div class="kv">${chAbertos}</div></div>
   `;
   renderPendencias();
 
