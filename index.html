@@ -2195,6 +2195,7 @@ function openDet(id){
     +(p.email?'<div class="det-row"><span>Email</span><span style="display:inline-flex;align-items:center;gap:5px;text-align:right"><span style="font-size:11.5px">'+p.email+'</span><span onclick="copiarTexto(\''+p.email.replace(/'/g,"\\'")+'\',\'Email\')" title="Copiar Email" style="cursor:pointer;font-size:12px;opacity:.7">📋</span></span></div>':'')
     +'<div class="det-row"><span>UC</span><span style="display:inline-flex;align-items:center;gap:5px"><code style="background:#f0efe8;padding:2px 6px;border-radius:4px;font-size:11px">'+(p.uc||'—')+'</code>'+(p.uc?'<span onclick="copiarTexto(\''+String(p.uc).replace(/'/g,"\\'")+'\',\'UC\')" title="Copiar UC" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +(p.cpf?'<div class="det-row"><span>Equatorial</span><span><button onclick="abrirEquatorial(\''+p.cpf.replace(/'/g,"\\'")+'\')" style="background:#eef0ff;border:1px solid #c5d0f5;color:#2E3486;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:600">🔗 Abrir Agência Virtual</button></span></div>':'')
+    +(p.diagramaDriveUrl?'<div class="det-row"><span>Diagrama Unifilar</span><span><a href="'+p.diagramaDriveUrl+'" target="_blank" style="background:#fff8e0;border:1px solid #f0dfa0;color:#8a6d00;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:600;text-decoration:none;display:inline-block">📂 Ver no Drive</a></span></div>':'')
     +'<div class="det-row"><span>CEP</span><span style="display:inline-flex;align-items:center;gap:5px">'+(p.cep||'—')+(p.cep?'<span onclick="copiarTexto(\''+p.cep.replace(/'/g,"\\'")+'\',\'CEP\')" title="Copiar CEP" style="cursor:pointer;font-size:12px;opacity:.7">📋</span>':'')+'</span></div>'
     +'<div class="det-row"><span>Endereço</span><span style="font-size:11px;text-align:right;max-width:60%">'+(p.end||'—')+'</span></div>'
     +'<div class="det-row"><span>Localização</span><span>'+mapsHtml+'</span></div>'
@@ -6894,6 +6895,80 @@ async function semearLinksUteisIniciais(){
     await db.collection('linksUteis').add({...l, criadoPor:'sistema', criadoEm:firebase.firestore.FieldValue.serverTimestamp()});
   }
   toast('✅ Links iniciais cadastrados!','ok');
+}
+
+// ══════════════════════════════════════════
+// MIGRAÇÃO: links de diagrama unifilar (pasta do Drive por cliente)
+// ══════════════════════════════════════════
+async function migrarDiagramasDrivePorCliente(){
+  // Mapa id do projeto -> URL da subpasta "NN NOME" dentro de "Diagrama Unifilar Clientes" no Drive
+  const mapa={
+    1:'https://drive.google.com/drive/folders/1ANFdeotzrvN_DXI201QP7H1HjMHN7N2R',
+    2:'https://drive.google.com/drive/folders/1Qm3YBu7_cL5gTF55_nduIgs4r8ygw2ho',
+    3:'https://drive.google.com/drive/folders/1rlAeKV00Ic5ONoXcXRdQT1Xq_TA68NAh',
+    4:'https://drive.google.com/drive/folders/1da-OxAwyvPIomZfEc-rsg8Qrcg7dycG0',
+    5:'https://drive.google.com/drive/folders/1H5V9mPBzCnNT8z2W_z0PIyxToboyFrLJ',
+    6:'https://drive.google.com/drive/folders/1dCMRiUx3i3ODC8nfmZumcf9lgT_ECDzp',
+    7:'https://drive.google.com/drive/folders/10rFBj2fb_5LLn9oBVKqc-IPG6nC4mMBl',
+    8:'https://drive.google.com/drive/folders/1QXxGtd-4qlyGj7lguoCiSGH5hNYM3GZf',
+    9:'https://drive.google.com/drive/folders/1WXHkO3kijlLoeoZiPvYBYl1w_RDNnDN9',
+    10:'https://drive.google.com/drive/folders/1YBmLe6Iok1kb6L9Ea4zUC8r9-28-2PV4',
+    11:'https://drive.google.com/drive/folders/1Ub0bpC9NViuuGRqc8jj4AhsEfJftVqra',
+    12:'https://drive.google.com/drive/folders/113zQWIbEwEVkOaFNvKk0zbIz4MjnHnkM',
+    13:'https://drive.google.com/drive/folders/13XXKarFEE8Wyf-ViKzexmWTj0CuvVwjK',
+    14:'https://drive.google.com/drive/folders/1A68On1TUESDH14pz6cJvzdcxFN1h82yA',
+    15:'https://drive.google.com/drive/folders/1t2TV3cJ3ab-e0mmql71ZeZHmTJiqzs4W',
+    16:'https://drive.google.com/drive/folders/1o82f-LjUzxwA295j354pb4XbytS5uI6v',
+    17:'https://drive.google.com/drive/folders/1ccTfgyGFUIIs4VjK0VeIAgYXHbKo67Fw',
+    18:'https://drive.google.com/drive/folders/1sndqGvdQeZe8hWK-2MS8oG19biqBxb0g',
+    19:'https://drive.google.com/drive/folders/1SQi9HDp_jd1GEGGcVC7KVUN7kLiSJ_Iu',
+    20:'https://drive.google.com/drive/folders/1R5DJBs-RyI8LFAhF_qTVI7k0xGTPHx34',
+    21:'https://drive.google.com/drive/folders/1xnI-Zi5zJ4H2zgdv45vW-BSYTNOcXHaQ',
+    22:'https://drive.google.com/drive/folders/15wM4Fb-EpmW-QH5uitjuqb0SMl6P--yO',
+    23:'https://drive.google.com/drive/folders/1W_pH2QdA2IFdTwptjvSYu1TIBCZ6itHi',
+    24:'https://drive.google.com/drive/folders/1ygPmbt4Pm8ZS7LzFO7wBEgbao8QeeNZk',
+    25:'https://drive.google.com/drive/folders/1yw47GCW4-96kRpvqBFe5eLBeJJ07hs7t',
+    26:'https://drive.google.com/drive/folders/1TARhMk2FQs2hBd4fVD5mrBPxiijgsIZV',
+    27:'https://drive.google.com/drive/folders/1McPxx0MzwLTqOzygqn_sL3lB_IEW7TSf',
+    28:'https://drive.google.com/drive/folders/1BVDQA9zzxVtzPKQnl1U7BoJd2ZbnqYZ8',
+    29:'https://drive.google.com/drive/folders/1-64QrD1kaCRiQjwxc_Z5wfHjgdH0D4b7',
+    30:'https://drive.google.com/drive/folders/142ZzMBEzV8-5YMOikrivDWDvzaxSa2n7',
+    31:'https://drive.google.com/drive/folders/121lZUD5bK62A_W2kOFkQbTgvRhypW7cs',
+    32:'https://drive.google.com/drive/folders/1fG9zEUWcmVGASLRcriK6Jc9TSNsFzwWl',
+    33:'https://drive.google.com/drive/folders/1UL44J5uEzTXF0iuNU2AsU4m5mhaOcSO2',
+    34:'https://drive.google.com/drive/folders/14cW7QCx461BIJzYdN3NRhk2Vg26fRjUF',
+    35:'https://drive.google.com/drive/folders/19I3aO8tvqjJoNlU1WXJSqqhmrjuk-pXO',
+    36:'https://drive.google.com/drive/folders/1gw25A6b_xBtsu5WxfIXkWJyA8FJYzEhd',
+    37:'https://drive.google.com/drive/folders/1lqmSqL7Sz4-x0uPT0C4MrtRtCAgOzI1D',
+    38:'https://drive.google.com/drive/folders/1mg27u7FcEoX6-9LUurA4Q8jzXGBsLAAe',
+    39:'https://drive.google.com/drive/folders/1X3MtMXbChHVBkA4Jf_mKXzmfI-jfwVPv',
+    40:'https://drive.google.com/drive/folders/1dXR3f8QmNS6EzSOKHZMSGElMUDVvMFWh',
+    42:'https://drive.google.com/drive/folders/1VrNynbBN51lIqEa7GXIl-RFyW8nuyeBr',
+    43:'https://drive.google.com/drive/folders/1hJpo6TAMAA5FUt74tENf2UHg9myMFKuI',
+    44:'https://drive.google.com/drive/folders/1bW5bbQ7uiA_rSYtyWH-hcLB54Me_OM66',
+    45:'https://drive.google.com/drive/folders/1SRoCMiKk-P0KaPdyUfZh_gwUVbd-7WeF',
+    46:'https://drive.google.com/drive/folders/1nhAG1QyEuMQyEHqXH13YU8_CuMljvSt4',
+    47:'https://drive.google.com/drive/folders/1XRelUaMULSngH81FxprYkh_i8E5ZKBNv',
+    48:'https://drive.google.com/drive/folders/1LkfavcjfY_8KfjMstc9t-018pBC3mVzs',
+    49:'https://drive.google.com/drive/folders/1VGKw1uxiB59knjgZLzVTp3CRhG62uMeZ',
+    50:'https://drive.google.com/drive/folders/19MhvWHBwraEXOPISL2yjNfTDl1tbQsrV',
+    51:'https://drive.google.com/drive/folders/1FmQcNRzKWyVvPgusfsa4PYtcEwWFgz65',
+    52:'https://drive.google.com/drive/folders/1ZZ8p89fg77R2lc8J3O5YEhwtCU5Kj_0J',
+    53:'https://drive.google.com/drive/folders/1Yce8LizJlXB2722BQEOxpgwuLePRhj1G',
+    54:'https://drive.google.com/drive/folders/1MYxmsUq7OsuzY27EnA43RqCQtTW1_HRs',
+    55:'https://drive.google.com/drive/folders/1L5eJDw7383Eagd90ao0eM8PVsmIE_yQC',
+    56:'https://drive.google.com/drive/folders/12NgB-1mlwLn6kEfBklgFnrXP-MiLy7_m'
+  };
+  let ok=0, pulados=0;
+  for(const id of Object.keys(mapa)){
+    const existe=PROJETOS.find(p=>p.id===Number(id));
+    if(!existe){ pulados++; continue; }
+    try{
+      await db.collection('projetos').doc(id).set({diagramaDriveUrl:mapa[id]},{merge:true});
+      ok++;
+    }catch(e){ console.warn('Erro no projeto '+id+': '+e.message); }
+  }
+  toast('✅ '+ok+' diagrama(s) vinculado(s)'+(pulados?', '+pulados+' projeto(s) não encontrado(s)':''),'ok');
 }
 </script>
 </body>
