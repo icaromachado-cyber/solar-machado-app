@@ -661,6 +661,28 @@ tr:hover td{background:#faf9f5}
         </div>
       </div>
 
+      <div class="card" style="margin-bottom:22px">
+        <div class="ph">
+          <h2>📡 Monitoramento de Sistema</h2>
+          <button class="btn btn-g" onclick="toggleFormMonitoramento()">+ Adicionar</button>
+        </div>
+        <div id="monitoramento-form" style="display:none;margin-bottom:14px;padding:12px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px">
+          <div class="fg">
+            <div class="fgrp"><label>Plataforma</label><input type="text" id="mo-label" placeholder="Ex: Solplanet"></div>
+            <div class="fgrp"><label>Link de Login (URL)</label><input type="url" id="mo-url" placeholder="https://..."></div>
+            <div class="fgrp"><label>E-mail / Usuário</label><input type="text" id="mo-email" placeholder="usuario@exemplo.com"></div>
+            <div class="fgrp"><label>Senha</label><input type="text" id="mo-senha" placeholder="Senha"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-p" onclick="salvarMonitoramento()">Salvar</button>
+            <button class="btn btn-g" onclick="toggleFormMonitoramento()">Cancelar</button>
+          </div>
+        </div>
+        <div id="monitoramento-lista" style="display:flex;flex-direction:column;gap:10px">
+          <div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Carregando...</div>
+        </div>
+      </div>
+
       <div class="card" style="min-height:320px;margin-bottom:22px">
         <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
         <div class="chart-container" style="height:260px"><canvas id="chart-status"></canvas></div>
@@ -1855,6 +1877,7 @@ function initFirebaseListeners() {
   initOrcamentosWallboxListener();
   initContratosListener();
   initLinksUteisListener();
+  initMonitoramentoListener();
   initAgendaLeiturasListener();
   initHistoricoLeiturasListener();
   initRelatoriosListener();
@@ -6916,6 +6939,90 @@ async function corrigirOrdemLinksUteisIniciais(){
     }
   }
   toast('✅ Ordem ajustada em '+ok+' link(s)!','ok');
+}
+
+// ══════════════════════════════════════════
+// MONITORAMENTO DE SISTEMA (Dashboard)
+// ══════════════════════════════════════════
+let MONITORAMENTO=[];
+let _senhasVisiveis={};
+function initMonitoramentoListener(){
+  db.collection('monitoramento').onSnapshot(snap=>{
+    MONITORAMENTO=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderMonitoramento();
+  });
+}
+function toggleFormMonitoramento(){
+  const el=document.getElementById('monitoramento-form');
+  if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+  if(el.style.display==='block'){
+    ['mo-label','mo-url','mo-email','mo-senha'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});
+  }
+}
+async function salvarMonitoramento(){
+  const label=(document.getElementById('mo-label')?.value||'').trim();
+  let url=(document.getElementById('mo-url')?.value||'').trim();
+  const email=(document.getElementById('mo-email')?.value||'').trim();
+  const senha=(document.getElementById('mo-senha')?.value||'').trim();
+  if(!label||!url){toast('Preencha ao menos a plataforma e o link.','er');return;}
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  const maiorOrdem=MONITORAMENTO.reduce((m,l)=>Math.max(m,l.ordem??0),0);
+  try{
+    await db.collection('monitoramento').add({
+      label, url, email, senha, ordem:maiorOrdem+1,
+      criadoPor:(usuarioAtual&&(usuarioAtual.displayName||usuarioAtual.email))||'?',
+      criadoEm:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toggleFormMonitoramento();
+    toast('✅ Acesso adicionado!','ok');
+  }catch(e){ toast('Erro ao salvar: '+e.message,'er'); }
+}
+async function excluirMonitoramento(id){
+  if(!confirm('Remover este acesso?')) return;
+  try{ await db.collection('monitoramento').doc(id).delete(); }
+  catch(e){ toast('Erro ao remover: '+e.message,'er'); }
+}
+async function moverMonitoramento(id,direcao){
+  const lista=[...MONITORAMENTO].sort((a,b)=>(a.ordem??0)-(b.ordem??0));
+  const i=lista.findIndex(l=>l.id===id);
+  const j=i+direcao;
+  if(i<0||j<0||j>=lista.length) return;
+  const a=lista[i], b=lista[j];
+  try{
+    await db.collection('monitoramento').doc(a.id).update({ordem:b.ordem??j});
+    await db.collection('monitoramento').doc(b.id).update({ordem:a.ordem??i});
+  }catch(e){ toast('Erro ao reordenar: '+e.message,'er'); }
+}
+function toggleSenhaMonitoramento(id){
+  _senhasVisiveis[id]=!_senhasVisiveis[id];
+  renderMonitoramento();
+}
+function renderMonitoramento(){
+  const el=document.getElementById('monitoramento-lista');
+  if(!el) return;
+  if(!MONITORAMENTO.length){
+    el.innerHTML='<div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Nenhum acesso cadastrado ainda. Clique em "+ Adicionar".</div>';
+    return;
+  }
+  const lista=[...MONITORAMENTO].sort((a,b)=>(a.ordem??0)-(b.ordem??0));
+  el.innerHTML=lista.map((l,i)=>{
+    const visivel=!!_senhasVisiveis[l.id];
+    return `<div style="background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px;padding:10px 12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <button onclick="moverMonitoramento('${l.id}',-1)" title="Mover para cima" ${i===0?'disabled':''} style="background:none;border:none;color:${i===0?'#ddd':'#999'};cursor:${i===0?'default':'pointer'};font-size:11px;line-height:1;padding:1px">▲</button>
+          <button onclick="moverMonitoramento('${l.id}',1)" title="Mover para baixo" ${i===lista.length-1?'disabled':''} style="background:none;border:none;color:${i===lista.length-1?'#ddd':'#999'};cursor:${i===lista.length-1?'default':'pointer'};font-size:11px;line-height:1;padding:1px">▼</button>
+        </div>
+        <a href="${l.url}" target="_blank" rel="noopener" style="flex:1;font-weight:700;font-size:13px;color:var(--az);text-decoration:none">📡 ${l.label}</a>
+        <button onclick="excluirMonitoramento('${l.id}')" title="Remover" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:13px;flex-shrink:0">🗑</button>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;padding-left:20px;font-size:12px;color:#555">
+        ${l.email?`<span>👤 ${l.email} <span onclick="copiarTexto('${(l.email||'').replace(/'/g,"\\'")}','E-mail')" title="Copiar" style="cursor:pointer;opacity:.6">📋</span></span>`:''}
+        ${l.senha?`<span>🔑 ${visivel?l.senha:'••••••••'} <span onclick="toggleSenhaMonitoramento('${l.id}')" title="${visivel?'Ocultar':'Mostrar'}" style="cursor:pointer;opacity:.6">${visivel?'🙈':'👁'}</span> <span onclick="copiarTexto('${(l.senha||'').replace(/'/g,"\\'")}','Senha')" title="Copiar" style="cursor:pointer;opacity:.6">📋</span></span>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════
