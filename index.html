@@ -638,7 +638,29 @@ tr:hover td{background:#faf9f5}
     <!-- DASHBOARD -->
     <div id="page-dash" class="page on">
       <div class="kpi-grid" id="dash-kpis"></div>
-      
+
+      <div class="card" style="margin-bottom:22px">
+        <div class="ph">
+          <h2>🔗 Links Úteis</h2>
+          <button class="btn btn-g" onclick="toggleFormLinkUtil()">+ Adicionar</button>
+        </div>
+        <div id="links-uteis-form" style="display:none;margin-bottom:14px;padding:12px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px">
+          <div class="fg">
+            <div class="fgrp"><label>Nome</label><input type="text" id="lu-label" placeholder="Ex: Agência Virtual Equatorial"></div>
+            <div class="fgrp"><label>Link (URL)</label><input type="url" id="lu-url" placeholder="https://..."></div>
+            <div class="fgrp"><label>Categoria</label><input type="text" id="lu-categoria" placeholder="Ex: Portais" value="Geral"></div>
+            <div class="fgrp"><label>Ícone (emoji)</label><input type="text" id="lu-icone" placeholder="🔗" value="🔗" maxlength="4"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-p" onclick="salvarLinkUtil()">Salvar Link</button>
+            <button class="btn btn-g" onclick="toggleFormLinkUtil()">Cancelar</button>
+          </div>
+        </div>
+        <div id="links-uteis-lista" style="display:flex;flex-direction:column;gap:14px">
+          <div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Carregando...</div>
+        </div>
+      </div>
+
       <div class="card" style="min-height:320px;margin-bottom:22px">
         <div class="ph" style="margin-bottom:12px"><h2>Projetos por Etapa</h2></div>
         <div class="chart-container" style="height:260px"><canvas id="chart-status"></canvas></div>
@@ -1832,6 +1854,7 @@ function initFirebaseListeners() {
   initOrcamentosListener();
   initOrcamentosWallboxListener();
   initContratosListener();
+  initLinksUteisListener();
   initAgendaLeiturasListener();
   initHistoricoLeiturasListener();
   initRelatoriosListener();
@@ -6794,6 +6817,83 @@ function renderContratos(){
       <button onclick="deletarContrato('${c.id}')" style="background:none;border:1.5px solid #e74c3c;color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1">🗑</button>
     </div>`;
   }).join('');
+}
+
+// ══════════════════════════════════════════
+// LINKS ÚTEIS (Dashboard)
+// ══════════════════════════════════════════
+let LINKS_UTEIS=[];
+function initLinksUteisListener(){
+  db.collection('linksUteis').onSnapshot(snap=>{
+    LINKS_UTEIS=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderLinksUteis();
+  });
+}
+function toggleFormLinkUtil(){
+  const el=document.getElementById('links-uteis-form');
+  if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+  if(el.style.display==='block'){
+    ['lu-label','lu-url'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});
+  }
+}
+async function salvarLinkUtil(){
+  const label=(document.getElementById('lu-label')?.value||'').trim();
+  let url=(document.getElementById('lu-url')?.value||'').trim();
+  const categoria=(document.getElementById('lu-categoria')?.value||'Geral').trim()||'Geral';
+  const icone=(document.getElementById('lu-icone')?.value||'🔗').trim()||'🔗';
+  if(!label||!url){toast('Preencha nome e link.','er');return;}
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  try{
+    await db.collection('linksUteis').add({
+      label, url, categoria, icone,
+      criadoPor:(usuarioAtual&&(usuarioAtual.displayName||usuarioAtual.email))||'?',
+      criadoEm:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toggleFormLinkUtil();
+    toast('✅ Link adicionado!','ok');
+  }catch(e){ toast('Erro ao salvar: '+e.message,'er'); }
+}
+async function excluirLinkUtil(id){
+  if(!confirm('Remover este link?')) return;
+  try{ await db.collection('linksUteis').doc(id).delete(); }
+  catch(e){ toast('Erro ao remover: '+e.message,'er'); }
+}
+function renderLinksUteis(){
+  const el=document.getElementById('links-uteis-lista');
+  if(!el) return;
+  if(!LINKS_UTEIS.length){
+    el.innerHTML='<div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Nenhum link cadastrado ainda. Clique em "+ Adicionar".</div>';
+    return;
+  }
+  const grupos={};
+  LINKS_UTEIS.forEach(l=>{ (grupos[l.categoria||'Geral']=grupos[l.categoria||'Geral']||[]).push(l); });
+  el.innerHTML=Object.keys(grupos).sort().map(cat=>{
+    const itens=grupos[cat].map(l=>`
+      <div style="display:flex;align-items:center;gap:8px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px;padding:8px 10px">
+        <a href="${l.url}" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--az);font-weight:600;font-size:13px;min-width:0">
+          <span>${l.icone||'🔗'}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.label}</span>
+        </a>
+        <button onclick="excluirLinkUtil('${l.id}')" title="Remover" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:13px;flex-shrink:0">🗑</button>
+      </div>`).join('');
+    return `<div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:6px">${cat}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">${itens}</div>
+    </div>`;
+  }).join('');
+}
+async function semearLinksUteisIniciais(){
+  const iniciais=[
+    {label:'Contratos (modelos)', url:'https://drive.google.com/drive/folders/1NNq4O8b6nk15TD0X8p3u9miOADKWOQAh', categoria:'Documentos', icone:'📁'},
+    {label:'Site Solar Machado', url:'https://www.solarmachadoeng.com.br/', categoria:'Portais', icone:'🌐'},
+    {label:'Sou Energy', url:'https://souenergy.com.br/', categoria:'Fornecedores', icone:'⚡'},
+    {label:'Solfácil', url:'https://solfacil.com.br/auth/login', categoria:'Financiamento', icone:'💳'}
+  ];
+  if(LINKS_UTEIS.length){ toast('Já existem links cadastrados — semeadura ignorada.','er'); return; }
+  for(const l of iniciais){
+    await db.collection('linksUteis').add({...l, criadoPor:'sistema', criadoEm:firebase.firestore.FieldValue.serverTimestamp()});
+  }
+  toast('✅ Links iniciais cadastrados!','ok');
 }
 </script>
 </body>
