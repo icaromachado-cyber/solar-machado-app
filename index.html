@@ -6845,9 +6845,10 @@ async function salvarLinkUtil(){
   const icone=(document.getElementById('lu-icone')?.value||'🔗').trim()||'🔗';
   if(!label||!url){toast('Preencha nome e link.','er');return;}
   if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  const maiorOrdem=LINKS_UTEIS.reduce((m,l)=>Math.max(m,l.ordem??0),0);
   try{
     await db.collection('linksUteis').add({
-      label, url, categoria, icone,
+      label, url, categoria, icone, ordem:maiorOrdem+1,
       criadoPor:(usuarioAtual&&(usuarioAtual.displayName||usuarioAtual.email))||'?',
       criadoEm:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -6860,6 +6861,17 @@ async function excluirLinkUtil(id){
   try{ await db.collection('linksUteis').doc(id).delete(); }
   catch(e){ toast('Erro ao remover: '+e.message,'er'); }
 }
+async function moverLinkUtil(id,direcao){
+  const lista=[...LINKS_UTEIS].sort((a,b)=>(a.ordem??0)-(b.ordem??0));
+  const i=lista.findIndex(l=>l.id===id);
+  const j=i+direcao;
+  if(i<0||j<0||j>=lista.length) return;
+  const a=lista[i], b=lista[j];
+  try{
+    await db.collection('linksUteis').doc(a.id).update({ordem:b.ordem??j});
+    await db.collection('linksUteis').doc(b.id).update({ordem:a.ordem??i});
+  }catch(e){ toast('Erro ao reordenar: '+e.message,'er'); }
+}
 function renderLinksUteis(){
   const el=document.getElementById('links-uteis-lista');
   if(!el) return;
@@ -6867,34 +6879,43 @@ function renderLinksUteis(){
     el.innerHTML='<div style="text-align:center;padding:16px;color:var(--txts);font-size:13px">Nenhum link cadastrado ainda. Clique em "+ Adicionar".</div>';
     return;
   }
-  const grupos={};
-  LINKS_UTEIS.forEach(l=>{ (grupos[l.categoria||'Geral']=grupos[l.categoria||'Geral']||[]).push(l); });
-  el.innerHTML=Object.keys(grupos).sort().map(cat=>{
-    const itens=grupos[cat].map(l=>`
-      <div style="display:flex;align-items:center;gap:8px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px;padding:8px 10px">
-        <a href="${l.url}" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--az);font-weight:600;font-size:13px;min-width:0">
-          <span>${l.icone||'🔗'}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.label}</span>
-        </a>
-        <button onclick="excluirLinkUtil('${l.id}')" title="Remover" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:13px;flex-shrink:0">🗑</button>
-      </div>`).join('');
-    return `<div>
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txts);margin-bottom:6px">${cat}</div>
-      <div style="display:flex;flex-direction:column;gap:6px">${itens}</div>
-    </div>`;
-  }).join('');
+  const lista=[...LINKS_UTEIS].sort((a,b)=>(a.ordem??0)-(b.ordem??0));
+  el.innerHTML=lista.map((l,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;background:#faf9f5;border:1px solid #e4e3dc;border-radius:8px;padding:8px 10px">
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <button onclick="moverLinkUtil('${l.id}',-1)" title="Mover para cima" ${i===0?'disabled':''} style="background:none;border:none;color:${i===0?'#ddd':'#999'};cursor:${i===0?'default':'pointer'};font-size:11px;line-height:1;padding:1px">▲</button>
+        <button onclick="moverLinkUtil('${l.id}',1)" title="Mover para baixo" ${i===lista.length-1?'disabled':''} style="background:none;border:none;color:${i===lista.length-1?'#ddd':'#999'};cursor:${i===lista.length-1?'default':'pointer'};font-size:11px;line-height:1;padding:1px">▼</button>
+      </div>
+      <a href="${l.url}" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--az);font-weight:600;font-size:13px;min-width:0">
+        <span>${l.icone||'🔗'}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.label}</span>
+        <span style="font-size:10px;font-weight:400;color:var(--txts);text-transform:uppercase;letter-spacing:.3px">${l.categoria||''}</span>
+      </a>
+      <button onclick="excluirLinkUtil('${l.id}')" title="Remover" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:13px;flex-shrink:0">🗑</button>
+    </div>`).join('');
 }
 async function semearLinksUteisIniciais(){
   const iniciais=[
-    {label:'Drive Solar Machado', url:'https://drive.google.com/drive/folders/1xKu8l3U17eEqtNwaUhyQb9iXX_76wksC', categoria:'Documentos', icone:'📁'},
-    {label:'Site Solar Machado', url:'https://www.solarmachadoeng.com.br/', categoria:'Portais', icone:'🌐'},
-    {label:'Sou Energy', url:'https://souenergy.com.br/', categoria:'Fornecedores', icone:'⚡'},
-    {label:'Solfácil', url:'https://solfacil.com.br/auth/login', categoria:'Financiamento', icone:'💳'}
+    {label:'Site Solar Machado', url:'https://www.solarmachadoeng.com.br/', categoria:'Portais', icone:'🌐', ordem:1},
+    {label:'Drive Solar Machado', url:'https://drive.google.com/drive/folders/1xKu8l3U17eEqtNwaUhyQb9iXX_76wksC', categoria:'Documentos', icone:'📁', ordem:2},
+    {label:'Solfácil', url:'https://solfacil.com.br/auth/login', categoria:'Financiamento', icone:'💳', ordem:3},
+    {label:'Sou Energy', url:'https://souenergy.com.br/', categoria:'Fornecedores', icone:'⚡', ordem:4}
   ];
   if(LINKS_UTEIS.length){ toast('Já existem links cadastrados — semeadura ignorada.','er'); return; }
   for(const l of iniciais){
     await db.collection('linksUteis').add({...l, criadoPor:'sistema', criadoEm:firebase.firestore.FieldValue.serverTimestamp()});
   }
   toast('✅ Links iniciais cadastrados!','ok');
+}
+async function corrigirOrdemLinksUteisIniciais(){
+  const ordemDesejada={'Site Solar Machado':1,'Drive Solar Machado':2,'Solfácil':3,'Sou Energy':4};
+  let ok=0;
+  for(const l of LINKS_UTEIS){
+    if(ordemDesejada[l.label]!=null){
+      await db.collection('linksUteis').doc(l.id).update({ordem:ordemDesejada[l.label]});
+      ok++;
+    }
+  }
+  toast('✅ Ordem ajustada em '+ok+' link(s)!','ok');
 }
 
 // ══════════════════════════════════════════
