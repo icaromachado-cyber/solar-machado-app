@@ -897,6 +897,7 @@ tr:hover td{background:#faf9f5}
           </div>
           <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Nome do Cliente *</label><input type="text" id="pp-nome" placeholder="Ex: João Silva" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
+            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Telefone/WhatsApp</label><input type="tel" id="pp-telefone" placeholder="(86) 99999-9999" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Cidade</label><input type="text" id="pp-cidade" placeholder="Teresina" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
             <div style="display:flex;flex-direction:column;gap:4px"><label style="font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;color:var(--txts)">Consumo (kWh/mês)</label><input type="number" id="pp-consumo" placeholder="400" oninput="atualizarPreview()" style="padding:9px 11px;border:1px solid var(--cz2);border-radius:8px;font-size:13px"></div>
           </div>
@@ -1021,6 +1022,9 @@ tr:hover td{background:#faf9f5}
             </div>
           </div>
           <div style="display:flex;gap:10px">
+            <button onclick="enviarPropostaWhatsApp()" style="flex:1;justify-content:center;display:flex;align-items:center;gap:6px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700">💬 Enviar via WhatsApp</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:10px">
             <button class="btn btn-y" onclick="gerarPNG()" style="flex:1;justify-content:center">📥 Baixar PNG para WhatsApp</button>
             <button class="btn btn-g" onclick="limparProposta()">🗑</button>
           </div>
@@ -3186,6 +3190,22 @@ function atualizarModalidade(){
   if(wF)wF.style.display=mod==='financiado'?'flex':'none';
   atualizarPreview();
 }
+function enviarPropostaWhatsApp(){
+  const telRaw=(document.getElementById('pp-telefone')?.value||'').replace(/\D/g,'');
+  if(!telRaw){ toast('Preencha o telefone do cliente.','er'); return; }
+  const nome=(document.getElementById('pp-nome')?.value||'').trim();
+  const mods=parseInt(document.getElementById('pp-modulos')?.value)||0;
+  const wp=parseInt(document.getElementById('pp-wpmod')?.value)||610;
+  const kwp=mods&&wp?(mods*wp/1000):0;
+  const valor=parseFloat(document.getElementById('pp-valor')?.value)||0;
+  const primeiroNome=nome.split(' ')[0]||'';
+  let msg='Olá'+(primeiroNome?' '+primeiroNome:'')+'! 👋 Segue a proposta do seu sistema de energia solar';
+  if(kwp>0) msg+=' de *'+kwp.toFixed(2)+' kWp*';
+  if(valor>0) msg+=', no valor de *R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2})+'*';
+  msg+='. Qualquer dúvida, estou à disposição! ☀️ Solar Machado';
+  const numInternacional=(telRaw.startsWith('55')&&telRaw.length>=12)?telRaw:'55'+telRaw;
+  window.open('https://wa.me/'+numInternacional+'?text='+encodeURIComponent(msg),'_blank');
+}
 function calcularProposta(){
   const mods=parseInt(document.getElementById('pp-modulos')?.value)||0;
   const wp=parseInt(document.getElementById('pp-wpmod')?.value)||610;
@@ -3372,7 +3392,7 @@ async function gerarPNG(){
     const gv=i=>document.getElementById(i)?.value||'';
     const gc=i=>!!document.getElementById(i)?.checked;
     const orc={
-      nome, cidade:document.getElementById('pp-cidade')?.value||'',
+      nome, telefone:document.getElementById('pp-telefone')?.value||'', cidade:document.getElementById('pp-cidade')?.value||'',
       consumo:parseFloat(document.getElementById('pp-consumo')?.value)||0,
       modulos:parseInt(document.getElementById('pp-modulos')?.value)||0,
       wpMod:parseInt(document.getElementById('pp-wpmod')?.value)||0,
@@ -3414,7 +3434,7 @@ async function gerarPNG(){
     }
   }catch(e){toast('Erro: '+e.message,'er');}
 }
-function limparProposta(){_editandoOrcamentoId=null;_numeroPropostaAtual=null;_dataPropostaAtual=null;['pp-nome','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-valor-avista','pp-baixar-ate','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
+function limparProposta(){_editandoOrcamentoId=null;_numeroPropostaAtual=null;_dataPropostaAtual=null;['pp-nome','pp-telefone','pp-cidade','pp-consumo','pp-modulos','pp-wpmod','pp-inv','pp-qtd-inv','pp-pinv','pp-geracao','pp-tarifa','pp-valor','pp-valor-avista','pp-baixar-ate','pp-juros'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const ti=document.getElementById('pp-tipo-inv');if(ti)ti.value='string';if(typeof atualizarVisibilidadeInversor==='function')atualizarVisibilidadeInversor();atualizarPreview();}
 
 // ══════════════════════════════════════════
 // ORÇAMENTO WALLBOX
@@ -4712,7 +4732,7 @@ function reabrirProposta(id){
   setTimeout(()=>{
     const s=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
     const sc=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
-    s('pp-nome',o.nome); s('pp-cidade',o.cidade); s('pp-consumo',o.consumo);
+    s('pp-nome',o.nome); s('pp-telefone',o.telefone); s('pp-cidade',o.cidade); s('pp-consumo',o.consumo);
     s('pp-modulos',o.modulos); s('pp-wpmod',o.wpMod); s('pp-inv',o.inversor);
     s('pp-pinv',o.potInv); s('pp-qtd-inv',o.qtdInversores||1); s('pp-geracao',o.geracao); s('pp-tarifa',o.tarifa);
     s('pp-valor',o.valor); s('pp-tab-dist',o.distancia);
