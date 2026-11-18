@@ -2755,6 +2755,7 @@ document.addEventListener('DOMContentLoaded',function(){
 let usuarioAtual=null;
 let isAdmin=false;
 const auth=firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(e=>console.warn('Erro ao definir persistência de login:',e.message));
 function fazerLogout(){if(confirm('Deseja sair?'))auth.signOut();}
 auth.onAuthStateChanged(async user=>{
   if(user){
