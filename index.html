@@ -2851,6 +2851,7 @@ auth.onAuthStateChanged(async user=>{
     setTimeout(() => verificarChamadosDoUsuario(nomeUsuario), 4000);
     // Alerta de visitas amanhã: depois dos chamados (5s)
     setTimeout(() => verificarVisitasAmanha(), 5000);
+    iniciarIdleTimer();
   } else {
     // Sem usuário — garantir que tela de login está visível
     usuarioAtual = null;
@@ -2859,7 +2860,25 @@ auth.onAuthStateChanged(async user=>{
     if (ls) ls.style.display = 'flex';
     const btn = document.getElementById('login-btn');
     if (btn) { btn.textContent = 'Entrar no Sistema'; btn.disabled = false; }
+    pararIdleTimer();
   }
+});
+
+// ══ LOGOUT POR INATIVIDADE (15 min sem mexer na tela) ══
+const IDLE_LIMITE_MS = 15*60*1000;
+let _idleTimer=null;
+function resetarIdleTimer(){
+  if(!usuarioAtual) return;
+  if(_idleTimer) clearTimeout(_idleTimer);
+  _idleTimer=setTimeout(()=>{
+    toast('Sessão encerrada por inatividade.','er');
+    auth.signOut();
+  }, IDLE_LIMITE_MS);
+}
+function iniciarIdleTimer(){ resetarIdleTimer(); }
+function pararIdleTimer(){ if(_idleTimer){clearTimeout(_idleTimer); _idleTimer=null;} }
+['mousemove','keydown','mousedown','click','scroll','touchstart'].forEach(ev=>{
+  document.addEventListener(ev, resetarIdleTimer, {passive:true});
 });
 // ══ TABELA DE PREÇOS ══
 const TABELA_SOLAR = [
