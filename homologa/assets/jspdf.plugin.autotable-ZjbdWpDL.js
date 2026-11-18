@@ -1,4 +1,4 @@
-import{d as Z,g as X,e as K}from"./index-kYIEENbh.js";import{a as V}from"./jspdf.es.min-BNeL66nl.js";var J={exports:{}};const q=Z(V);/*!
+import{d as Z,g as X,e as K}from"./index-DyumSZB7.js";import{a as V}from"./jspdf.es.min-BPobFpzK.js";var J={exports:{}};const q=Z(V);/*!
  * 
  *               jsPDF AutoTable plugin v3.8.4
  *
