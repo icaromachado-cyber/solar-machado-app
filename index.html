@@ -715,7 +715,7 @@ tr:hover td{background:#faf9f5}
             <h2>⚡ Leituras da Semana</h2>
             <button class="btn btn-g" onclick="go('leituras')">Ver Agenda</button>
           </div>
-          <div id="dash-leituras-semana"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
+          <div id="dash-leituras-semana" style="max-height:280px;overflow-y:auto"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
         </div>
 
         <div class="card">
@@ -723,7 +723,7 @@ tr:hover td{background:#faf9f5}
             <h2>📅 Próximas Visitas</h2>
             <button class="btn btn-g" onclick="go('agenda')">Ver Agenda</button>
           </div>
-          <div id="dash-visitas-hoje"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
+          <div id="dash-visitas-hoje" style="max-height:280px;overflow-y:auto"><div style="text-align:center;padding:20px;color:var(--txts);font-size:13px">Carregando...</div></div>
         </div>
       </div>
     </div>
@@ -5214,7 +5214,7 @@ function renderDashLeiturasSemana(){
     const msg=encodeURIComponent(`Olá ${c.cliente}! 👋 Passando para lembrar que a leitura do seu sistema solar está agendada para *${new Date(c.proxLeitura+'T00:00:00').toLocaleDateString('pt-BR')}*. Qualquer dúvida estamos à disposição! ☀️ Solar Machado`);
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0efe8">
       <div style="min-width:70px;font-size:11px;font-weight:700;color:var(--az);text-transform:capitalize">${dt}</div>
-      <div style="flex:1;font-size:13px;font-weight:500">${c.cliente}</div>
+      <div style="flex:1;font-size:13px;font-weight:500">${c.cliente||'—'}</div>
       ${wppNum?`<a href="https://wa.me/55${wppNum}?text=${msg}" target="_blank" style="font-size:18px;text-decoration:none">💬</a>`:''}
     </div>`;
   }).join('');
