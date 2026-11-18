@@ -2074,12 +2074,12 @@ function renderPendencias(){
       ? itens.slice(0,3).map(renderItem).join('')
         + (itens.length>3?`<div style="font-size:11px;color:var(--txts);text-align:center;padding:4px;cursor:pointer" onclick="${aoClicarVerTodos}">+${itens.length-3} mais</div>`:'')
       : `<div style="font-size:12px;color:#1D9E75;text-align:center;padding:14px;font-weight:600">✅ Tudo em dia</div>`;
-    return `<div style="border:1px solid #e4e3dc;border-radius:10px;overflow:hidden">
-      <div style="background:${bg};padding:8px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="${aoClicarVerTodos}">
-        <span style="font-size:12px;font-weight:700;color:${cor}">${icone} ${titulo}</span>
-        <span style="background:${cor};color:#fff;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700">${itens.length}</span>
+    return `<div style="border:1px solid #e4e3dc;border-radius:10px;overflow:hidden;min-width:0">
+      <div style="background:${bg};padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer" onclick="${aoClicarVerTodos}">
+        <span style="font-size:12px;font-weight:700;color:${cor};min-width:0;overflow-wrap:break-word">${icone} ${titulo}</span>
+        <span style="background:${cor};color:#fff;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;flex-shrink:0">${itens.length}</span>
       </div>
-      <div style="padding:8px 10px;background:#fff">${corpo}</div>
+      <div style="padding:8px 10px;background:#fff;min-width:0">${corpo}</div>
     </div>`;
   }
 
@@ -2087,20 +2087,20 @@ function renderPendencias(){
     painel('Chamados Urgentes','🔴', chamadosUrgentes, '#D85A30', '#fdecea',
       c=>{
         const proj=PROJETOS.find(p=>p.id===c.projetoId);
-        return `<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer" onclick="abrirDetChamado(${c.id})">
-          <div style="font-size:12px;font-weight:600">${c.tipo||'Chamado'}</div>
-          <div style="font-size:11px;color:#888">${proj?proj.cliente:(c.clienteAvulso||'—')}</div>
+        return `<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer;min-width:0" onclick="abrirDetChamado(${c.id})">
+          <div style="font-size:12px;font-weight:600;overflow-wrap:break-word">${c.tipo||'Chamado'}</div>
+          <div style="font-size:11px;color:#888;overflow-wrap:break-word">${proj?proj.cliente:(c.clienteAvulso||'—')}</div>
         </div>`;
       }, "go('chamados')")
     + painel('Leituras Atrasadas','🟡', leiturasAtrasadas, '#B8860B', '#fff8e0',
-      c=>`<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer" onclick="go('leituras')">
-          <div style="font-size:12px;font-weight:600">${c.cliente||'—'}</div>
-          <div style="font-size:11px;color:#888">Prevista para ${fmt_data(c.proxLeitura)}</div>
+      c=>`<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer;min-width:0" onclick="go('leituras')">
+          <div style="font-size:12px;font-weight:600;overflow-wrap:break-word">${c.cliente||'—'}</div>
+          <div style="font-size:11px;color:#888;overflow-wrap:break-word">Prevista para ${fmt_data(c.proxLeitura)}</div>
         </div>`, "go('leituras')")
     + painel('Projetos Parados','🟠', projetosParados, '#D2691E', '#fff1e6',
-      p=>`<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer" onclick="go('projetos')">
-          <div style="font-size:12px;font-weight:600">${p.cliente||'—'}</div>
-          <div style="font-size:11px;color:#888">${p.etapa} há ${p._dias} dias</div>
+      p=>`<div style="padding:5px 0;border-bottom:1px solid #f0efe8;cursor:pointer;min-width:0" onclick="go('projetos')">
+          <div style="font-size:12px;font-weight:600;overflow-wrap:break-word">${p.cliente||'—'}</div>
+          <div style="font-size:11px;color:#888;overflow-wrap:break-word">${p.etapa} há ${p._dias} dias</div>
         </div>`, "go('projetos')");
 }
 
