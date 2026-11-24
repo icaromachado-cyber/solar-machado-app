@@ -338,7 +338,6 @@ tr:hover td{background:#f8f9fd}
 
 /* login */
 #login-screen{background:var(--noite)!important;overflow:hidden}
-#login-screen::before{content:"";position:absolute;width:760px;height:760px;right:-210px;top:-230px;border-radius:50%;background:radial-gradient(circle,rgba(253,195,0,.95) 0 22%,rgba(253,195,0,.16) 22.5% 40%,transparent 40.5%);pointer-events:none}
 #login-screen>div{position:relative;border-radius:16px!important;box-shadow:0 30px 80px rgba(0,0,0,.4)!important}
 #login-screen label{text-transform:none!important;letter-spacing:0!important;font-size:12.5px!important}
 #login-screen input{border-width:1px!important;border-color:var(--cz2)!important}
@@ -353,10 +352,6 @@ tr:hover td{background:#f8f9fd}
 .sol-arc{width:200px}.sol-hero{margin-bottom:18px}
 .ph h2{font-size:16px;font-weight:700;color:var(--txt)}
 [style*="#faf9f5"],[style*="#f9f9f7"]{background:#f7f8fc!important;border-color:var(--ln)!important}
-#login-screen::before{background:radial-gradient(circle,rgba(253,195,0,.20) 0 24%,rgba(253,195,0,.08) 24.4% 40%,rgba(253,195,0,.035) 40.4% 56%,transparent 56.4%)}
-.login-sol{position:absolute;width:220px;height:auto;right:60px;top:40px;pointer-events:none;filter:drop-shadow(0 0 40px rgba(253,195,0,.35))}
-@media(max-width:700px){#login-screen::before{width:420px;height:420px;right:-125px;top:-125px}.login-sol{width:96px;right:18px;top:14px;opacity:.7}}
-
 /* material de cliente (PNG das propostas) mantém a identidade antiga */
 #prop-card [style*="Archivo"],#wb-card [style*="Archivo"]{font-family:'Syne',sans-serif!important}
 /* títulos de página */
@@ -406,8 +401,6 @@ tr:hover td{background:#f8f9fd}
   </div>
 </div>
 
-
-<script>(function(){var ls=document.getElementById('login-screen'),l=ls&&ls.querySelector('img');if(!l)return;var i=document.createElement('img');i.className='login-sol';i.alt='';i.src=l.src;ls.insertBefore(i,ls.firstChild)})();</script>
 
 <!-- MODAL TABELA DE PREÇOS -->
 <div id="mo-tabela" class="mo" style="display:none">
