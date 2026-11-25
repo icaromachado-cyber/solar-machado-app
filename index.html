@@ -371,6 +371,7 @@ tr:hover td{background:#f8f9fd}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
@@ -524,6 +525,16 @@ tr:hover td{background:#f8f9fd}
 
 
 <!-- MODAL MOVIMENTAÇÃO -->
+<div class="mo" id="mo-import-plan">
+  <div class="mbox" style="max-width:640px">
+    <div class="mhdr"><h3>Importar planilha financeira</h3><button class="mcls" onclick="closeMo('mo-import-plan')" aria-label="Fechar">✕</button></div>
+    <div class="mbdy" id="imp-corpo"></div>
+    <div class="mftr">
+      <button class="btn btn-g" onclick="closeMo('mo-import-plan')">Cancelar</button>
+      <button class="btn btn-p" id="imp-btn-ok" onclick="confirmarImportacaoPlanilha()">Importar</button>
+    </div>
+  </div>
+</div>
 <div class="mo" id="mo-mov">
   <div class="mbox" style="max-width:520px">
     <div class="mhdr">
@@ -1379,7 +1390,7 @@ tr:hover td{background:#f8f9fd}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <button class="btn btn-p" onclick="openModalMovimentacao()" style="padding:8px 16px">+ Registro</button>
-          <button id="btn-importar-fin" onclick="importarMovimentacoes()" style="display:none;background:#FDC300;border:none;color:#2E3486;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">⬆ Importar</button>
+          <button id="btn-importar-fin" onclick="abrirImportadorPlanilha()" class="btn btn-y" style="display:none">Importar planilha</button><input type="file" id="imp-file" accept=".xlsx" style="display:none" onchange="lerPlanilhaFinanceira(event)">
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
@@ -2962,8 +2973,8 @@ auth.onAuthStateChanged(async user=>{
       if (FIN_USERS.includes(user.email)) {
         const navFin = document.getElementById('nav-financeiro');
         const sepFin = document.getElementById('sep-financeiro');
-        // Botão importar só para admin (Ícaro)
-        if (isAdmin) {
+        // Importar planilha: só a conta do Ícaro
+        if (_impPermitido()) {
           const btnImp = document.getElementById('btn-importar-fin');
           if (btnImp) btnImp.style.display = 'block';
         }
@@ -4690,36 +4701,111 @@ async function excluirMovimentacao() {
 }
 
 // ══ IMPORTAR MOVIMENTAÇÕES DA PLANILHA ══
-const DADOS_IMPORTACAO = [{"data": "2025-08-01", "tipo": "Saída", "valor": 500.0, "desc": "Alimentação escritorio (carne)", "ref": "", "categoria": "Custo Variado", "obs": "Mensal"}, {"data": "2025-08-10", "tipo": "Saída", "valor": 600.0, "desc": "Kleber contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-15", "tipo": "Saída", "valor": 90.0, "desc": "Recarga 3 Chips Vivos", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-18", "tipo": "Saída", "valor": 98.0, "desc": "Dominio do Gmail/Solar Machado", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-19", "tipo": "Saída", "valor": 400.0, "desc": "Contrato Taís", "ref": "", "categoria": "Custos FIXO", "obs": "Quinzenal"}, {"data": "2025-08-19", "tipo": "Saída", "valor": 400.0, "desc": "Contrato Matheus", "ref": "", "categoria": "Custos FIXO", "obs": "Quinzenal"}, {"data": "2025-08-20", "tipo": "Saída", "valor": 350.0, "desc": "Sistema Assertiva", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-20", "tipo": "Saída", "valor": 24.16, "desc": "Canva", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-14", "tipo": "Entrada", "valor": 20000.0, "desc": "Entrada 01 - Sistema de 1500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-14", "tipo": "Saída", "valor": 16066.43, "desc": "Sistema de 1500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-14", "tipo": "Entrada", "valor": 8000.0, "desc": "Entrada 01 - Sistema de 500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-15", "tipo": "Saída", "valor": 5848.63, "desc": "Sistema de 500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-18", "tipo": "Entrada", "valor": 13000.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-18", "tipo": "Entrada", "valor": 10477.88, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-19", "tipo": "Saída", "valor": 10861.61, "desc": "Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-19", "tipo": "Saída", "valor": 10477.88, "desc": "Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-25", "tipo": "Entrada", "valor": 13000.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-26", "tipo": "Saída", "valor": 10964.63, "desc": "Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-08-31", "tipo": "Saída", "valor": 500.0, "desc": "Aluguel sala escritório", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-31", "tipo": "Saída", "valor": 200.0, "desc": "Gasolina", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-08-31", "tipo": "Saída", "valor": 721.18, "desc": "Anúncios Instagram", "ref": "", "categoria": "Custo Variado", "obs": "Mensal"}, {"data": "2025-09-04", "tipo": "Entrada", "valor": 26500.0, "desc": "Entrada 01 - Sistema de 1800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-09-04", "tipo": "Saída", "valor": 17158.94, "desc": "Sistema de 1800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-09-09", "tipo": "Entrada", "valor": 2000.0, "desc": "Entrada 02 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-09-10", "tipo": "Saída", "valor": 600.0, "desc": "Kleber contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-09-26", "tipo": "Saída", "valor": 400.0, "desc": "Contrato Taís", "ref": "", "categoria": "Custos FIXO", "obs": "Quinzenal"}, {"data": "2025-09-26", "tipo": "Saída", "valor": 400.0, "desc": "Contrato Matheus", "ref": "", "categoria": "Custos FIXO", "obs": "Quinzenal"}, {"data": "2025-09-30", "tipo": "Saída", "valor": 1003.51, "desc": "Anúncios", "ref": "", "categoria": "Custo Variado", "obs": "Mensal"}, {"data": "2025-09-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-09-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-09-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-09-30", "tipo": "Entrada", "valor": 27000.0, "desc": "Entrada 01 - Sistema de 2000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-09-30", "tipo": "Saída", "valor": 16373.24, "desc": "Sistema de 2000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-09-30", "tipo": "Entrada", "valor": 15000.0, "desc": "Entrada 01 - Sistema de 1500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-09-30", "tipo": "Entrada", "valor": 20000.0, "desc": "Entrada 01 - Sistema de 2000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-10-01", "tipo": "Saída", "valor": 500.0, "desc": "Alimentação escritorio", "ref": "", "categoria": "Custo Variado", "obs": "Mensal"}, {"data": "2025-10-10", "tipo": "Saída", "valor": 600.0, "desc": "Kleber contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-10-10", "tipo": "Saída", "valor": 400.0, "desc": "Contrato Taís", "ref": "", "categoria": "Custos FIXO", "obs": "Quinzenal"}, {"data": "2025-10-10", "tipo": "Saída", "valor": 400.0, "desc": "Contrato Matheus", "ref": "", "categoria": "Custos FIXO", "obs": "Quinzenal"}, {"data": "2025-10-20", "tipo": "Entrada", "valor": 10500.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-10-20", "tipo": "Entrada", "valor": 10000.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-10-21", "tipo": "Entrada", "valor": 11500.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-10-22", "tipo": "Entrada", "valor": 13500.0, "desc": "Sistema de 800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-10-27", "tipo": "Saída", "valor": 799.0, "desc": "Anúncios", "ref": "", "categoria": "Custo Variado", "obs": "Mensal"}, {"data": "2025-10-30", "tipo": "Saída", "valor": 500.0, "desc": "Aluguel sala escritório", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-10-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-10-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-10-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-11-04", "tipo": "Entrada", "valor": 44500.0, "desc": "Entrada 01 - Sistema de 3500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-04", "tipo": "Saída", "valor": 26756.35, "desc": "Sistema de 3500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-10", "tipo": "Entrada", "valor": 7872.05, "desc": "Entrada 01 - Sistema de 800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-10", "tipo": "Saída", "valor": 7872.05, "desc": "Sistema de 800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-13", "tipo": "Entrada", "valor": 12000.0, "desc": "Entrada 01 - Ampliação KWh", "ref": "", "categoria": "", "obs": ""}, {"data": "2025-11-18", "tipo": "Entrada", "valor": 15999.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-19", "tipo": "Saída", "valor": 8923.12, "desc": "Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-19", "tipo": "Entrada", "valor": 12500.0, "desc": "Entrada 01 - Sistema de 800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-19", "tipo": "Saída", "valor": 7858.53, "desc": "Sistema de 800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-26", "tipo": "Entrada", "valor": 7000.0, "desc": "Entrada 01 - Sistema de 500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-26", "tipo": "Saída", "valor": 5685.73, "desc": "Sistema de 500 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-26", "tipo": "Entrada", "valor": 9000.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-26", "tipo": "Saída", "valor": 9412.28, "desc": "Sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-11-30", "tipo": "Saída", "valor": 500.0, "desc": "Aluguel sala escritório", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-11-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-11-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-11-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-12-10", "tipo": "Saída", "valor": 600.0, "desc": "Kleber contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2025-12-16", "tipo": "Entrada", "valor": 10000.0, "desc": "Entrada 01 - Sistema de 800 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-12-17", "tipo": "Entrada", "valor": 10000.0, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-12-18", "tipo": "Saída", "valor": 8848.71, "desc": "Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-12-18", "tipo": "Entrada", "valor": 13669.47, "desc": "Entrada 01 - Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-12-18", "tipo": "Saída", "valor": 13669.47, "desc": "Sistema de 1000 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2025-12-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-12-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2025-12-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-01-08", "tipo": "Entrada", "valor": 9421.19, "desc": "Entrada 01 - Sistema de 600 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-01-09", "tipo": "Saída", "valor": 6842.38, "desc": "Sistema de 600 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-01-09", "tipo": "Entrada", "valor": 1500.0, "desc": "Entrada 04 - Sistema de 1500 KWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-01-17", "tipo": "Saída", "valor": 500.0, "desc": "Alex Trafego pago", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-01-17", "tipo": "Saída", "valor": 500.0, "desc": "Anúncios", "ref": "", "categoria": "Custo Variado", "obs": "Mensal"}, {"data": "2026-01-20", "tipo": "Saída", "valor": 357.84, "desc": "Sistema Assertiva", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-01-20", "tipo": "Saída", "valor": 24.16, "desc": "Canva", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-01-21", "tipo": "Saída", "valor": 350.0, "desc": "Gasolina", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-01-30", "tipo": "Saída", "valor": 500.0, "desc": "Aluguel sala escritório", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-01-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-01-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-01-30", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-01-31", "tipo": "Saída", "valor": 12407.27, "desc": "Sistema de 1200 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-02-02", "tipo": "Entrada", "valor": 26000.0, "desc": "Entrada do sistema de 2000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-02-02", "tipo": "Saída", "valor": 19549.31, "desc": "Sistema de 2000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-02-03", "tipo": "Entrada", "valor": 12900.0, "desc": "Entrada do sistema de 1200 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-02-10", "tipo": "Saída", "valor": 640.74, "desc": "Contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-02-17", "tipo": "Saída", "valor": 500.0, "desc": "Alex Trafego pago", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-02-20", "tipo": "Saída", "valor": 358.2, "desc": "Sistema Assertiva", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-02-20", "tipo": "Entrada", "valor": 55490.71, "desc": "Entrada do sistema de 6000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-02-20", "tipo": "Saída", "valor": 55490.71, "desc": "Sistema de 6000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-02-28", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-02-28", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-02-28", "tipo": "Saída", "valor": 3036.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-03-04", "tipo": "Entrada", "valor": 14509.29, "desc": "Entrada (1) do sistema de 6000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-03-10", "tipo": "Saída", "valor": 640.74, "desc": "Contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-03-19", "tipo": "Entrada", "valor": 10500.0, "desc": "Entrada do sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-03-19", "tipo": "Saída", "valor": 9929.64, "desc": "Sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-03-24", "tipo": "Entrada", "valor": 14371.81, "desc": "Entrada do sistema de 800 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-03-24", "tipo": "Saída", "valor": 8718.08, "desc": "Sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-03-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-03-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-03-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-04-10", "tipo": "Saída", "valor": 654.81, "desc": "Contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-04-13", "tipo": "Entrada", "valor": 19000.0, "desc": "Entrada 01 do sistema de 1500 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-04-27", "tipo": "Saída", "valor": 14585.65, "desc": "Sistema de 1500 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-04-28", "tipo": "Entrada", "valor": 12000.0, "desc": "Entrada 01 do sistema de 800 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-04-29", "tipo": "Saída", "valor": 8419.68, "desc": "Sistema de 800 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-04-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-04-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-04-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-05-18", "tipo": "Saída", "valor": 654.81, "desc": "Contador", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-05-20", "tipo": "Saída", "valor": 286.43, "desc": "Sistema Assertiva", "ref": "", "categoria": "Custos FIXO", "obs": "Mensal"}, {"data": "2026-05-20", "tipo": "Entrada", "valor": 3700.0, "desc": "Serviço de Desmontagem e Montagem", "ref": "", "categoria": "", "obs": ""}, {"data": "2026-05-27", "tipo": "Entrada", "valor": 10435.36, "desc": "Entrada 01 do sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-05-27", "tipo": "Saída", "valor": 10435.36, "desc": "Sistema de 800 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-05-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore ICARO", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-05-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore RAIANE", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-05-30", "tipo": "Saída", "valor": 2000.0, "desc": "Prolabore BRENDA", "ref": "", "categoria": "Custos FIXO", "obs": ""}, {"data": "2026-06-01", "tipo": "Entrada", "valor": 14000.0, "desc": "Entrada 01 do sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-06-01", "tipo": "Saída", "valor": 11201.37, "desc": "Sistema de 800 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-06-08", "tipo": "Entrada", "valor": 15500.0, "desc": "Entrada 01 do sistema de 1000 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}, {"data": "2026-06-08", "tipo": "Saída", "valor": 9136.06, "desc": "Sistema de 800 kWh", "ref": "", "categoria": "Sistema Solar", "obs": ""}];
-
-async function importarMovimentacoes() {
-  if (!confirm('Importar ' + DADOS_IMPORTACAO.length + ' movimentações da planilha 2025/2026? Esta operação não pode ser desfeita.')) return;
-  
-  toast('Importando ' + DADOS_IMPORTACAO.length + ' registros...', '');
-  let ok = 0, err = 0;
-  
-  // Batch write — Firestore suporta até 500 por batch
-  const BATCH_SIZE = 400;
-  for (let i = 0; i < DADOS_IMPORTACAO.length; i += BATCH_SIZE) {
-    const batch = db.batch();
-    const chunk = DADOS_IMPORTACAO.slice(i, i + BATCH_SIZE);
-    chunk.forEach(m => {
-      const ref = db.collection('movimentacoes').doc();
-      batch.set(ref, {...m, importado: true, criadoEm: firebase.firestore.FieldValue.serverTimestamp()});
+// ══════════════════════════════════
+// IMPORTAÇÃO DA PLANILHA FINANCEIRA
+// A planilha é a única fonte: o arquivo é lido no navegador e nada dela fica no código.
+// ══════════════════════════════════
+let _impSheets = [], _impIgnoradas = 0;
+const IMPORTA_PLANILHA_EMAIL = 'icarocaio18@gmail.com';
+function _impPermitido() { return (usuarioAtual?.email || '').toLowerCase() === IMPORTA_PLANILHA_EMAIL; }
+function abrirImportadorPlanilha() {
+  if (!_impPermitido()) { toast('A importação da planilha está liberada só para a conta do Ícaro.', 'er'); return; }
+  const f = document.getElementById('imp-file'); f.value = ''; f.click();
+}
+function _impHash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+function _impBase(m) { return m.data + '|' + m.tipo + '|' + m.valor.toFixed(2) + '|' + m.desc.toLowerCase().replace(/\s+/g, ' ').trim(); }
+function _impData(v) {
+  if (typeof v === 'number' && v > 20000 && v < 80000) { const d = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 86400000); return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]; }
+  const m = String(v || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? [+m[3], +m[2], +m[1]] : null;
+}
+function _impValor(v) {
+  if (typeof v === 'number') return v;
+  const t = String(v || '').replace(/[^\d,.-]/g, ''); if (!t) return NaN;
+  return parseFloat(t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t);
+}
+async function lerPlanilhaFinanceira(ev) {
+  const arq = ev.target.files[0]; if (!arq) return;
+  if (typeof XLSX === 'undefined') { toast('A biblioteca de planilhas não carregou. Recarregue a página.', 'er'); return; }
+  try {
+    const wb = XLSX.read(await arq.arrayBuffer(), { type: 'array' });
+    _impSheets = []; _impIgnoradas = 0;
+    wb.SheetNames.forEach(nome => {
+      if (!/financeiro/i.test(nome)) return;
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[nome], { header: 1, raw: true, defval: null });
+      const ano = (nome.match(/(\d{4})/) || [])[1] ? +nome.match(/(\d{4})/)[1] : null;
+      const movs = [], corrigidas = [];
+      rows.forEach(r => {
+        const dt = _impData(r[0]); if (!dt) return;
+        const tipoRaw = String(r[2] || '').trim();
+        if (/prevista/i.test(tipoRaw)) { _impIgnoradas++; return; }
+        if (tipoRaw !== 'Entrada' && tipoRaw !== 'Saída') return;
+        const valor = _impValor(r[3]); const desc = String(r[4] || '').trim();
+        if (!isFinite(valor) || valor <= 0 || !desc) return;
+        let [y, mo, d] = dt;
+        if (ano && Math.abs(y - ano) > 1) { corrigidas.push(desc.slice(0, 40) + ' (' + d + '/' + mo + '/' + y + ' → ' + ano + ')'); y = ano; }
+        const cls = String(r[5] || '').trim();
+        const cat = /custos? fixo/i.test(cls) ? 'Custos FIXO' : /custo variado/i.test(cls) ? 'Custo Variado' : /prolabore|pró-labore/i.test(desc) ? 'Prolabore' : cls ? 'Sistema Solar' : '';
+        movs.push({ data: y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0'), tipo: tipoRaw, valor: Math.round(valor * 100) / 100, desc,
+          ref: cat === 'Sistema Solar' ? cls : '', categoria: cat, obs: String(r[6] || '').trim() });
+      });
+      if (movs.length) _impSheets.push({ nome, movs, corrigidas, marcada: /^\d{4}\s+financeiro$/i.test(nome.trim()) });
     });
-    try {
-      await batch.commit();
-      ok += chunk.length;
-    } catch(e) {
-      err += chunk.length;
-      console.error('Batch error:', e);
+    if (!_impSheets.length) { toast('Não encontrei abas financeiras nessa planilha.', 'er'); return; }
+    _impRender(); document.getElementById('mo-import-plan').classList.add('open');
+  } catch (e) { toast('Não consegui ler a planilha: ' + e.message, 'er'); }
+}
+// Resolve o que será gravado: junta as abas marcadas sem duplicar linhas repetidas entre abas
+function _impPlano() {
+  const base = new Map(), docs = [];
+  _impSheets.filter(s => s.marcada).forEach(sh => {
+    const local = new Map();
+    sh.movs.forEach(m => { const b = _impBase(m); const n = local.get(b) || 0; local.set(b, n + 1);
+      if (n >= (base.get(b) || 0)) { docs.push({ id: 'pl_' + _impHash(b) + '_' + n, m }); }
+    });
+    local.forEach((n, b) => base.set(b, Math.max(base.get(b) || 0, n)));
+  });
+  const existentes = new Set((MOVIMENTACOES || []).map(x => x.id));
+  const novas = docs.filter(d => !existentes.has(d.id)).length;
+  const bases = new Set(docs.map(d => _impBase(d.m)));
+  const antigas = (MOVIMENTACOES || []).filter(x => x.importado === true && !String(x.id).startsWith('pl_'));
+  const antigasForaPlanilha = antigas.filter(x => !bases.has(_impBase({ data: x.data, tipo: x.tipo, valor: Number(x.valor) || 0, desc: x.desc || '' }))).length;
+  return { docs, novas, atualizadas: docs.length - novas, antigas, antigasForaPlanilha };
+}
+function _impRender() {
+  const p = _impPlano();
+  const ent = p.docs.filter(d => d.m.tipo === 'Entrada').reduce((s, d) => s + d.m.valor, 0), sai = p.docs.filter(d => d.m.tipo === 'Saída').reduce((s, d) => s + d.m.valor, 0);
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const corr = _impSheets.filter(s => s.marcada).flatMap(s => s.corrigidas);
+  document.getElementById('imp-corpo').innerHTML =
+    '<p style="font-size:13px;color:var(--txts);margin-bottom:12px">Marque as abas que valem. A aba "Financeiro - Geral" costuma ser uma versão antiga das abas por ano.</p>' +
+    _impSheets.map((s, i) => '<label style="display:flex;gap:10px;align-items:center;padding:8px 0;font-size:13.5px;cursor:pointer"><input type="checkbox" ' + (s.marcada ? 'checked' : '') + ' onchange="_impSheets[' + i + '].marcada=this.checked;_impRender()"> <span style="flex:1"><b>' + s.nome + '</b></span><span style="color:var(--txts)">' + s.movs.length + ' linhas</span></label>').join('') +
+    '<div style="border-top:1px solid var(--ln);margin:12px 0;padding-top:12px;font-size:13.5px;line-height:1.7">' +
+    '<div><b>' + p.docs.length + '</b> movimentações: <b>' + p.novas + '</b> novas e <b>' + p.atualizadas + '</b> já importadas</div>' +
+    '<div>Entradas <b style="color:var(--ok)">' + brl(ent) + '</b> · Saídas <b style="color:var(--er)">' + brl(sai) + '</b> · Saldo <b>' + brl(ent - sai) + '</b></div>' +
+    (_impIgnoradas ? '<div style="color:var(--txts)">' + _impIgnoradas + ' linhas "Prevista" ficaram de fora, porque ainda não aconteceram.</div>' : '') +
+    (corr.length ? '<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--warn)">' + corr.length + ' datas com ano errado foram corrigidas</summary><div style="font-size:12px;color:var(--txts);padding:6px 0">' + corr.slice(0, 12).join('<br>') + (corr.length > 12 ? '<br>…' : '') + '</div></details>' : '') +
+    '</div>' +
+    (p.antigas.length ? '<label style="display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:8px;background:var(--warn2);font-size:13px;cursor:pointer"><input type="checkbox" id="imp-subst" ' + (p.antigasForaPlanilha === 0 ? 'checked' : '') + ' style="margin-top:3px"><span>Remover as <b>' + p.antigas.length + '</b> movimentações da importação antiga, que passam a vir da planilha.' + (p.antigasForaPlanilha ? ' <b>' + p.antigasForaPlanilha + ' delas não aparecem na planilha</b>, então deixei desmarcado.' : '') + ' Registros lançados à mão não são tocados.</span></label>' : '');
+  document.getElementById('imp-btn-ok').disabled = !p.docs.length;
+}
+async function confirmarImportacaoPlanilha() {
+  if (!_impPermitido()) { toast('Importação liberada só para a conta do Ícaro.', 'er'); return; }
+  const p = _impPlano(); if (!p.docs.length) return;
+  const remover = document.getElementById('imp-subst')?.checked ? p.antigas : [];
+  if (!confirm('Gravar ' + p.docs.length + ' movimentações' + (remover.length ? ' e remover ' + remover.length + ' da importação antiga' : '') + '?')) return;
+  const btn = document.getElementById('imp-btn-ok'); btn.disabled = true; btn.textContent = 'Importando…';
+  try {
+    const ops = [
+      ...p.docs.map(d => ({ ref: db.collection('movimentacoes').doc(d.id), set: { ...d.m, importado: true, origem: 'planilha', criadoEm: firebase.firestore.FieldValue.serverTimestamp() } })),
+      ...remover.map(x => ({ ref: db.collection('movimentacoes').doc(x.id), del: true }))
+    ];
+    for (let i = 0; i < ops.length; i += 400) {
+      const b = db.batch(); ops.slice(i, i + 400).forEach(o => o.del ? b.delete(o.ref) : b.set(o.ref, o.set)); await b.commit();
     }
-  }
-  
-  toast('✅ Importados ' + ok + ' registros!' + (err ? ' (' + err + ' erros)' : ''), 'ok');
-  // Esconder botão após importar
-  const btnImp = document.getElementById('btn-importar-fin');
-  if (btnImp) btnImp.style.display = 'none';
+    closeMo('mo-import-plan');
+    toast('Importadas ' + p.docs.length + ' movimentações' + (remover.length ? '; ' + remover.length + ' antigas removidas' : '') + '.', 'ok');
+  } catch (e) { toast('Erro ao importar: ' + e.message, 'er'); }
+  btn.disabled = false; btn.textContent = 'Importar';
 }
 
 // ══════════════════════════════════
@@ -4928,48 +5014,6 @@ function criarProjetoDeOrc(id){
 }
 
 // ── AGENDA DE LEITURAS ─────────────────────────────────
-const CLIENTES_UC = [
-  {nome:'Francisco Ricardo Calisto de Morais',cliente:'Paulo Victor',uc:'186481',proxLeitura:'2026-07-08',status:'ok'},
-  {nome:'Raimunda Fabiana Sousa Alvarenga',cliente:'Raimunda Fabiana',uc:'14614340',proxLeitura:'2026-07-06',status:'ok'},
-  {nome:'Paulo Afonso Marques',cliente:'Raquel Marques',uc:'3004756184',proxLeitura:'2026-07-06',status:'ok'},
-  {nome:'Ediane Pereira Barros',cliente:'Ediane Pereira Barros',uc:'3008181810',proxLeitura:'2026-07-06',status:'ok'},
-  {nome:'Rafael Alves Martins',cliente:'Andresa',uc:'3004958860',proxLeitura:'2026-07-20',status:'ok'},
-  {nome:'JESUS JEFFERSON SAMPAIO MESQUITA',cliente:'Jeferson',uc:'3004767313',proxLeitura:'2026-07-09',status:'ok'},
-  {nome:'CLEILDES PEREIRA DA SILVA OTAVIO',cliente:'Rennee Anderson Otavio Silva',uc:'10218580',proxLeitura:'2026-07-13',status:'ok'},
-  {nome:'Isabel Maria Lima',cliente:'Roberta',uc:'6346200',proxLeitura:'2026-07-13',status:'ok'},
-  {nome:'Djames Silva Bona',cliente:'Djames',uc:'5766702',proxLeitura:'2026-07-13',status:'ok'},
-  {nome:'VIVIAN MENDES',cliente:'Jorge Audo',uc:'3001504770',proxLeitura:'2026-07-13',status:'ok'},
-  {nome:'MARIA DO SOCORRO LOPES RODRIGUES',cliente:'MARIA JULIETE LOPES RODRIGUES',uc:'3003096288',proxLeitura:'2026-07-13',status:'ok'},
-  {nome:'WALISSON DE OLIVEIRA SOBRINHO',cliente:'WALISSON',uc:'14124769',proxLeitura:'2026-07-13',status:'ok'},
-  {nome:'José Alberto de Sousa',cliente:'José Alberto',uc:'1918184',proxLeitura:'2026-07-14',status:'ok'},
-  {nome:'Sebastião Pereira Neves Filho',cliente:'Sebastião',uc:'13759043',proxLeitura:'2026-07-14',status:'ok'},
-  {nome:'REGINA LUCIA DA SILVA CRUZ',cliente:'REGINA LUCIA DA SILVA CRUZ',uc:'1085778',proxLeitura:'2026-07-14',status:'ok'},
-  {nome:'Maltide Machado Vieira',cliente:'Maltide Machado Vieira',uc:'200315658',proxLeitura:'2026-07-14',status:'ok'},
-  {nome:'Inácio Rocha Pita Neto',cliente:'Ernandes',uc:'3004710010',proxLeitura:'2026-07-18',status:'ok'},
-  {nome:'ROBERTO BARBOSA DE MIRANDA',cliente:'ROBERTO BARBOSA DE MIRANDA',uc:'3005063387',proxLeitura:'2026-07-18',status:'ok'},
-  {nome:'Dailton da Silva De Castro',cliente:'Dailton Castro',uc:'3019138584',proxLeitura:'2026-07-22',status:'ok'},
-  {nome:'Fabiano de Cristo Pereira da Silva',cliente:'Fabiano',uc:'560340',proxLeitura:'2026-06-25',status:''},
-  {nome:'Edilene Carvalho Santos',cliente:'Edilene',uc:'560332',proxLeitura:'2026-06-25',status:''},
-  {nome:'Maria do Socorro Conrado',cliente:'Maria do Socorro',uc:'544493',proxLeitura:'2026-06-25',status:''},
-  {nome:'Marilene Dantas Amorim da Silva',cliente:'Wanescla',uc:'3003027766',proxLeitura:'2026-07-02',status:'ok'},
-  {nome:'Marcelo-Eugenio Carvalho do Rego Monteiro',cliente:'Marcelo-Eugenio',uc:'3002094435',proxLeitura:'2026-06-26',status:''},
-  {nome:'Maria Nerina Pessoa Castelo Branco',cliente:'Maria de Fatima',uc:'888559',proxLeitura:'2026-06-27',status:''},
-  {nome:'EDILANDO BARROSO DE OLIVEIRA',cliente:'Ediliano',uc:'9917446',proxLeitura:'2026-04-29',status:''},
-  {nome:'GABRIEL ALEXANDRINO CALLADO',cliente:'GABRIEL ALEXANDRINO CALLADO',uc:'3005459558',proxLeitura:'2026-07-09',status:'ok'},
-  {nome:'IRVAYNE MATHEUS DE SOUSA IBIAPINA',cliente:'IRVAYNE MATHEUS',uc:'3004004085',proxLeitura:'2026-06-18',status:'ok'},
-  {nome:'ELIANA SILVA LOUREIRO',cliente:'ELIANA SILVA LOUREIRO',uc:'3005557649',proxLeitura:'2026-06-29',status:''},
-  {nome:'DOMINGOS JAMES DE ARAUJO SOUZA',cliente:'DOMINGOS JAMES',uc:'',proxLeitura:'',status:''},
-  {nome:'OSMIR BATISTA DA SILVA JUNIOR',cliente:'OSMIR BATISTA',uc:'151378',proxLeitura:'2026-07-20',status:'ok'},
-  {nome:'MIRIAN ALVES PEREIRA DE OLIVEIRA',cliente:'MIRIAN ALVES',uc:'3000476896',proxLeitura:'2026-07-14',status:'ok'},
-  {nome:'JOAO BATISTA DE SOUSA',cliente:'JOAO BATISTA',uc:'7069146',proxLeitura:'2026-06-17',status:'ok'},
-  {nome:'FRANCISAURA NERES WAQUIM DE ABREU',cliente:'FRANCISAURA NERES',uc:'15823490',proxLeitura:'2026-07-14',status:'ok'},
-  {nome:'VICTOR EMANUEL JORGE LEJEUNE',cliente:'JARDEL CARVALHO ENNES FONSECA',uc:'3005954532',proxLeitura:'',status:''},
-  {nome:'DENISE MARIA OLIVEIRA DE MORAIS BRIOZO',cliente:'DENISE MARIA',uc:'3006233537',proxLeitura:'',status:''},
-  {nome:'ROSILEIDE NECO SOARES',cliente:'ROSILEIDE NECO',uc:'3006241670',proxLeitura:'',status:''},
-  {nome:'VANDERLANDIO RODRIGUES LEAL',cliente:'VANDERLANDIO',uc:'2586584',proxLeitura:'2026-06-22',status:''},
-  {nome:'JOANA D ARC GOMES DA SILVA',cliente:'JOANA D ARC',uc:'1086120',proxLeitura:'2026-07-14',status:'ok'},
-];
-
 let AGENDA_LEITURAS = [];
 let HISTORICO_LEITURAS = {}; // keyed by ucId
 function agendaTemProjeto(c){
@@ -5123,15 +5167,7 @@ async function sincronizarBeneficiarias(){
 
 function initAgendaLeiturasListener(){
   db.collection('agenda_leituras').onSnapshot(snap=>{
-    if(snap.empty){
-      // Primeira vez: importa os dados da planilha
-      const batch=db.batch();
-      CLIENTES_UC.forEach(c=>{
-        const ref=db.collection('agenda_leituras').doc(c.uc||c.nome.replace(/\s+/g,'_').slice(0,20));
-        batch.set(ref,{...c,importadoEm:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-      });
-      batch.commit();
-    } else {
+    {
       AGENDA_LEITURAS=snap.docs.map(d=>({id:d.id,...d.data()}));
       sincronizarBeneficiarias();
       atualizarBadgeLeituras();
