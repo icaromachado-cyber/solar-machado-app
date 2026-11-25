@@ -726,6 +726,9 @@ tr:hover td{background:#f8f9fd}
     <div class="ni" onclick="go('contratos');toggleMenu(false)">
       <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h11v15a3 3 0 01-3 3H6a3 3 0 003-3V6a3 3 0 00-2-3zM11 8h4M11 12h4"/></svg></div><span>Contratos</span>
     </div>
+    <div class="ni" onclick="go('procuracoes');toggleMenu(false)">
+      <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1L19.5 7.5a2.1 2.1 0 00-3-3L5 16zM14 6l4 4"/></svg></div><span>Procurações</span>
+    </div>
     <div class="nav-sec" id="sep-financeiro" style="display:none">Financeiro</div>
     <div class="ni" id="nav-financeiro" onclick="go('financeiro');toggleMenu(false)" style="display:none">
       <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.5 2 0 00-2.5-1.5c-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2A2.7 2 0 019.5 15M12 6v2M12 16v2"/></svg></div><span>Financeiro</span>
@@ -1381,6 +1384,23 @@ tr:hover td{background:#f8f9fd}
       </div>
     </div>
 
+    <!-- PAGE PROCURAÇÕES -->
+    <div id="page-procuracoes" class="page">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <h1 style="font-size:20px;font-weight:700">Procurações</h1>
+          <div style="font-size:13px;color:var(--txts);margin-top:4px">Procuração para acesso à distribuidora, em PDF ou Word, sem timbrado</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="proc-busca" type="text" placeholder="Buscar cliente..." oninput="renderProcuracoes()" style="padding:8px 12px;border:1px solid var(--cz2);border-radius:8px;font-size:13px;min-width:200px">
+          <button class="btn btn-y" onclick="abrirNovaProcuracao()">+ Nova procuração</button>
+        </div>
+      </div>
+      <div id="proc-lista" style="display:flex;flex-direction:column;gap:10px">
+        <div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Carregando...</div>
+      </div>
+    </div>
+
     <!-- PAGE FINANCEIRO -->
     <div id="page-financeiro" class="page">
       <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
@@ -1968,6 +1988,39 @@ tr:hover td{background:#f8f9fd}
   </div>
 </div>
 
+<div class="mo" id="mo-procuracao">
+  <div class="mbox" style="max-width:860px">
+    <div class="mhdr">
+      <h3 id="proc-titulo-modal">Nova procuração</h3>
+      <button class="mcls" onclick="closeMo('mo-procuracao')" aria-label="Fechar">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="fg">
+        <div class="fgrp full"><label>Outorgante (quem concede os poderes): nome completo *</label><input id="proc-nome" type="text"></div>
+        <div class="fgrp"><label>CPF do outorgante *</label><input id="proc-cpf" type="text" placeholder="000.000.000-00"></div>
+        <div class="fgrp full"><label>Endereço do outorgante (rua, número, CEP, cidade e estado) *</label><input id="proc-endereco" type="text"></div>
+        <div class="fgrp full"><label>Outorgado (quem recebe os poderes): nome completo *</label><input id="proc-onome" type="text"></div>
+        <div class="fgrp"><label>CPF do outorgado *</label><input id="proc-ocpf" type="text"></div>
+        <div class="fgrp full"><label>Endereço do outorgado</label><input id="proc-oendereco" type="text"></div>
+        <div class="fgrp full"><label>Poderes</label><textarea id="proc-poderes" rows="6"></textarea></div>
+        <div class="fgrp full"><label>Objetivo</label><textarea id="proc-objetivo" rows="3"></textarea></div>
+        <div class="fgrp"><label>Validade (dias após a assinatura)</label><input id="proc-validade" type="number" value="60"></div>
+        <div class="fgrp"><label>Data de assinatura *</label><input id="proc-data" type="date"></div>
+      </div>
+      <div id="proc-preview-wrap" style="display:none;margin-top:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--txts);margin-bottom:8px">Pré-visualização</div>
+        <div id="proc-preview" style="border:1px solid #e4e3dc;border-radius:8px;max-height:420px;overflow:auto;padding:16px;background:#fff;font-family:'Times New Roman',Georgia,serif"></div>
+      </div>
+    </div>
+    <div class="mftr" style="flex-wrap:wrap">
+      <button class="btn btn-g" onclick="closeMo('mo-procuracao')">Cancelar</button>
+      <button class="btn btn-g" onclick="prevVisualizarProcuracao()">Pré-visualizar</button>
+      <button class="btn btn-p" onclick="salvarEExportarProcuracao('pdf')">Gerar PDF</button>
+      <button class="btn btn-p" onclick="salvarEExportarProcuracao('docx')">Gerar Word</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2072,7 +2125,7 @@ function go(p) {
   document.querySelectorAll('.ni').forEach(x => x.classList.remove('on'));
   document.getElementById('page-' + p)?.classList.add('on');
   window.scrollTo(0,0);
-  const titles = {dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Orçamento Wallbox',historico:'Histórico',historicoWallbox:'Histórico Wallbox',financeiro:'Financeiro',agenda:'Agenda',relatorio:'Relatório Diário',contratos:'Contratos'};
+  const titles = {procuracoes:'Procurações',dash:'Dashboard',pipeline:'Pipeline',projetos:'Projetos',chamados:'Chamados',leituras:'Leituras',mapa:'Mapa de Clientes',propostas:'Propostas',wallbox:'Orçamento Wallbox',historico:'Histórico',historicoWallbox:'Histórico Wallbox',financeiro:'Financeiro',agenda:'Agenda',relatorio:'Relatório Diário',contratos:'Contratos'};
   document.getElementById('tb-title').textContent = titles[p]||p;
   // Destacar item ativo na sidebar
   document.querySelectorAll('.ni').forEach(n => {
@@ -2098,6 +2151,7 @@ function go(p) {
   if(p==='historico') renderOrcamentos();
   if(p==='historicoWallbox') renderOrcamentosWallbox();
   if(p==='contratos') renderContratos();
+  if(p==='procuracoes') renderProcuracoes();
   atualizarBtnNovo(p);
 }
 
@@ -6537,6 +6591,10 @@ const CRONOGRAMA_PADRAO_7=[
 ];
 const COMPONENTES_PADRAO=[['Cabeamento CC','','4 mm'],['Conectores MC4 (macho + fêmea)','2','1500V'],['Sistema de Monitoramento','1','Incluso no Inversor'],['Estrutura de Suporte','','Prisioneiro para madeira com perfil H1 em PRFV p/ telhados com telhas cerâmicas/metálica/fibrocimento']];
 
+const PROCURACAO_PODERES_PADRAO='Realizar todos os procedimentos e atos necessários para obter cadastro do estabelecimento residencial do Outorgante, proceder eventuais reclamações formais junto a distribuidora, ouvidoria e/ou ANEEL, assim como solicitar o acesso para efetivar a Geração distribuída com fonte de solar fotovoltaica, regulamentada para Resolução Normativa (REN), REN 482 de 17/04/2012 da ANEEL, com revisões dadas pela REN 517 de 11/12/2012 e REN 687 de 24/11/2015.';
+// Outorgado padrão: o proprietário da Solar Machado (mesmos dados do bloco CONTRATADA dos contratos)
+const PROCURACAO_OUTORGADO_PADRAO={nome:'Ícaro Caio de Sousa Machado',cpf:'055.069.043-39',endereco:'Rua Professor José Amável, nº 799, Bairro Cabral, CEP 64.000-550, Teresina-PI'};
+const PROCURACAO_OBJETIVO_PADRAO='Todos os poderes especificados, nesta procuração destinam-se exclusivamente e especificamente à defesa dos interesses do outorgante junto a esta distribuidora.';
 const CONTRATO_MODELOS={
   av_digi:{
     label:'Pessoa Física — Financiamento à Vista',
@@ -6606,6 +6664,21 @@ const CONTRATO_MODELOS={
 };
 
 // ---- Montagem do contrato completo em blocos ----
+function montarBlocosProcuracao(d){
+  return [
+    cTitle('PROCURAÇÃO'),
+    cSp(),
+    cP('OUTORGANTE: '+d.nome+', CPF: '+d.cpf+', '+d.endereco+'.'),
+    cP('O presente instrumento particular de mandato, nomeia e constitui como seu bastante procurador.'),
+    cP('OUTORGADO: '+d.outorgadoNome+', brasileiro(a), CPF: '+d.outorgadoCpf+', residente e domiciliado(a) na '+(d.outorgadoEndereco||d.endereco)+', Conferindo-lhes:'),
+    cP('PODER: '+d.poderes),
+    cP('OBJETIVO: '+d.objetivo),
+    cP('VALIDADE: '+d.validadeDias+' dias após a assinatura.'),
+    cSp(),
+    cP(dataPorExtenso(d.dataAssinatura)),
+    cSig(d.nome,'Outorgante')
+  ];
+}
 function montarBlocosContrato(d){
   const cfg=CONTRATO_MODELOS[d.modelo];
   const blocos=[];
@@ -6662,7 +6735,8 @@ function montarBlocosContrato(d){
 }
 
 // ---- Renderização em HTML (para PDF) ----
-function contratoBlocosParaHtml(blocos){
+function contratoBlocosParaHtml(blocos,simples){
+  if(simples) return contratoBlocosParaHtmlSimples(blocos);
   const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const nl2br=s=>esc(s).replace(/\n/g,'<br>');
   return blocos.map(b=>{
@@ -6676,6 +6750,20 @@ function contratoBlocosParaHtml(blocos){
       return `<table data-blk style="width:100%;border-collapse:collapse;margin:0 0 14px;border:1px solid #d7d3c4">${rows}</table>`;
     }
     if(b.t==='sig') return `<div data-blk style="text-align:center;margin:30px 0 4px;font-size:11px;color:#242424">______________________________________________<br><b style="color:#2E3486">${esc(b.nome||'')}</b><br><span style="color:#555">${esc(b.papel)}</span></div>`;
+    if(b.t==='sp') return `<div data-blk style="height:10px"></div>`;
+    return '';
+  }).join('');
+}
+// Documento simples (procuração): sem cores, sem timbrado
+function contratoBlocosParaHtmlSimples(blocos){
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const nl2br=s=>esc(s).replace(/\n/g,'<br>');
+  return blocos.map(b=>{
+    if(b.t==='title') return `<div data-blk style="font-weight:700;font-size:15px;text-align:center;margin:0 0 14px;color:#000">${esc(b.x)}</div>`;
+    if(b.t==='h'||b.t==='b') return `<div data-blk data-h="1" style="font-weight:700;font-size:12px;line-height:1.6;margin:14px 0 8px;color:#000">${nl2br(b.x)}</div>`;
+    if(b.t==='p') return `<div data-blk style="font-size:12px;line-height:1.7;text-align:justify;margin:0 0 12px;color:#000">${nl2br(b.x)}</div>`;
+    if(b.t==='li') return `<div data-blk style="font-size:12px;line-height:1.7;text-align:justify;margin:0 0 8px;padding-left:20px;text-indent:-20px;color:#000">${nl2br(b.x)}</div>`;
+    if(b.t==='sig') return `<div data-blk style="text-align:center;margin:56px 0 4px;font-size:12px;color:#000">______________________________________________<br><b>${esc(b.nome)}</b><br>${esc(b.papel)}</div>`;
     if(b.t==='sp') return `<div data-blk style="height:10px"></div>`;
     return '';
   }).join('');
@@ -6745,18 +6833,19 @@ function _desenharCabecalhoRodapeContrato(ctx, pxPerMm, canvasW, pageHeightPx, h
   ctx.fillText('Página '+pagina+' de '+totalPaginas, canvasW-padX, footerTop+footerPx-2.5*pxPerMm);
   ctx.textAlign='left';
 }
-async function gerarPdfContrato(blocos, nomeArquivo){
+async function gerarPdfContrato(blocos, nomeArquivo, simples){
   const el=_containerContratoEl();
-  el.innerHTML=contratoBlocosParaHtml(blocos);
-  const [,wordmarkImg,iconImg,marcaDaguaImg]=await Promise.all([
+  el.innerHTML=contratoBlocosParaHtml(blocos,simples);
+  const [,wordmarkImg,iconImg,marcaDaguaImg]=simples?[0,null,null,null]:await Promise.all([
     new Promise(r=>setTimeout(r,80)),
     _carregarImagemContrato(LOGO_TIMBRADO_WORDMARK),
     _carregarImagemContrato(LOGO_TIMBRADO_ICONE),
     _carregarImagemContrato(LOGO_TIMBRADO_MARCADAGUA)
   ]);
+  if(simples) await new Promise(r=>setTimeout(r,80));
   const scale=2;
   const canvas=await html2canvas(el,{scale,backgroundColor:null,useCORS:true,logging:false});
-  const pageWmm=210, pageHmm=297, headerMm=18, footerMm=20;
+  const pageWmm=210, pageHmm=297, headerMm=simples?14:18, footerMm=simples?16:20;
   const pxPerMm=canvas.width/pageWmm;
   const pageHeightPx=Math.round(pxPerMm*pageHmm);
   const headerPx=Math.round(pxPerMm*headerMm);
@@ -6817,7 +6906,7 @@ async function gerarPdfContrato(blocos, nomeArquivo){
       ctx.drawImage(marcaDaguaImg, 0, headerPx+(usablePx-mH)/2, mW, mH);
     }
     ctx.drawImage(canvas,0,prev,canvas.width,sliceH,0,headerPx,canvas.width,sliceH);
-    _desenharCabecalhoRodapeContrato(ctx,pxPerMm,canvas.width,pageHeightPx,headerPx,footerPx,wordmarkImg,iconImg,i+1,cuts.length);
+    if(!simples) _desenharCabecalhoRodapeContrato(ctx,pxPerMm,canvas.width,pageHeightPx,headerPx,footerPx,wordmarkImg,iconImg,i+1,cuts.length);
     const img=pageCanvas.toDataURL('image/jpeg',0.95);
     if(i>0) pdf.addPage();
     pdf.addImage(img,'JPEG',0,0,pageWmm,pageHmm);
@@ -6853,7 +6942,16 @@ function _wTable(rows){
   const trs=rows.map((r,i)=>'<w:tr>'+r.map(c=>`<w:tc><w:tcPr><w:tcW w:w="2500" w:type="dxa"/>${i===0?'<w:shd w:val="clear" w:color="auto" w:fill="2E3486"/>':''}</w:tcPr>${_wP(c,{bold:i===0,align:'center',size:20,spacingAfter:0,color:i===0?'FFFFFF':'242424'})}</w:tc>`).join('')+'</w:tr>').join('');
   return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${borders}</w:tblPr>${grid}${trs}</w:tbl>`;
 }
-function contratoBlocosParaOoxml(blocos){
+function contratoBlocosParaOoxml(blocos,simples){
+  if(simples) return blocos.map(b=>{
+    if(b.t==='title') return _wP(b.x,{bold:true,align:'center',size:28,spacingAfter:280});
+    if(b.t==='h'||b.t==='b') return _wP(b.x,{bold:true,align:'left',size:24,spacingBefore:200,spacingAfter:140});
+    if(b.t==='p') return _wP(b.x,{align:'both',size:24});
+    if(b.t==='li') return _wP(b.x,{align:'both',size:24,hanging:280,spacingAfter:100});
+    if(b.t==='sig') return _wP('______________________________________________\n'+(b.nome||'')+'\n'+b.papel,{align:'center',size:24,spacingBefore:900,spacingAfter:0});
+    if(b.t==='sp') return _wP('',{size:24,spacingAfter:0});
+    return '';
+  }).join('');
   return blocos.map(b=>{
     if(b.t==='title') return _wP(b.x,{bold:true,align:'center',size:28,spacingAfter:240,color:'2E3486'});
     if(b.t==='h') return _wP(b.x,{bold:true,align:'left',size:24,spacingBefore:260,spacingAfter:140,color:'2E3486',borderLeft:'FDC300'});
@@ -6913,8 +7011,8 @@ function _docxFooterXml(){
     +'<w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:sz w:val="14"/><w:color w:val="8a8a8a"/></w:rPr><w:t xml:space="preserve">Página </w:t></w:r><w:fldSimple w:instr=" PAGE "><w:r><w:rPr><w:sz w:val="14"/><w:color w:val="8a8a8a"/></w:rPr><w:t>1</w:t></w:r></w:fldSimple><w:r><w:rPr><w:sz w:val="14"/><w:color w:val="8a8a8a"/></w:rPr><w:t xml:space="preserve"> de </w:t></w:r><w:fldSimple w:instr=" NUMPAGES "><w:r><w:rPr><w:sz w:val="14"/><w:color w:val="8a8a8a"/></w:rPr><w:t>1</w:t></w:r></w:fldSimple></w:p>'
     +'</w:ftr>';
 }
-async function gerarDocxContrato(blocos, nomeArquivo){
-  const bodyXml=contratoBlocosParaOoxml(blocos);
+async function gerarDocxContrato(blocos, nomeArquivo, simples){
+  const bodyXml=contratoBlocosParaOoxml(blocos,simples);
   const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>'+bodyXml+'<w:sectPr><w:headerReference w:type="default" r:id="rIdHeader"/><w:footerReference w:type="default" r:id="rIdFooter"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1680" w:right="1133" w:bottom="1700" w:left="1700" w:header="567" w:footer="680" w:gutter="0"/></w:sectPr></w:body></w:document>';
   const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>';
   const rootRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
@@ -6926,14 +7024,18 @@ async function gerarDocxContrato(blocos, nomeArquivo){
   zip.folder('_rels').file('.rels',rootRels);
   const wordFolder=zip.folder('word');
   wordFolder.file('document.xml',documentXml);
-  wordFolder.file('header1.xml',_docxHeaderXml());
-  wordFolder.file('footer1.xml',_docxFooterXml());
+  const vazioHdr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:p/></w:hdr>';
+  const vazioFtr=vazioHdr.replace(/w:hdr/g,'w:ftr');
+  wordFolder.file('header1.xml',simples?vazioHdr:_docxHeaderXml());
+  wordFolder.file('footer1.xml',simples?vazioFtr:_docxFooterXml());
   wordFolder.folder('_rels').file('document.xml.rels',documentRels);
-  wordFolder.folder('_rels').file('header1.xml.rels',headerRels);
-  wordFolder.folder('_rels').file('footer1.xml.rels',footerRels);
-  wordFolder.folder('media').file('logo-wordmark.png',_base64Payload(LOGO_TIMBRADO_WORDMARK),{base64:true});
-  wordFolder.folder('media').file('logo-icone.png',_base64Payload(LOGO_TIMBRADO_ICONE),{base64:true});
-  wordFolder.folder('media').file('logo-marcadagua.png',_base64Payload(LOGO_TIMBRADO_MARCADAGUA),{base64:true});
+  if(!simples){
+    wordFolder.folder('_rels').file('header1.xml.rels',headerRels);
+    wordFolder.folder('_rels').file('footer1.xml.rels',footerRels);
+    wordFolder.folder('media').file('logo-wordmark.png',_base64Payload(LOGO_TIMBRADO_WORDMARK),{base64:true});
+    wordFolder.folder('media').file('logo-icone.png',_base64Payload(LOGO_TIMBRADO_ICONE),{base64:true});
+    wordFolder.folder('media').file('logo-marcadagua.png',_base64Payload(LOGO_TIMBRADO_MARCADAGUA),{base64:true});
+  }
   const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=nomeArquivo;
@@ -7125,11 +7227,103 @@ async function deletarContrato(id){
   try{ await db.collection('contratos').doc(id).delete(); toast('Contrato excluído.','ok'); }
   catch(e){ toast('Erro ao excluir: '+e.message,'er'); }
 }
-let CONTRATOS=[];
+let CONTRATOS=[], PROCURACOES=[];
+// ══════════════════════════════════
+// PROCURAÇÕES (documento próprio, fora de Contratos): PDF/Word simples, sem timbrado e sem cores
+// Guardadas na mesma coleção do histórico, com tipoDocumento:'procuracao'
+// ══════════════════════════════════
+let editandoProcuracaoId=null;
+function _prSet(id,v){const el=document.getElementById(id);if(el)el.value=(v==null?'':v);}
+function _prGet(id){const el=document.getElementById(id);return el?String(el.value||'').trim():'';}
+function _prPreencher(d){
+  _prSet('proc-nome',d.nome); _prSet('proc-cpf',d.cpf); _prSet('proc-endereco',d.endereco);
+  _prSet('proc-onome',d.outorgadoNome); _prSet('proc-ocpf',d.outorgadoCpf); _prSet('proc-oendereco',d.outorgadoEndereco);
+  _prSet('proc-poderes',d.poderes); _prSet('proc-objetivo',d.objetivo); _prSet('proc-validade',d.validadeDias); _prSet('proc-data',d.dataAssinatura);
+  document.getElementById('proc-preview-wrap').style.display='none';
+}
+function abrirNovaProcuracao(){
+  editandoProcuracaoId=null;
+  document.getElementById('proc-titulo-modal').textContent='Nova procuração';
+  _prPreencher({outorgadoNome:PROCURACAO_OUTORGADO_PADRAO.nome, outorgadoCpf:PROCURACAO_OUTORGADO_PADRAO.cpf, outorgadoEndereco:PROCURACAO_OUTORGADO_PADRAO.endereco,
+    poderes:PROCURACAO_PODERES_PADRAO, objetivo:PROCURACAO_OBJETIVO_PADRAO, validadeDias:60, dataAssinatura:hojeLocal()});
+  document.getElementById('mo-procuracao').classList.add('open');
+}
+function editarProcuracao(id){
+  const c=PROCURACOES.find(x=>x.id===id); if(!c) return;
+  editandoProcuracaoId=id;
+  document.getElementById('proc-titulo-modal').textContent='Editar / regerar procuração';
+  _prPreencher(c.dadosCompletos||{});
+  document.getElementById('mo-procuracao').classList.add('open');
+}
+function coletarDadosProcuracao(){
+  const d={tipoDocumento:'procuracao', modelo:'procuracao',
+    nome:_prGet('proc-nome'), cpf:_prGet('proc-cpf'), endereco:_prGet('proc-endereco'),
+    outorgadoNome:_prGet('proc-onome'), outorgadoCpf:_prGet('proc-ocpf'), outorgadoEndereco:_prGet('proc-oendereco'),
+    poderes:_prGet('proc-poderes')||PROCURACAO_PODERES_PADRAO, objetivo:_prGet('proc-objetivo')||PROCURACAO_OBJETIVO_PADRAO,
+    validadeDias:parseInt(document.getElementById('proc-validade')?.value)||60,
+    dataAssinatura:document.getElementById('proc-data')?.value||hojeLocal()};
+  if(!d.nome||!d.cpf||!d.endereco){toast('Preencha nome, CPF e endereço do outorgante.','er');return null;}
+  if(!d.outorgadoNome||!d.outorgadoCpf){toast('Preencha nome e CPF do outorgado.','er');return null;}
+  return d;
+}
+function prevVisualizarProcuracao(){
+  const d=coletarDadosProcuracao(); if(!d) return;
+  document.getElementById('proc-preview').innerHTML=contratoBlocosParaHtml(montarBlocosProcuracao(d),true);
+  document.getElementById('proc-preview-wrap').style.display='block';
+}
+async function salvarEExportarProcuracao(formato){
+  const d=coletarDadosProcuracao(); if(!d) return;
+  const blocos=montarBlocosProcuracao(d);
+  const nomeBase='Procuracao_'+d.nome.replace(/[^a-zA-Z0-9]+/g,'_');
+  try{
+    if(formato==='pdf') await gerarPdfContrato(blocos, nomeBase+'.pdf', true);
+    else await gerarDocxContrato(blocos, nomeBase+'.docx', true);
+  }catch(e){ toast('Erro ao gerar arquivo: '+e.message,'er'); return; }
+  try{
+    const registro={
+      tipoDocumento:'procuracao', modelo:'procuracao', modeloLabel:'Procuração — Energia',
+      clienteNome:d.nome, clienteDoc:d.cpf, endereco:d.endereco, valorTotal:0, valorExtenso:'',
+      dataAssinatura:d.dataAssinatura, prazoDias:d.validadeDias,
+      geradoPor:(usuarioAtual&&(usuarioAtual.displayName||usuarioAtual.email))||'?',
+      geradoEm:firebase.firestore.FieldValue.serverTimestamp(),
+      dadosCompletos:d
+    };
+    if(editandoProcuracaoId){ await db.collection('contratos').doc(editandoProcuracaoId).set(registro,{merge:true}); }
+    else { editandoProcuracaoId=(await db.collection('contratos').add(registro)).id; }
+    toast('Procuração gerada e salva no histórico.','ok');
+  }catch(e){ toast('Arquivo gerado, mas não foi possível salvar no histórico: '+e.message,'er'); }
+}
+async function deletarProcuracao(id){
+  if(!confirm('Excluir esta procuração do histórico?')) return;
+  try{ await db.collection('contratos').doc(id).delete(); toast('Procuração excluída.','ok'); }
+  catch(e){ toast('Erro ao excluir: '+e.message,'er'); }
+}
+function renderProcuracoes(){
+  const el=document.getElementById('proc-lista'); if(!el) return;
+  const busca=(document.getElementById('proc-busca')?.value||'').trim().toLowerCase();
+  let lista=PROCURACOES;
+  if(busca) lista=lista.filter(c=>(c.clienteNome||'').toLowerCase().includes(busca));
+  if(!lista.length){ el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txts);font-size:13px">Nenhuma procuração gerada ainda. Clique em "Nova procuração" para começar.</div>'; return; }
+  el.innerHTML=lista.map(c=>{
+    const dt=c.geradoEm?.toDate?c.geradoEm.toDate().toLocaleDateString('pt-BR'):'—';
+    return `<div style="background:var(--br);border:1px solid var(--ln);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:700;font-size:14px">${c.clienteNome||'—'}</div>
+        <div style="font-size:12px;color:var(--txts);margin-top:2px">CPF ${c.clienteDoc||'—'}</div>
+        <div style="font-size:11px;color:var(--txts);margin-top:2px">Por ${c.geradoPor||'—'} · ${dt}</div>
+      </div>
+      <button onclick="editarProcuracao('${c.id}')" class="btn btn-g" style="padding:5px 12px;font-size:12px">Editar / regerar</button>
+      <button onclick="deletarProcuracao('${c.id}')" class="btn btn-d" style="padding:5px 10px;font-size:12px" aria-label="Excluir procuração">Excluir</button>
+    </div>`;
+  }).join('');
+}
+
 function initContratosListener(){
   db.collection('contratos').orderBy('geradoEm','desc').limit(100).onSnapshot(snap=>{
-    CONTRATOS=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderContratos();
+    const todos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    CONTRATOS=todos.filter(c=>c.tipoDocumento!=='procuracao');
+    PROCURACOES=todos.filter(c=>c.tipoDocumento==='procuracao');
+    renderContratos(); renderProcuracoes();
   });
 }
 function renderContratos(){
