@@ -2897,6 +2897,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ══ AUTH ══
 let usuarioAtual=null;
+// Financeiro: item do menu só para Ícaro, Raiane e Brenda
+const FIN_USERS = ["icarocaio18@gmail.com", "shelydamachado@solarmachadoeng.com.br", "brendavirna@hotmail.com"];
+function _mostrarNavFinanceiro(email) {
+  const ok = FIN_USERS.includes((email || '').toLowerCase());
+  const nav = document.getElementById('nav-financeiro'), sep = document.getElementById('sep-financeiro');
+  if (nav) nav.style.display = ok ? 'flex' : 'none';
+  if (sep) sep.style.display = ok ? 'block' : 'none';
+  return ok;
+}
+
 let isAdmin=false;
 const auth=firebase.auth();
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(e=>console.warn('Erro ao definir persistência de login:',e.message));
@@ -2969,10 +2979,7 @@ auth.onAuthStateChanged(async user=>{
         if (btnTabI) btnTabI.style.display = 'block';
       }
       // Financeiro: acesso restrito a Ícaro, Raiane e Brenda
-      const FIN_USERS = ["icarocaio18@gmail.com", "shelydamachado@solarmachadoeng.com.br", "brendavirna@hotmail.com"];
-      if (FIN_USERS.includes(user.email)) {
-        const navFin = document.getElementById('nav-financeiro');
-        const sepFin = document.getElementById('sep-financeiro');
+      if (_mostrarNavFinanceiro(user.email)) {
         // Importar planilha: só a conta do Ícaro
         if (_impPermitido()) {
           const btnImp = document.getElementById('btn-importar-fin');
