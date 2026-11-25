@@ -4712,7 +4712,7 @@ async function excluirMovimentacao() {
 // IMPORTAÇÃO DA PLANILHA FINANCEIRA
 // A planilha é a única fonte: o arquivo é lido no navegador e nada dela fica no código.
 // ══════════════════════════════════
-let _impSheets = [], _impIgnoradas = 0;
+let _impSheets = [];
 const IMPORTA_PLANILHA_EMAIL = 'icarocaio18@gmail.com';
 function _impPermitido() { return (usuarioAtual?.email || '').toLowerCase() === IMPORTA_PLANILHA_EMAIL; }
 function abrirImportadorPlanilha() {
@@ -4720,7 +4720,7 @@ function abrirImportadorPlanilha() {
   const f = document.getElementById('imp-file'); f.value = ''; f.click();
 }
 function _impHash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
-function _impBase(m) { return m.data + '|' + m.tipo + '|' + m.valor.toFixed(2) + '|' + m.desc.toLowerCase().replace(/\s+/g, ' ').trim(); }
+function _impBase(m) { return (m.dataEstimada ? 'sem-data' : m.data) + '|' + m.tipo + '|' + m.valor.toFixed(2) + '|' + m.desc.toLowerCase().replace(/\s+/g, ' ').trim(); }
 function _impData(v) {
   if (typeof v === 'number' && v > 20000 && v < 80000) { const d = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 86400000); return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()]; }
   const m = String(v || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return m ? [+m[3], +m[2], +m[1]] : null;
@@ -4735,27 +4735,34 @@ async function lerPlanilhaFinanceira(ev) {
   if (typeof XLSX === 'undefined') { toast('A biblioteca de planilhas não carregou. Recarregue a página.', 'er'); return; }
   try {
     const wb = XLSX.read(await arq.arrayBuffer(), { type: 'array' });
-    _impSheets = []; _impIgnoradas = 0;
+    _impSheets = [];
     wb.SheetNames.forEach(nome => {
       if (!/financeiro/i.test(nome)) return;
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[nome], { header: 1, raw: true, defval: null });
       const ano = (nome.match(/(\d{4})/) || [])[1] ? +nome.match(/(\d{4})/)[1] : null;
-      const movs = [], corrigidas = [];
+      const movs = [], corrigidas = [], puladas = [], inferidas = [];
+      const hoje = new Date(); // linhas sem data vão para o fim do mês atual (mês vigente)
       rows.forEach(r => {
-        const dt = _impData(r[0]); if (!dt) return;
-        const tipoRaw = String(r[2] || '').trim();
-        if (/prevista/i.test(tipoRaw)) { _impIgnoradas++; return; }
-        if (tipoRaw !== 'Entrada' && tipoRaw !== 'Saída') return;
-        const valor = _impValor(r[3]); const desc = String(r[4] || '').trim();
-        if (!isFinite(valor) || valor <= 0 || !desc) return;
+        const tm = String(r[2] || '').trim().match(/^(entrada|sa[ií]da)(\s+prevista)?$/i);
+        if (!tm) return;
+        const tipoRaw = (/^entrada/i.test(tm[1]) ? 'Entrada' : 'Saída') + (tm[2] ? ' Prevista' : '');
+        let dt = _impData(r[0]); const valor = _impValor(r[3]); const desc = String(r[4] || '').trim();
+        if (/^(entrada|sa[ií]da)s?\s+ano\s+de\b/i.test(desc)) return;
+        let inferida = false;
+        if (!dt && desc && isFinite(valor) && valor > 0) { dt = [hoje.getFullYear(), hoje.getMonth() + 1, new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate()]; inferida = true; }
+        const falta = [!dt && 'data', (!isFinite(valor) || valor <= 0) && 'valor', !desc && 'descrição'].filter(Boolean);
+        if (falta.length) { if (desc) puladas.push(tipoRaw + ' · ' + desc.slice(0, 45) + ' (sem ' + falta.join(' e ') + ')'); return; }
         let [y, mo, d] = dt;
-        if (ano && Math.abs(y - ano) > 1) { corrigidas.push(desc.slice(0, 40) + ' (' + d + '/' + mo + '/' + y + ' → ' + ano + ')'); y = ano; }
+        const ultimo = new Date(Date.UTC(y > 1900 ? y : (ano || 2025), mo, 0)).getUTCDate();
+        if (!inferida && d > ultimo) { corrigidas.push(desc.slice(0, 40) + ' (dia ' + d + '/' + mo + ' não existe → ' + ultimo + '/' + mo + ')'); d = ultimo; }
+        if (!inferida && ano && Math.abs(y - ano) > 1) { corrigidas.push(desc.slice(0, 40) + ' (' + d + '/' + mo + '/' + y + ' → ' + ano + ')'); y = ano; }
+        if (inferida) inferidas.push(tipoRaw + ' · ' + desc.slice(0, 40) + ' → ' + d + '/' + mo + '/' + y);
         const cls = String(r[5] || '').trim();
         const cat = /custos? fixo/i.test(cls) ? 'Custos FIXO' : /custo variado/i.test(cls) ? 'Custo Variado' : /prolabore|pró-labore/i.test(desc) ? 'Prolabore' : cls ? 'Sistema Solar' : '';
         movs.push({ data: y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0'), tipo: tipoRaw, valor: Math.round(valor * 100) / 100, desc,
-          ref: cat === 'Sistema Solar' ? cls : '', categoria: cat, obs: String(r[6] || '').trim() });
+          ref: cat === 'Sistema Solar' ? cls : '', categoria: cat, obs: String(r[6] || '').trim(), ...(inferida ? { dataEstimada: true } : {}) });
       });
-      if (movs.length) _impSheets.push({ nome, movs, corrigidas, marcada: /^\d{4}\s+financeiro$/i.test(nome.trim()) });
+      if (movs.length) _impSheets.push({ nome, movs, corrigidas, puladas, inferidas, marcada: /^\d{4}\s+financeiro$/i.test(nome.trim()) });
     });
     if (!_impSheets.length) { toast('Não encontrei abas financeiras nessa planilha.', 'er'); return; }
     _impRender(); document.getElementById('mo-import-plan').classList.add('open');
@@ -4780,17 +4787,23 @@ function _impPlano() {
 }
 function _impRender() {
   const p = _impPlano();
-  const ent = p.docs.filter(d => d.m.tipo === 'Entrada').reduce((s, d) => s + d.m.valor, 0), sai = p.docs.filter(d => d.m.tipo === 'Saída').reduce((s, d) => s + d.m.valor, 0);
+  const soma = t => p.docs.filter(d => d.m.tipo === t).reduce((s, d) => s + d.m.valor, 0);
+  const ent = soma('Entrada'), sai = soma('Saída'), entP = soma('Entrada Prevista'), saiP = soma('Saída Prevista');
+  const nPrev = p.docs.filter(d => d.m.tipo.includes('Prevista')).length;
   const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const corr = _impSheets.filter(s => s.marcada).flatMap(s => s.corrigidas);
+  const pul = _impSheets.filter(s => s.marcada).flatMap(s => s.puladas);
+  const inf = _impSheets.filter(s => s.marcada).flatMap(s => s.inferidas);
   document.getElementById('imp-corpo').innerHTML =
     '<p style="font-size:13px;color:var(--txts);margin-bottom:12px">Marque as abas que valem. A aba "Financeiro - Geral" costuma ser uma versão antiga das abas por ano.</p>' +
     _impSheets.map((s, i) => '<label style="display:flex;gap:10px;align-items:center;padding:8px 0;font-size:13.5px;cursor:pointer"><input type="checkbox" ' + (s.marcada ? 'checked' : '') + ' onchange="_impSheets[' + i + '].marcada=this.checked;_impRender()"> <span style="flex:1"><b>' + s.nome + '</b></span><span style="color:var(--txts)">' + s.movs.length + ' linhas</span></label>').join('') +
     '<div style="border-top:1px solid var(--ln);margin:12px 0;padding-top:12px;font-size:13.5px;line-height:1.7">' +
     '<div><b>' + p.docs.length + '</b> movimentações: <b>' + p.novas + '</b> novas e <b>' + p.atualizadas + '</b> já importadas</div>' +
     '<div>Entradas <b style="color:var(--ok)">' + brl(ent) + '</b> · Saídas <b style="color:var(--er)">' + brl(sai) + '</b> · Saldo <b>' + brl(ent - sai) + '</b></div>' +
-    (_impIgnoradas ? '<div style="color:var(--txts)">' + _impIgnoradas + ' linhas "Prevista" ficaram de fora, porque ainda não aconteceram.</div>' : '') +
+    (nPrev ? '<div style="color:var(--txts)">Inclui <b>' + nPrev + '</b> previstas (ainda não aconteceram): entradas ' + brl(entP) + ' · saídas ' + brl(saiP) + '. Elas não entram nos totais acima.</div>' : '') +
     (corr.length ? '<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--warn)">' + corr.length + ' datas com ano errado foram corrigidas</summary><div style="font-size:12px;color:var(--txts);padding:6px 0">' + corr.slice(0, 12).join('<br>') + (corr.length > 12 ? '<br>…' : '') + '</div></details>' : '') +
+    (inf.length ? '<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--warn)">' + inf.length + ' linhas sem data foram para o fim do mês atual</summary><div style="font-size:12px;color:var(--txts);padding:6px 0;max-height:140px;overflow:auto">' + inf.join('<br>') + '</div></details>' : '') +
+    (pul.length ? '<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--warn)">' + pul.length + ' linhas ficaram de fora por falta de data ou valor</summary><div style="font-size:12px;color:var(--txts);padding:6px 0;max-height:140px;overflow:auto">' + pul.join('<br>') + '<br><i>Complete na planilha e importe de novo: o que já foi importado não duplica.</i></div></details>' : '') +
     '</div>' +
     (p.antigas.length ? '<label style="display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:8px;background:var(--warn2);font-size:13px;cursor:pointer"><input type="checkbox" id="imp-subst" ' + (p.antigasForaPlanilha === 0 ? 'checked' : '') + ' style="margin-top:3px"><span>Remover as <b>' + p.antigas.length + '</b> movimentações da importação antiga, que passam a vir da planilha.' + (p.antigasForaPlanilha ? ' <b>' + p.antigasForaPlanilha + ' delas não aparecem na planilha</b>, então deixei desmarcado.' : '') + ' Registros lançados à mão não são tocados.</span></label>' : '');
   document.getElementById('imp-btn-ok').disabled = !p.docs.length;
